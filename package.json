@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "format": "prettier --write .",
     "serve:ssr:angular-shopapp": "node dist/angular-shopapp/server/server.mjs"
   },
   "private": true,
@@ -22,6 +23,8 @@
     "@angular/ssr": "^19.2.13",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "bootstrap": "^5.3.6",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "express": "^4.18.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

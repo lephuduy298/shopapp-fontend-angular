@@ -12,5 +12,5 @@ export const routes: Routes = [
     { path: '', component: OrderConfirmComponent },
     { path: '', component: LoginComponent },
     { path: '', component: RegisterComponent },
-    { path: '', component: DetailProductComponent }
+    { path: '', component: DetailProductComponent },
 ];
