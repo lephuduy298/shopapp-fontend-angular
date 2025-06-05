@@ -17,14 +17,14 @@ export class UserService {
     constructor(private http: HttpClient) {}
 
     private createHeaders(): HttpHeaders {
-        return new HttpHeaders({ 'Content-Type': 'application/json' });
+        return new HttpHeaders({ 'Content-Type': 'application/json', 'Accept-Language': 'vi' });
     }
 
     register(registerDTO: RegisterDTO): Observable<any> {
-        return this.http.post(this.apiRegister, registerDTO, { ...this.apiConfig, responseType: 'text' });
+        return this.http.post(this.apiRegister, registerDTO, this.apiConfig);
     }
 
     login(loginDTO: LoginDTO): Observable<any> {
-        return this.http.post(this.apiLogin, loginDTO, { ...this.apiConfig, responseType: 'text' });
+        return this.http.post(this.apiLogin, loginDTO, this.apiConfig);
     }
 }
