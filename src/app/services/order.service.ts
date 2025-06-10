@@ -16,4 +16,11 @@ export class OrderService {
         debugger;
         return this.http.post(this.apiConfig, orderData);
     }
+
+    getOrderById(orderId: number): Observable<any> {
+        debugger;
+        const apiGetOrderId: string = `${environment.apiBaseUrl}/orders/${orderId}`;
+
+        return this.http.get(apiGetOrderId);
+    }
 }
