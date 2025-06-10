@@ -50,3 +50,8 @@ td {
     border-radius: 30px;
     width: 200px;
 }
+
+.btn-right {
+  display: flex;
+  justify-content: flex-end; // đẩy nút về bên phải
+}
