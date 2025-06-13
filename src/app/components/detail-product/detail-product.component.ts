@@ -8,6 +8,8 @@ import { ProductImage } from '../models.ts/product.image';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
+import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-detail-product',
@@ -22,10 +24,15 @@ export class DetailProductComponent implements OnInit {
     productId: number = 0;
     quantity: number = 1;
 
-    constructor(private productService: ProductService, private cartService: CartService) {}
+    constructor(
+        private productService: ProductService,
+        private cartService: CartService,
+        private activatedRoute: ActivatedRoute,
+        private router: Router
+    ) {}
 
     ngOnInit() {
-        const idParam = 5;
+        const idParam = this.activatedRoute.snapshot.paramMap.get('id');
         if (idParam !== null) {
             this.productId = +idParam;
         }
@@ -96,7 +103,13 @@ export class DetailProductComponent implements OnInit {
 
     addToCart() {
         debugger;
-        if (this.product) this.cartService.addToCart(this.productId, this.quantity);
-        else console.log('không thể thêm sản phẩm vào giỏ hàng');
+        if (this.product) {
+            this.cartService.addToCart(this.productId, this.quantity);
+            alert('Thêm sản phẩm thành công');
+        } else console.log('không thể thêm sản phẩm vào giỏ hàng');
+    }
+
+    buyNow(): void {
+        this.router.navigate(['/orders']);
     }
 }

@@ -17,15 +17,11 @@
 
     <div class="row">
         <div class="col-lg-4 col-md-6" *ngFor="let product of products">
-            <div class="product-item">
+            <div class="product-item" (click)="onProductClick(product.id)">
                 <img [src]="product.url" alt="" class="product-image" />
                 <h3 class="product-name">{{ product.name }}</h3>
                 <p class="product-description">{{ product.description }}</p>
-                <p class="product-price">
-                    Giá:
-                    <del>${{ product.price * 1.2 }}</del>
-                    ${{ product.price }}
-                </p>
+                <p class="product-price">Giá: ${{ product.price }}</p>
                 <!-- <div class="product-rating">
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>

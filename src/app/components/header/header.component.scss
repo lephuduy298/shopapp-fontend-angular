@@ -1,3 +1,5 @@
+@import '../../styles/shared-style.scss';
+
 header {
     background-color: rgba(0, 0, 0, 0);
     color: rgb(173, 178, 203);
@@ -5,6 +7,7 @@ header {
 
 .navbar {
     background-color: rgba(0, 0, 0, 0) !important;
+    // justify-content: space-between;
 }
 
 .navbar .container {
@@ -22,6 +25,35 @@ header {
 }
 
 .navbar .container .navbar-nav .nav-link.active {
-    background-color: rgb(127, 68, 255) !important;
+    background-color: $shopapp-color !important;
     color: white !important;
+}
+
+// .nav-extra{
+//     background-color: rgb(109, 92, 145);
+
+// }
+
+.popover-list {
+    // padding: 10px;
+    // background-color: rgb(109, 92, 145);
+}
+.popover-body {
+    padding: 0px;
+}
+.popover-item {
+    display: block;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: #333;
+}
+
+.popover-item:hover {
+    background-color: rgb(255, 255, 255);
+    color: green;
+    /* Change text color to red on hover */
+}
+
+a {
+    cursor: pointer;
 }

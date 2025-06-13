@@ -7,7 +7,8 @@ import { OrderDetailComponent } from './app/components/order-detail/order.detail
 import { LoginComponent } from './app/components/login/login.component';
 import { RegisterComponent } from './app/components/register/register.component';
 import { DetailProductComponent } from './app/components/detail-product/detail-product.component';
+import { AppComponent } from './app/app/app.component';
 
-const bootstrap = () => bootstrapApplication(OrderDetailComponent, config);
+const bootstrap = () => bootstrapApplication(AppComponent, config);
 
 export default bootstrap;

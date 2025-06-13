@@ -3,14 +3,14 @@ import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { RegisterDTO } from '../../dtos/user/register.dto';
 
 @Component({
     selector: 'app-register',
     standalone: true,
-    imports: [HeaderComponent, FooterComponent, FormsModule, CommonModule],
+    imports: [FormsModule, CommonModule, RouterLink],
     templateUrl: './register.component.html',
     styleUrl: './register.component.scss',
 })
@@ -111,5 +111,10 @@ export class RegisterComponent {
                 this.registerForm.form.controls['dateOfBirth'].setErrors(null);
             }
         }
+    }
+
+    login() {
+        debugger;
+        this.router.navigate(['/login']);
     }
 }

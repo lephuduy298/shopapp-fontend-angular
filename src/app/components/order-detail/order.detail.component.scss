@@ -1,3 +1,5 @@
+@import '../../styles/shared-style.scss';
+
 .container {
     color: white;
     // height: 100vh;
@@ -45,13 +47,13 @@ td {
 }
 
 .btn-gradient {
-    background: linear-gradient(to right, rgb(225, 64, 180), rgb(126, 43, 237));
+    background: linear-gradient(to right, $shopapp-tint-color, $shopapp-color);
     color: white;
     border-radius: 30px;
     width: 200px;
 }
 
 .btn-right {
-  display: flex;
-  justify-content: flex-end; // đẩy nút về bên phải
+    display: flex;
+    justify-content: flex-end; // đẩy nút về bên phải
 }

@@ -1,3 +1,5 @@
+@import '../../styles/shared-style.scss';
+
 .container {
     color: white;
 }
@@ -9,14 +11,14 @@
 }
 
 .form-control {
-    background-color: rgb(19, 23, 42);
+    background-color: $shopapp-background-color;
     border: 1px solid rgb(29, 33, 54);
     color: white;
 }
 
 .form-control:focus {
     border-color: white;
-    background-color: rgb(19, 23, 42);
+    background-color: $shopapp-background-color;
 }
 
 .form-label {
@@ -24,7 +26,7 @@
 }
 
 .product-header {
-    color: rgb(233, 66, 176);
+    color: $shopapp-tint-color;
 }
 
 .product-order {
@@ -65,7 +67,7 @@ td {
 }
 
 .btn-gradient {
-    background: linear-gradient(to right, rgb(225, 64, 180), rgb(126, 43, 237));
+    background: linear-gradient(to right, $shopapp-tint-color, $shopapp-color);
     color: white;
     border-radius: 30px;
     width: 200px;

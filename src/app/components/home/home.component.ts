@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 import { CategoryService } from '../../services/category.service';
 import { Category } from '../models.ts/category';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-home',
@@ -26,7 +27,7 @@ export class HomeComponent implements OnInit {
     keyword: string = '';
     selectedCategoryId: number = 0;
 
-    constructor(private productService: ProductService, private categoryService: CategoryService) {}
+    constructor(private productService: ProductService, private categoryService: CategoryService, private router: Router) {}
 
     ngOnInit() {
         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
@@ -98,5 +99,10 @@ export class HomeComponent implements OnInit {
         }
 
         return new Array(endPage - startPage + 1).fill(0).map((_, index) => startPage + index);
+    }
+
+    onProductClick(productId: number) {
+        debugger;
+        this.router.navigate(['/products', productId]);
     }
 }

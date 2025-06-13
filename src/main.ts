@@ -6,5 +6,6 @@ import { OrderDetailComponent } from './app/components/order-detail/order.detail
 import { LoginComponent } from './app/components/login/login.component';
 import { RegisterComponent } from './app/components/register/register.component';
 import { DetailProductComponent } from './app/components/detail-product/detail-product.component';
+import { AppComponent } from './app/app/app.component';
 
-bootstrapApplication(OrderDetailComponent, appConfig).catch((err) => console.error(err));
+bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err));

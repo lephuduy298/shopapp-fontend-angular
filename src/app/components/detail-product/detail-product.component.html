@@ -40,7 +40,13 @@
                 </button>
             </div>
             <div class="row">
-                <div class="thumbnail-container">
+                <div
+                    class="thumbnail-container"
+                    [ngClass]="{
+                        'justify-space-between': (product?.product_images?.length ?? 0) >= 4,
+                        'justify-start': (product?.product_images?.length ?? 0) < 4
+                    }"
+                >
                     <div
                         *ngFor="let image of product?.product_images; let i = index"
                         class="thumbnail-item"
@@ -59,7 +65,7 @@
                 <p>Giá: $99</p>
                 <div class="product-actions">
                     <button class="btn btn-primary" (click)="addToCart()">Thêm vào giỏ hàng</button>
-                    <button class="btn btn-success">Mua ngay</button>
+                    <button class="btn btn-success" (click)="buyNow()">Mua ngay</button>
                 </div>
                 <div class="product-quantity">
                     <div class="border-wrapper">
