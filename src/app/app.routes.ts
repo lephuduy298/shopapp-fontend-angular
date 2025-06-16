@@ -9,8 +9,10 @@ import { UserProfileComponent } from './components/user-profile/user.profile.com
 import { AdminComponent } from './components/admin/admin.component';
 import { AuthGuardFn } from './guards/auth.guard';
 import { AdminGuardFn } from './guards/admin.guard';
+import { adminRoutes } from './components/admin/admin.routes';
 
 export const routes: Routes = [
+    ...adminRoutes,
     { path: '', component: HomeComponent },
     { path: 'admin', component: AdminComponent, canActivate: [AdminGuardFn] },
     { path: 'login', component: LoginComponent },

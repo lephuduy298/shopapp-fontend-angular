@@ -32,6 +32,7 @@ export class OrderComponent implements OnInit {
         email: '', // Khởi tạo rỗng, sẽ được điền từ form
         phone_number: '', // Khởi tạo rỗng, sẽ được điền từ form
         address: '', // Khởi tạo rỗng, sẽ được điền từ form
+        status: 'pending',
         note: '', // Có thể thêm trường ghi chú nếu cần
         total_money: 0, // Sẽ được tính toán dựa trên giỏ hàng và mã giảm giá
         payment_method: 'cod', // Mặc định là thanh toán khi nhận hàng (COD)
