@@ -8,6 +8,8 @@ import { TokenService } from '../../services/token.service';
 import { NavigationEnd, RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { Category } from '../models.ts/category';
+import { CategoryService } from '../../services/category.service';
 
 @Component({
     selector: 'app-header',
@@ -16,15 +18,23 @@ import { filter } from 'rxjs';
     styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit {
+handleCategoryClick(arg0: number) {
+throw new Error('Method not implemented.');
+}
     userResponse?: UserResponse | null;
     isPopoverOpen = false;
     activeNavItem: number = 0;
+    categories: Category[] = [];
+    keyword: string = '';
+    selectedCategoryId: number = 0;
+    isMenuOpen = false;
 
     constructor(
         private userService: UserService,
         private popoverModule: NgbPopoverModule,
         private tokenService: TokenService,
-        private router: Router
+        private router: Router,
+        private categoryService: CategoryService
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
@@ -43,11 +53,31 @@ export class HeaderComponent implements OnInit {
     ngOnInit(): void {
         debugger;
         this.userResponse = this.userService.getUserFromLocalStorage();
+        this.getCategories();
     }
+
+    toggleMenu() {
+        this.isMenuOpen = !this.isMenuOpen;
+      }
 
     togglePopover(event: Event): void {
         event.preventDefault();
         this.isPopoverOpen = !this.isPopoverOpen;
+    }
+
+    getCategories() {
+        this.categoryService.getCategories().subscribe({
+            next: (categories: Category[]) => {
+                debugger;
+                this.categories = categories;
+            },
+            complete: () => {
+                debugger;
+            },
+            error: (error: any) => {
+                console.error('Error fetching categories:', error);
+            },
+        });
     }
 
     handleItemClick(index: number) {
