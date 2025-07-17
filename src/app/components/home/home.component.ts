@@ -116,24 +116,27 @@ export class HomeComponent implements OnInit {
 
                 response.result.forEach((product: Product) => {
                     product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
-                    debugger;
                 });
                 let filtered = response.result;
                 // Nếu có filter thì filter toàn bộ và phân trang lại ở frontend
                 if (needFrontendFilter) {
+                    debugger;
                     // Reset về trang 1 khi filter
                     this.currentPage = 1;
                     // Lọc theo hãng
                     if (this.selectedBrands.length > 0) {
+                        debugger;
                         filtered = filtered.filter((p: any) => {
+                            debugger;
                             const brandSpec = p.product_specifications.find(
                                 (spec: any) =>
-                                    spec.specName?.toLowerCase().includes('hãng') ||
-                                    spec.name?.toLowerCase().includes('brand')
+                                    spec.spec_name?.toLowerCase() === 'hãng sản xuất' ||
+                                    spec.spec_value?.toLowerCase() === 'hãng sản xuất'
                             );
-                            return brandSpec && this.selectedBrands.includes(brandSpec.specValue);
+                            return brandSpec && this.selectedBrands.includes(brandSpec.spec_value);
                         });
                     }
+
                     // Lọc theo giá
                     if (this.selectedPriceRange) {
                         filtered = filtered.filter(
