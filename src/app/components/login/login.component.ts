@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
         const message = `phone: ${this.phoneNumber} 
         password: ${this.password} role_id: ${this.selectedRole}`;
         debugger;
-        // alert('Information: ' + message);
+        // console.log('Information: ' + message);
 
         const loginDTO: LoginDTO = {
             phone_number: this.phoneNumber,
@@ -105,7 +105,7 @@ export class LoginComponent implements OnInit {
                         }
                     },
                     error: (error: any) => {
-                        alert(`Cannot login: ${error.error.message}`);
+                        console.log(`Cannot login: ${error.error.message}`);
                     },
                 });
             },
@@ -115,7 +115,7 @@ export class LoginComponent implements OnInit {
             error: (error: any) => {
                 // Xử lý lỗi nếu có
                 debugger;
-                alert(`Cannot login: ${error.error.message}`);
+                console.log(`Cannot login: ${error.error.message}`);
             },
         });
     }

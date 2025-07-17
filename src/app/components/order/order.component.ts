@@ -121,7 +121,7 @@ export class OrderComponent implements OnInit {
                 next: (response: any) => {
                     debugger;
                     this.cartService.clearCart();
-                    alert('Đặt hàng thành công');
+                    console.log('Đặt hàng thành công');
                     this.router.navigate(['/']);
                 },
                 complete: () => {
@@ -130,12 +130,12 @@ export class OrderComponent implements OnInit {
                 },
                 error: (error: any) => {
                     debugger;
-                    alert(`Lỗi khi đặt hàng: ${error}`);
+                    console.log(`Lỗi khi đặt hàng: ${error}`);
                 },
             });
         } else {
             // Hiển thị thông báo lỗi hoặc xử lý khác
-            alert('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
+            console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
         }
     }
 }

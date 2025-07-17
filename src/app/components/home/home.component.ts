@@ -27,6 +27,19 @@ export class HomeComponent implements OnInit {
     keyword: string = '';
     selectedCategoryId: number = 0;
 
+    // Thêm filter hãng và giá
+    brands: string[] = [];
+    selectedBrands: string[] = [];
+    priceRanges = [
+        { label: 'Dưới 10 triệu', min: 0, max: 10000000 },
+        { label: 'Từ 10 - 15 triệu', min: 10000000, max: 15000000 },
+        { label: 'Từ 15 - 20 triệu', min: 15000000, max: 20000000 },
+        { label: 'Từ 20 - 25 triệu', min: 20000000, max: 25000000 },
+        { label: 'Từ 25 - 30 triệu', min: 25000000, max: 30000000 },
+        { label: 'Trên 30 triệu', min: 30000000, max: 1000000000 },
+    ];
+    selectedPriceRange: any = null;
+
     constructor(
         private productService: ProductService,
         private categoryService: CategoryService,
@@ -42,6 +55,16 @@ export class HomeComponent implements OnInit {
             this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
         });
         this.getCategories();
+        // Lấy danh sách brands từ server
+        this.categoryService.getBrandCategories().subscribe({
+            next: (brands: any[]) => {
+                debugger;
+                this.brands = brands;
+            },
+            error: (err) => {
+                console.error('Error fetching brands:', err);
+            },
+        });
     }
 
     searchProducts() {
@@ -66,8 +89,28 @@ export class HomeComponent implements OnInit {
         });
     }
 
+    onBrandToggle(event: Event, brand: string): void {
+        const input = event.target as HTMLInputElement;
+        const isChecked = input.checked;
+
+        if (isChecked) {
+            if (!this.selectedBrands.includes(brand)) {
+                this.selectedBrands.push(brand);
+            }
+        } else {
+            this.selectedBrands = this.selectedBrands.filter((b) => b !== brand);
+        }
+        // Gọi lại getProducts để filter theo hãng ngay khi chọn
+        this.currentPage = 1;
+        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+    }
+
     getProducts(keyword: string, selectedCategoryId: number, page: number, limit: number) {
-        this.productService.getProducts(keyword, selectedCategoryId, page, limit).subscribe({
+        // Nếu có filter hãng hoặc giá thì lấy toàn bộ sản phẩm để filter ở frontend
+        const needFrontendFilter = this.selectedBrands.length > 0 || this.selectedPriceRange;
+        const fetchPage = needFrontendFilter ? 1 : page;
+        const fetchLimit = needFrontendFilter ? 10000 : limit;
+        this.productService.getProducts(keyword, selectedCategoryId, fetchPage, fetchLimit).subscribe({
             next: (response: any) => {
                 debugger;
 
@@ -75,10 +118,40 @@ export class HomeComponent implements OnInit {
                     product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
                     debugger;
                 });
-                this.products = response.result;
-                this.totalPages = response.meta.totalPage;
-                debugger;
+                let filtered = response.result;
+                // Nếu có filter thì filter toàn bộ và phân trang lại ở frontend
+                if (needFrontendFilter) {
+                    // Reset về trang 1 khi filter
+                    this.currentPage = 1;
+                    // Lọc theo hãng
+                    if (this.selectedBrands.length > 0) {
+                        filtered = filtered.filter((p: any) => {
+                            const brandSpec = p.product_specifications.find(
+                                (spec: any) =>
+                                    spec.specName?.toLowerCase().includes('hãng') ||
+                                    spec.name?.toLowerCase().includes('brand')
+                            );
+                            return brandSpec && this.selectedBrands.includes(brandSpec.specValue);
+                        });
+                    }
+                    // Lọc theo giá
+                    if (this.selectedPriceRange) {
+                        filtered = filtered.filter(
+                            (p: any) => p.price >= this.selectedPriceRange.min && p.price <= this.selectedPriceRange.max
+                        );
+                    }
+                    const filteredTotal = filtered.length;
+                    this.totalPages = Math.max(1, Math.ceil(filteredTotal / this.itemsPerPage));
+                    const startIdx = (this.currentPage - 1) * this.itemsPerPage;
+                    const endIdx = startIdx + this.itemsPerPage;
+                    this.products = filtered.slice(startIdx, endIdx);
+                } else {
+                    // Không filter, phân trang như backend trả về
+                    this.products = filtered;
+                    this.totalPages = response.meta.totalPage;
+                }
                 this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                debugger;
             },
             complete: () => {
                 debugger;
@@ -86,7 +159,7 @@ export class HomeComponent implements OnInit {
             error: (error: any) => {
                 // Xử lý lỗi nếu có
                 debugger;
-                alert(`Cannot get all products: ${error.error.message}`);
+                console.log(`Cannot get all products: ${error.error.message}`);
             },
         });
     }
@@ -114,5 +187,14 @@ export class HomeComponent implements OnInit {
     onProductClick(productId: number) {
         debugger;
         this.router.navigate(['/products', productId]);
+    }
+
+    // Khi thay đổi filter hãng
+
+    // Khi thay đổi filter giá
+    onPriceRangeChange(range: any) {
+        this.selectedPriceRange = range;
+        this.currentPage = 1;
+        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
     }
 }

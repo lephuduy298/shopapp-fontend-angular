@@ -15,4 +15,8 @@ export class CategoryService {
     getCategories(): Observable<Category[]> {
         return this.http.get<Category[]>(this.apiConfig);
     }
+
+    getBrandCategories(): Observable<Category[]> {
+        return this.http.get<Category[]>(`${this.apiConfig}/brands`);
+    }
 }

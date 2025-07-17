@@ -105,6 +105,6 @@ export class HeaderComponent implements OnInit {
 
     setActiveNavItem(index: number) {
         this.activeNavItem = index;
-        alert(this.activeNavItem);
+        console.log(this.activeNavItem);
     }
 }

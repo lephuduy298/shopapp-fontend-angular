@@ -105,7 +105,7 @@ export class DetailProductComponent implements OnInit {
         debugger;
         if (this.product) {
             this.cartService.addToCart(this.productId, this.quantity);
-            alert('Thêm sản phẩm thành công');
+            console.log('Thêm sản phẩm thành công');
         } else console.log('không thể thêm sản phẩm vào giỏ hàng');
     }
 

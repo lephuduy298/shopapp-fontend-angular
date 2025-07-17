@@ -55,7 +55,7 @@ export class RegisterComponent {
         address: ${this.address} 
         isAccept: ${this.isAccepted}
         dateOfBirth: ${this.dateOfBirth}`;
-        // alert('Information: ' + message);
+        // console.log('Information: ' + message);
 
         const registerDTO: RegisterDTO = {
             fullname: this.fullName,
@@ -81,7 +81,7 @@ export class RegisterComponent {
             error: (error: any) => {
                 // Xử lý lỗi nếu có
                 debugger;
-                alert(`Cannot register: ${error.error.message}`);
+                console.log(`Cannot register: ${error.error.message}`);
             },
         });
     }

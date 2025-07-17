@@ -70,7 +70,7 @@ export class UserProfileComponent implements OnInit {
             },
             error: (error: any) => {
                 debugger;
-                alert(error.error.message);
+                console.log(error.error.message);
             },
         });
     }
@@ -105,12 +105,12 @@ export class UserProfileComponent implements OnInit {
                     this.router.navigate(['/login']);
                 },
                 error: (error: any) => {
-                    alert(error.error.message);
+                    console.log(error.error.message);
                 },
             });
         } else {
             if (this.userProfileForm.hasError('passwordMismatch')) {
-                alert('Mật khẩu và mật khẩu gõ lại chưa chính xác');
+                console.log('Mật khẩu và mật khẩu gõ lại chưa chính xác');
             }
         }
     }
