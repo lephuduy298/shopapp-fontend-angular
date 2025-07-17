@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
 import { ActivatedRoute } from '@angular/router';
+import { CategoryService } from '../../services/category.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -23,12 +24,15 @@ export class DetailProductComponent implements OnInit {
     currentImageIndex: number = 0;
     productId: number = 0;
     quantity: number = 1;
+    category: string = '';
+    originalPrice: number = 0;
 
     constructor(
         private productService: ProductService,
         private cartService: CartService,
         private activatedRoute: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        private categoryService: CategoryService
     ) {}
 
     ngOnInit() {
@@ -52,7 +56,9 @@ export class DetailProductComponent implements OnInit {
                     debugger;
                     this.product = response;
                     // Bắt đầu với ảnh đầu tiên
+                    this.originalPrice = this.product && this.product.price !== undefined ? this.product.price * 1.2 : 0; // Giả sử giá gốc là 20% cao hơn giá hiện tại
                     this.showImage(0);
+                    this.getCategoryName();
                 },
                 complete: () => {
                     debugger;
@@ -64,6 +70,19 @@ export class DetailProductComponent implements OnInit {
             });
         } else {
             console.error('Invalid productId:', idParam);
+        }
+    }
+
+    getCategoryName(): void {
+        if (this.product && this.product.category_id) {
+            this.categoryService.getCategoryById(this.product.category_id).subscribe(
+                (category: any) => {
+                    this.category = category.name; // Adjust property as needed
+                },
+                (error: any) => {
+                    console.error('Error fetching category:', error);
+                }
+            );
         }
     }
 

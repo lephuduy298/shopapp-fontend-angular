@@ -1,5 +1,5 @@
 export interface ProductSpecification {
     id: number;
-    name: string;
-    value: string;
+    spec_name: string;
+    spec_value: string;
 }

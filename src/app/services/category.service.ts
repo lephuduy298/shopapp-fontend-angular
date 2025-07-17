@@ -12,6 +12,10 @@ export class CategoryService {
 
     constructor(private http: HttpClient) {}
 
+    getCategoryById(id: number): Observable<Category> {
+        return this.http.get<Category>(`${this.apiConfig}/${id}`);
+    }
+
     getCategories(): Observable<Category[]> {
         return this.http.get<Category[]>(this.apiConfig);
     }
