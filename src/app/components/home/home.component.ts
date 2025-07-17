@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 import { CategoryService } from '../../services/category.service';
 import { Category } from '../models.ts/category';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 
 @Component({
     selector: 'app-home',
@@ -27,10 +27,20 @@ export class HomeComponent implements OnInit {
     keyword: string = '';
     selectedCategoryId: number = 0;
 
-    constructor(private productService: ProductService, private categoryService: CategoryService, private router: Router) {}
+    constructor(
+        private productService: ProductService,
+        private categoryService: CategoryService,
+        private router: Router,
+        private route: ActivatedRoute
+    ) {}
 
     ngOnInit() {
-        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        this.route.queryParams.subscribe((params: Params) => {
+            this.keyword = params['keyword'] || '';
+            this.selectedCategoryId = params['category'] ? +params['category'] : 0;
+            this.currentPage = 1;
+            this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        });
         this.getCategories();
     }
 

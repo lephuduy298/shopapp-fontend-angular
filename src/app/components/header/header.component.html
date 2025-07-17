@@ -32,8 +32,8 @@
       
       
     <!-- Search -->
-    <form class="header__search">
-      <input type="text" placeholder="Nhập tên điện thoại, máy tính, phụ kiện... cần tìm" />
+    <form class="header__search" (submit)="handleSearch($event)">
+      <input type="text" placeholder="Nhập tên điện thoại, máy tính, phụ kiện... cần tìm" [(ngModel)]="keyword" name="keyword" />
       <button type="submit" class="header__search-btn">
         <span class="header__search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
       </button>

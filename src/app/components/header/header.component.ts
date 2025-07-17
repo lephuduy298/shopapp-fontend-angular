@@ -18,9 +18,6 @@ import { CategoryService } from '../../services/category.service';
     styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnInit {
-handleCategoryClick(arg0: number) {
-throw new Error('Method not implemented.');
-}
     userResponse?: UserResponse | null;
     isPopoverOpen = false;
     activeNavItem: number = 0;
@@ -38,8 +35,6 @@ throw new Error('Method not implemented.');
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
-
-            // Xác định route hiện tại để set active
             if (url === '/') {
                 this.activeNavItem = 0;
             } else if (url.startsWith('/notifications')) {
@@ -51,14 +46,13 @@ throw new Error('Method not implemented.');
     }
 
     ngOnInit(): void {
-        debugger;
         this.userResponse = this.userService.getUserFromLocalStorage();
         this.getCategories();
     }
 
     toggleMenu() {
         this.isMenuOpen = !this.isMenuOpen;
-      }
+    }
 
     togglePopover(event: Event): void {
         event.preventDefault();
@@ -68,28 +62,45 @@ throw new Error('Method not implemented.');
     getCategories() {
         this.categoryService.getCategories().subscribe({
             next: (categories: Category[]) => {
-                debugger;
                 this.categories = categories;
             },
-            complete: () => {
-                debugger;
-            },
+            complete: () => {},
             error: (error: any) => {
                 console.error('Error fetching categories:', error);
             },
         });
     }
 
+    handleCategoryClick(categoryId: number) {
+        this.selectedCategoryId = categoryId;
+        this.isMenuOpen = false;
+        this.router.navigate(['/'], {
+            queryParams: {
+                category: categoryId,
+                keyword: this.keyword || undefined
+            }
+        });
+    }
+
+    handleSearch(event: Event) {
+        event.preventDefault();
+        this.router.navigate(['/'], {
+            queryParams: {
+                keyword: this.keyword || undefined,
+                category: this.selectedCategoryId || undefined
+            }
+        });
+    }
+
     handleItemClick(index: number) {
         if (index === 0) {
-            debugger;
             this.router.navigate(['/user-profile']);
         } else if (index === 2) {
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
             this.userResponse = this.userService.getUserFromLocalStorage();
         }
-        this.isPopoverOpen = false; // Close the popover after clicking an item
+        this.isPopoverOpen = false;
     }
 
     setActiveNavItem(index: number) {
