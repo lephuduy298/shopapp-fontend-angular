@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { OrderResponse } from '../responses/order/order.reponse';
 import { HttpParams } from '@angular/common/http';
+import { CartService } from './cart.service';
 
 @Injectable({
     providedIn: 'root',
@@ -13,10 +14,11 @@ export class OrderService {
     apiConfig: string = `${environment.apiBaseUrl}/orders`;
     apiGetAllOrders: string = `${environment.apiBaseUrl}/orders/get-orders-by-keyword`;
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private cartService: CartService) {}
 
     placeOrder(orderData: OrderDTO): Observable<any> {
         debugger;
+        this.cartService.clearCart(); // Xóa giỏ hàng sau khi đặt hàng
         return this.http.post(this.apiConfig, orderData);
     }
 

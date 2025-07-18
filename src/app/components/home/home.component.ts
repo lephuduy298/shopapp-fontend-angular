@@ -9,6 +9,7 @@ import { CategoryService } from '../../services/category.service';
 import { Category } from '../models.ts/category';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, Params } from '@angular/router';
+import { CartService } from '../../services/cart.service';
 
 @Component({
     selector: 'app-home',
@@ -44,7 +45,8 @@ export class HomeComponent implements OnInit {
         private productService: ProductService,
         private categoryService: CategoryService,
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private cartService: CartService
     ) {}
 
     ngOnInit() {
@@ -121,8 +123,6 @@ export class HomeComponent implements OnInit {
                 // Nếu có filter thì filter toàn bộ và phân trang lại ở frontend
                 if (needFrontendFilter) {
                     debugger;
-                    // Reset về trang 1 khi filter
-                    this.currentPage = 1;
                     // Lọc theo hãng
                     if (this.selectedBrands.length > 0) {
                         debugger;
@@ -199,5 +199,11 @@ export class HomeComponent implements OnInit {
         this.selectedPriceRange = range;
         this.currentPage = 1;
         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+    }
+
+    addToCart(productId: number) {
+        debugger;
+        this.cartService.addToCart(productId, 1);
+        // this.toastService.showSuccess('Item successfully added to your cart!');
     }
 }

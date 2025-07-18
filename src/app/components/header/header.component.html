@@ -1,69 +1,70 @@
 <header class="header">
-  <div class="header__container">
-    <!-- Logo -->
-    <a class="header__logo" href="#">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
-        <circle cx="50" cy="50" r="45" fill="rgb(240, 101, 197)" />
-        <circle cx="50" cy="50" r="35" fill="rgb(127, 68, 255)" />
-      </svg>
-      <span class="header__logo-text">Shop<span class="header__logo-vn">.com.vn</span></span>
-    </a>
-    <!-- Danh mục -->
-    <div class="menu-container">
-        <!-- Nút toggle menu -->
-        <button class="header__menu-btn" (click)="toggleMenu()">
-          <i class="fa-solid fa-bars"></i>
-          <span>Danh mục</span>
-        </button>
-      
-        <!-- Danh sách danh mục hiển thị khi mở -->
-        <div class="category-list" *ngIf="isMenuOpen">
-          <div
-            class="category-item"
-            *ngFor="let category of categories"
-            (click)="handleCategoryClick(category.id)"
-          >
-            {{ category.name }}
-          </div>
+    <div class="header__container">
+        <!-- Logo -->
+        <a class="header__logo" href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
+                <circle cx="50" cy="50" r="45" fill="rgb(240, 101, 197)" />
+                <circle cx="50" cy="50" r="35" fill="rgb(127, 68, 255)" />
+            </svg>
+            <span class="header__logo-text">
+                Shop
+                <span class="header__logo-vn">.com.vn</span>
+            </span>
+        </a>
+        <!-- Danh mục -->
+        <div class="menu-container">
+            <!-- Nút toggle menu -->
+            <button class="header__menu-btn" (click)="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+                <span>Danh mục</span>
+            </button>
+
+            <!-- Danh sách danh mục hiển thị khi mở -->
+            <div class="category-list" *ngIf="isMenuOpen">
+                <div class="category-item" *ngFor="let category of categories" (click)="handleCategoryClick(category.id)">
+                    {{ category.name }}
+                </div>
+            </div>
         </div>
-      </div>
-      
-      
-      
-      
-    <!-- Search -->
-    <form class="header__search" (submit)="handleSearch($event)">
-      <input type="text" placeholder="Nhập tên điện thoại, máy tính, phụ kiện... cần tìm" [(ngModel)]="keyword" name="keyword" />
-      <button type="submit" class="header__search-btn">
-        <span class="header__search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-      </button>
-    </form>
-    <!-- User & Cart -->
-    <div class="header__actions">
-      <div class="header__user">
-        <ng-container *ngIf="userResponse">
-          <ng-container [ngbPopover]="popoverContent" triggers="manual" [placement]="'bottom'">
-                <a class="header__user-avatar" [ngbPopover]="popoverContent" (hover)="togglePopover($event)">
-                    <span>{{userResponse.fullname.charAt(0)}}</span>
-                </a>
-            <ng-template #popoverContent>
-              <div class="popover-list">
-                <a class="popover-item" (click)="handleItemClick(0)">Tài khoản của tôi</a>
-                <a class="popover-item" (click)="handleItemClick(1)">Đơn mua</a>
-                <a class="popover-item" (click)="handleItemClick(2)">Đăng xuất</a>
-              </div>
-            </ng-template>
-          </ng-container>
-        </ng-container>
-        <ng-container *ngIf="!userResponse">
-                            <a class="nav-link" routerLink="/login">Đăng nhập</a>
-        </ng-container>
-      </div>
-      <a class="header__cart" routerLink="/orders">
-        <span class="header__cart-icon"><i class="fa-solid fa-cart-shopping"></i></span>
-        <span class="header__cart-badge">1</span>
-        <span class="header__cart-text">Giỏ hàng</span>
-      </a>
+
+        <!-- Search -->
+        <form class="header__search" (submit)="handleSearch($event)">
+            <input
+                type="text"
+                placeholder="Nhập tên điện thoại, máy tính, phụ kiện... cần tìm"
+                [(ngModel)]="keyword"
+                name="keyword"
+            />
+            <button type="submit" class="header__search-btn">
+                <span class="header__search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            </button>
+        </form>
+        <!-- User & Cart -->
+        <div class="header__actions">
+            <div class="header__user">
+                <ng-container *ngIf="userResponse">
+                    <ng-container [ngbPopover]="popoverContent" triggers="manual" [placement]="'bottom'">
+                        <a class="header__user-avatar" [ngbPopover]="popoverContent" (hover)="togglePopover($event)">
+                            <span>{{ userResponse.fullname.charAt(0) }}</span>
+                        </a>
+                        <ng-template #popoverContent>
+                            <div class="popover-list">
+                                <a class="popover-item" (click)="handleItemClick(0)">Tài khoản của tôi</a>
+                                <a class="popover-item" (click)="handleItemClick(1)">Đơn mua</a>
+                                <a class="popover-item" (click)="handleItemClick(2)">Đăng xuất</a>
+                            </div>
+                        </ng-template>
+                    </ng-container>
+                </ng-container>
+                <ng-container *ngIf="!userResponse">
+                    <a class="nav-link" routerLink="/login">Đăng nhập</a>
+                </ng-container>
+            </div>
+            <a class="header__cart" routerLink="/orders">
+                <span class="header__cart-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                <span class="header__cart-badge">{{ cartService.countItem() }}</span>
+                <span class="header__cart-text">Giỏ hàng</span>
+            </a>
+        </div>
     </div>
-  </div>
 </header>

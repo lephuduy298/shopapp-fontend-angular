@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { Category } from '../models.ts/category';
 import { CategoryService } from '../../services/category.service';
+import { CartService } from '../../services/cart.service';
 
 @Component({
     selector: 'app-header',
@@ -25,13 +26,15 @@ export class HeaderComponent implements OnInit {
     keyword: string = '';
     selectedCategoryId: number = 0;
     isMenuOpen = false;
+    countItem: number = 0;
 
     constructor(
         private userService: UserService,
         private popoverModule: NgbPopoverModule,
         private tokenService: TokenService,
         private router: Router,
-        private categoryService: CategoryService
+        private categoryService: CategoryService,
+        public cartService: CartService
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
@@ -77,8 +80,8 @@ export class HeaderComponent implements OnInit {
         this.router.navigate(['/'], {
             queryParams: {
                 category: categoryId,
-                keyword: this.keyword || undefined
-            }
+                keyword: this.keyword || undefined,
+            },
         });
     }
 
@@ -87,8 +90,8 @@ export class HeaderComponent implements OnInit {
         this.router.navigate(['/'], {
             queryParams: {
                 keyword: this.keyword || undefined,
-                category: this.selectedCategoryId || undefined
-            }
+                category: this.selectedCategoryId || undefined,
+            },
         });
     }
 

@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Inject } from '@angular/core';
 import { PLATFORM_ID } from '@angular/core';
 import { UpdateUserDTO } from '../dtos/user/update.dto';
+import { signal } from '@angular/core';
 
 @Injectable({
     providedIn: 'root',

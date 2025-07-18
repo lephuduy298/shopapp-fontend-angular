@@ -27,13 +27,13 @@
     <div class="product-panel">
         <div class="row">
             <div class="col-lg-3 col-md-6" *ngFor="let product of products">
-                <div class="product-item" (click)="onProductClick(product.id)">
-                    <img [src]="product.url" alt="" class="product-image" />
+                <div class="product-item">
+                    <img [src]="product.url" alt="" class="product-image" (click)="onProductClick(product.id)" />
                     <h3 class="product-name">{{ product.name }}</h3>
                     <p class="product-description">{{ product.description }}</p>
                     <p class="product-price">Giá: ${{ product.price }}</p>
                     <div class="product-action">
-                        <button class="btn btn-primary">Thêm vào giỏ hàng</button>
+                        <button class="btn btn-primary" (click)="addToCart(product.id)">Thêm vào giỏ hàng</button>
                         <span class="space"></span>
                         <button class="btn btn-success">Mua hàng</button>
                     </div>
