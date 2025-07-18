@@ -33,9 +33,14 @@
                     <p class="product-description">{{ product.description }}</p>
                     <p class="product-price">Giá: ${{ product.price }}</p>
                     <div class="product-action">
-                        <button class="btn btn-primary" (click)="addToCart(product.id)">Thêm vào giỏ hàng</button>
+                        <button class="btn-cart-icon" (click)="addToCart(product.id)">
+                            <span class="cart-icon">
+                                <i class="fa fa-shopping-cart"></i>
+                                <span class="cart-plus">+</span>
+                            </span>
+                        </button>
                         <span class="space"></span>
-                        <button class="btn btn-success">Mua hàng</button>
+                        <button class="btn-buy-now">Mua ngay</button>
                     </div>
                 </div>
             </div>
