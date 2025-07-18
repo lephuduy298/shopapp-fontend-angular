@@ -206,4 +206,9 @@ export class HomeComponent implements OnInit {
         this.cartService.addToCart(productId, 1);
         // this.toastService.showSuccess('Item successfully added to your cart!');
     }
+
+    buyNow(productId: number) {
+        this.cartService.addToCart(productId, 1);
+        this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
+    }
 }

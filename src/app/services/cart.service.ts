@@ -40,14 +40,29 @@ export class CartService {
     }
 
     addToCart(productId: number, quantity: number) {
-        // this.clearCart(); // Xóa giỏ hàng trước khi thêm mới
         debugger;
-        if (this.cart.has(productId)) {
-            this.cart.set(productId, this.cart.get(productId)! + quantity); //! đảm bảo không undefined
-        } else {
-            this.cart.set(productId, quantity);
-            this.incrementCountItem(quantity); // Cập nhật số lượng sản phẩm trong giỏ hàng
+
+        const currentQuantity = this.cart.get(productId) ?? 0;
+        const newQuantity = currentQuantity + quantity;
+
+        // Tạo cart mới và đưa sản phẩm này lên đầu
+        const newCart = new Map<number, number>();
+        newCart.set(productId, newQuantity);
+
+        // Sau đó thêm các phần tử còn lại (trừ productId vừa thêm)
+        for (const [key, value] of this.cart) {
+            if (key !== productId) {
+                newCart.set(key, value);
+            }
         }
+
+        this.cart = newCart;
+
+        // Nếu sản phẩm là mới (chưa từng có), thì tăng đếm số lượng item
+        if (!this.cart.has(productId) || currentQuantity === 0) {
+            this.incrementCountItem(quantity);
+        }
+
         this.saveCart();
     }
 

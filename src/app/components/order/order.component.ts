@@ -78,21 +78,31 @@ export class OrderComponent implements OnInit {
         const cart = this.cartService.getCart();
         const productIds = Array.from(cart.keys());
         if (productIds.length === 0) return;
+
+        // Detect if coming from 'Buy Now' (set a flag in router state)
+        const isBuyNow = history.state.buyNow === true;
+        const buyNowProductId = isBuyNow ? history.state.productId : null;
+
+        debugger;
         this.productService.getProductsByIds(productIds).subscribe({
             next: (response: any) => {
-                this.cartItems = productIds.map((productId) => {
+                debugger;
+                this.cartItems = productIds.map((productId, idx) => {
+                    debugger;
                     const product = response.find((p: any) => p.id === productId);
                     if (product) {
+                        debugger;
                         if (!product.thumbnail.startsWith('http'))
                             product.thumbnail = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
                     }
                     return {
                         product: product!,
                         quantity: cart.get(productId)!,
-                        selected: true,
+                        selected: isBuyNow ? productId === buyNowProductId : true,
                     };
                 });
-                this.allSelected = true;
+                debugger;
+                this.allSelected = isBuyNow ? false : true;
             },
             complete: () => {
                 this.calculatePrice();

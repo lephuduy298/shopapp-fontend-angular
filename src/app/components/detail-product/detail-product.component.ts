@@ -128,7 +128,8 @@ export class DetailProductComponent implements OnInit {
         } else console.log('không thể thêm sản phẩm vào giỏ hàng');
     }
 
-    buyNow(): void {
-        this.router.navigate(['/orders']);
+    buyNow(productId: number) {
+        this.cartService.addToCart(productId, 1);
+        this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
     }
 }
