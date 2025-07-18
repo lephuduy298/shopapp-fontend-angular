@@ -65,4 +65,19 @@ export class CartService {
         this.cart.clear(); // Xóa toàn bộ dữ liệu trong giỏ hàng
         this.saveCart(); // Lưu giỏ hàng mới vào Local Storage (trống)
     }
+
+    updateCart(productId: number, quantity: number): void {
+        if (this.cart.has(productId)) {
+            this.cart.set(productId, quantity);
+            this.saveCart();
+        }
+    }
+
+    removeFromCart(productId: number): void {
+        if (this.cart.has(productId)) {
+            this.cart.delete(productId);
+            this._countItem.set(this.cart.size);
+            this.saveCart();
+        }
+    }
 }

@@ -13,6 +13,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TokenService } from '../../services/token.service';
 import { Router } from '@angular/router';
+import { UserService } from '../../services/user.service';
+import { UserResponse } from '../../responses/user/user.response';
 
 @Component({
     selector: 'app-order',
@@ -22,7 +24,9 @@ import { Router } from '@angular/router';
     styleUrl: './order.component.scss',
 })
 export class OrderComponent implements OnInit {
-    cartItems: { product: Product; quantity: number }[] = [];
+    userResponse?: UserResponse | null;
+    cartItems: { product: Product; quantity: number; selected: boolean }[] = [];
+    allSelected: boolean = true;
     couponCode: string = '';
     totalPrice: number = 0;
     orderForm: FormGroup;
@@ -47,32 +51,36 @@ export class OrderComponent implements OnInit {
         private orderService: OrderService,
         private formBuilder: FormBuilder,
         private tokenService: TokenService,
-        private router: Router
+        private router: Router,
+        private userService: UserService
     ) {
         this.orderForm = this.formBuilder.group({
-            fullname: ['hoàng xx', Validators.required], // fullname là FormControl bắt buộc
-            email: ['hoang234@gmail.com', [Validators.required, Validators.email]], // Sử dụng Validators.email cho kiểm tra định dạng email
-            phone_number: ['11445547', [Validators.required, Validators.minLength(6)]], // phone_number bắt buộc và ít nhất 6 ký tự
-            address: ['nhà x ngõ y', [Validators.required, Validators.minLength(5)]], // address bắt buộc và ít nhất 5 ký tự
-            note: ['dễ vữ'],
-            shipping_method: ['express'],
-            payment_method: ['cod'],
+            fullname: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
+            phone_number: ['', [Validators.required, Validators.minLength(6)]],
+            address: ['', [Validators.required, Validators.minLength(5)]],
+            note: [''],
+            shipping_method: [''],
+            payment_method: [''],
         });
     }
 
     ngOnInit(): void {
+        this.userResponse = this.userService.getUserFromLocalStorage();
+        if (this.userResponse) {
+            this.orderForm.patchValue({
+                fullname: this.userResponse.fullname || '',
+                phone_number: this.userResponse.phone_number || '',
+                address: this.userResponse.address || '',
+            });
+        }
         this.orderData.user_id = this.tokenService.getUserId();
-        debugger;
         const cart = this.cartService.getCart();
         const productIds = Array.from(cart.keys());
-
         if (productIds.length === 0) return;
         this.productService.getProductsByIds(productIds).subscribe({
             next: (response: any) => {
-                debugger;
-                // Lấy thông tin sản phẩm và số lượng từ danh sách sản phẩm và giỏ hàng
                 this.cartItems = productIds.map((productId) => {
-                    debugger;
                     const product = response.find((p: any) => p.id === productId);
                     if (product) {
                         if (!product.thumbnail.startsWith('http'))
@@ -81,60 +89,85 @@ export class OrderComponent implements OnInit {
                     return {
                         product: product!,
                         quantity: cart.get(productId)!,
+                        selected: true,
                     };
                 });
+                this.allSelected = true;
             },
             complete: () => {
-                debugger;
                 this.calculatePrice();
             },
             error: (error: any) => {
-                debugger;
                 console.error('Error fetching detail:', error);
             },
         });
     }
 
     calculatePrice(): void {
-        this.totalPrice = this.cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        this.totalPrice = this.cartItems
+            .filter((item) => item.selected)
+            .reduce((total, item) => total + item.product.price * item.quantity, 0);
+    }
+
+    toggleSelectAll(): void {
+        this.cartItems.forEach((item) => (item.selected = this.allSelected));
+        this.calculatePrice();
+    }
+
+    onSelectItem(): void {
+        this.allSelected = this.cartItems.every((item) => item.selected);
+        this.calculatePrice();
+    }
+
+    removeCartItem(index: number): void {
+        const removed = this.cartItems.splice(index, 1)[0];
+        this.cartService.removeFromCart(removed.product.id);
+        this.calculatePrice();
+    }
+
+    increaseQty(index: number): void {
+        this.cartItems[index].quantity++;
+        this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
+        this.calculatePrice();
+    }
+
+    decreaseQty(index: number): void {
+        if (this.cartItems[index].quantity > 1) {
+            this.cartItems[index].quantity--;
+            this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
+            this.calculatePrice();
+        }
     }
 
     applyCoupon(): void {}
 
     placeOrder(): void {
-        debugger;
         if (this.orderForm.valid) {
             this.orderData = {
                 ...this.orderData,
                 ...this.orderForm.value,
             };
-
-            this.orderData.cart_items = this.cartItems.map((cartItem) => ({
-                product_id: cartItem.product.id,
-                quantity: cartItem.quantity,
-            }));
-
+            this.orderData.cart_items = this.cartItems
+                .filter((item) => item.selected)
+                .map((cartItem) => ({
+                    product_id: cartItem.product.id,
+                    quantity: cartItem.quantity,
+                }));
             this.calculatePrice();
             this.orderData.total_money = this.totalPrice;
-
             this.orderService.placeOrder(this.orderData).subscribe({
                 next: (response: any) => {
-                    debugger;
                     this.cartService.clearCart();
-                    console.log('Đặt hàng thành công');
                     this.router.navigate(['/']);
                 },
                 complete: () => {
-                    debugger;
                     this.calculatePrice();
                 },
                 error: (error: any) => {
-                    debugger;
                     console.log(`Lỗi khi đặt hàng: ${error}`);
                 },
             });
         } else {
-            // Hiển thị thông báo lỗi hoặc xử lý khác
             console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
         }
     }
