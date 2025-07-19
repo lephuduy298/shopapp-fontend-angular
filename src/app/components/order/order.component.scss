@@ -1,14 +1,3 @@
-.cart-empty-message {
-    text-align: center;
-    color: #1b1b1c;
-    font-size: 2rem;
-    font-weight: 500;
-    letter-spacing: 0.2px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 @import '../../styles/shared-style.scss';
 
 .order-main-container {
@@ -231,4 +220,16 @@
 }
 .btn-gradient:hover {
     background: #b71c1c;
+}
+
+.cart-empty-message {
+    text-align: center;
+    color: #1b1b1c;
+    font-size: 2rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
