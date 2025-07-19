@@ -29,6 +29,7 @@ export class UserProfileComponent implements OnInit {
     userProfileForm: FormGroup;
     token: string = '';
     userResponse?: UserResponse;
+    isEditMode: boolean = false;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -103,6 +104,7 @@ export class UserProfileComponent implements OnInit {
                     this.userService.removeUserFromLocalStorage();
                     this.tokenService.removeToken();
                     this.router.navigate(['/login']);
+                    this.isEditMode = false;
                 },
                 error: (error: any) => {
                     console.log(error.error.message);
