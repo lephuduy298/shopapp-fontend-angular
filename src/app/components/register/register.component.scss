@@ -1,116 +1,202 @@
 @import '../../styles/shared-style.scss';
 
-.container {
-    color: white;
-    height: 100vh;
+// Modern register page style
+.register-container {
+    max-width: 650px;
+    margin: 50px auto;
+    padding: 32px 0 48px 0;
+    background: #fff;
 }
 
-.register-form {
-    background-color: rgb(12, 12, 55);
-    border-radius: 10px;
-    padding: 20px;
-    max-width: 500px;
-    border: 1px solid rgb(32, 34, 60);
+.error-message {
+    color: rgb(242, 60, 60);
+    font-size: 0.85rem;
+    padding-left: 5px;
+    padding-top: 5px;
+}
+
+.register-title {
+    text-align: center;
+    color: #e60000;
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+}
+
+.register-mascot {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.register-social {
+    display: flex;
     align-items: center;
     justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
 }
-
-.register-header {
+.social-btn {
+    background: #fff;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 8px 24px;
+    font-size: 1.08rem;
+    color: #222;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.social-btn img {
+    height: 22px;
+}
+.social-btn:hover {
+    border-color: #e60000;
+}
+.social-divider {
+    color: #bbb;
+    font-size: 1.5rem;
+    margin: 0 8px;
+}
+.register-or {
     text-align: center;
-    /*      color: rgb(233, 66, 178);*/
-    color: $shopapp-title-color;
-    margin-bottom: 20px;
+    color: #888;
+    margin-bottom: 18px;
+    font-size: 1.08rem;
 }
 
-.label-text {
-    color: rgb(243, 165, 42);
+.register-form-modern {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px 28px 18px 28px;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
 }
-
+.register-section {
+    margin-bottom: 28px;
+}
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 12px;
+}
+.row {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+.col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+label {
+    color: #222;
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-size: 1rem;
+}
 .form-control {
-    background-color: transparent;
-    border: none;
-    color: white;
+    background: #fff;
+    border: 1.5px solid #e0e0e0;
+    color: #222;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 1.08rem;
+    margin-bottom: 0;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 .form-control:focus {
-    color: white;
-    background-color: transparent;
+    border-color: #e60000;
     outline: none;
-    box-shadow: none;
-    border-color: transparent;
-    padding-left: 0;
+    box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.08);
 }
-
-.password-field {
-    position: relative;
-}
-
 .password-toggle {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 14px;
     transform: translateY(-50%);
-    color: $shopapp-title-color;
+    color: #bdbdbd;
     cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.85;
+    transition: color 0.2s, opacity 0.2s;
 }
-
-.checkbox-text {
-    color: rgb(243, 165, 42);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-}
-
-/* Màu checkbox khi được chọn */
-.checkbox-text input[type='checkbox']:checked {
-    border-color: white;
-    background-color: $shopapp-tint-color;
-}
-
-.form-check-input {
-    margin-right: 5px;
-}
-
-.register-link {
-    color: $shopapp-title-color;
-    text-decoration: none;
-}
-
-.register-button {
-    background: linear-gradient(to right, $shopapp-tint-color, $shopapp-color);
-    color: white;
-    border-radius: 30px;
-    width: 100%;
-    padding: 10px 0;
-    margin-top: 20px;
-    border: none;
-}
-
-.divider {
-    height: 1px;
-    background-color: rgb(243, 165, 42);
-    /*      background-color: rgb(105, 244, 181)*/
-    margin: 20px;
-}
-
-.divider-nospace {
-    border-top: 1px solid white;
-}
-
-.form-control::placeholder {
-    /* Chrome, Firefox, Opera, Safari 10.1+ */
-    color: rgba(243, 165, 42, 0.4);
+.password-toggle:hover,
+.password-toggle:focus {
+    color: #e60000;
     opacity: 1;
-    /* Firefox */
 }
-
-.form-control:-ms-input-placeholder {
-    /* Internet Explorer 10-11 */
-    color: rgba(243, 165, 42, 0.4);
+.password-note {
+    color: #888;
+    font-size: 0.98rem;
+    margin-top: 4px;
 }
-
-.form-control::-ms-input-placeholder {
-    /* Microsoft Edge */
-    color: rgba(243, 165, 42, 0.4);
+.email-note {
+    color: #43a047;
+    font-size: 0.95rem;
+    margin-top: 2px;
+}
+.register-actions {
+    display: flex;
+    gap: 18px;
+    margin-top: 24px;
+}
+.register-button {
+    background: #e60000;
+    color: #fff;
+    border-radius: 10px;
+    width: 100%;
+    padding: 16px 0;
+    border: none;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px 0 rgba(230, 0, 0, 0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.register-button:hover,
+.register-button:focus {
+    background: #b71c1c;
+    box-shadow: 0 4px 16px 0 rgba(230, 0, 0, 0.15);
+}
+.back-btn {
+    background: #fff;
+    color: #222;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px 0;
+    width: 100%;
+    font-weight: 600;
+    font-size: 1.08rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.back-btn:hover,
+.back-btn:focus {
+    border-color: #e60000;
+}
+.text-red {
+    color: #e60000;
+}
+@media (max-width: 700px) {
+    .register-container {
+        max-width: 99vw;
+        padding: 12px 0;
+    }
+    .register-form-modern {
+        padding: 12px 4px;
+    }
+    .row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .register-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
 }

@@ -23,7 +23,10 @@ export class RegisterComponent {
     fullName: string;
     address: string;
     isAccepted: boolean;
+    showPassword: boolean = false;
+    showRetypePassword: boolean = false;
     dateOfBirth: Date;
+    today: string = new Date().toISOString().split('T')[0];
 
     constructor(private userService: UserService, private router: Router) {
         this.phoneNumber = '';
@@ -99,12 +102,16 @@ export class RegisterComponent {
         if (this.dateOfBirth) {
             const today = new Date();
             const birthDate = new Date(this.dateOfBirth);
+            const minDate = new Date('1900-01-01');
+            if (birthDate < minDate) {
+                this.registerForm.form.controls['dateOfBirth'].setErrors({ invalidDate: true });
+                return;
+            }
             let age = today.getFullYear() - birthDate.getFullYear();
             const monthDiff = today.getMonth() - birthDate.getMonth();
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                 age--;
             }
-
             if (age < 18) {
                 this.registerForm.form.controls['dateOfBirth'].setErrors({ invalidAge: true });
             } else {

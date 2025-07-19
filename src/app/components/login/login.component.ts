@@ -23,6 +23,7 @@ export class LoginComponent implements OnInit {
 
     phoneNumber: string = '';
     password: string = '';
+    showPassword: boolean = false;
     roles: Role[] = [];
     rememberMe: boolean = true;
     selectedRole: Role | undefined;

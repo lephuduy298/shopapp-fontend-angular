@@ -1,37 +1,51 @@
 @import '../../styles/shared-style.scss';
 
 .container {
-    color: white;
-    height: 100vh;
+    color: #222;
+    background: #f3f4f6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .login-form {
-    background-color: rgb(12, 12, 55);
-    border-radius: 10px;
-    padding: 20px;
-    max-width: 500px;
-    border: 1px solid rgb(32, 34, 60);
+    background: #fff;
+    border-radius: 20px;
+    padding: 48px 40px 36px 40px;
+    max-width: 520px;
+    width: 100%;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 32px 0 rgba(0,0,0,0.10);
     align-items: center;
     justify-content: center;
 }
 
 .login-header {
     text-align: center;
-    color: $shopapp-title-color;
-    margin-bottom: 20px;
+    color: #e60000;
+    font-weight: 700;
+    font-size: 2.7rem;
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
 }
 
 .form-control {
-    background-color: transparent;
-    border: none;
-    color: white;
+    background-color: #fff;
+    border: 1.5px solid #e0e0e0;
+    color: #222;
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-size: 1.25rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: none;
 }
-
 .form-control:focus {
-    color: white;
-    background-color: transparent;
+    color: #222;
+    background-color: #fff;
     outline: none;
-    border-color: transparent;
+    border-color: #e60000;
+    box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.08);
 }
 
 .divider-nospace {
@@ -45,10 +59,18 @@
 .password-toggle {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 14px;
     transform: translateY(-50%);
-    color: $shopapp-title-color;
+    color: #bdbdbd;
     cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.85;
+    transition: color 0.2s, opacity 0.2s;
+}
+.password-toggle:hover,
+.password-toggle:focus {
+    color: #e60000;
+    opacity: 1;
 }
 
 .access-right option {
@@ -57,17 +79,18 @@
 }
 
 .checkbox-text {
-    color: rgb(243, 165, 42);
+    color: #222;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 10px;
+    font-size: 1rem;
 }
 
 /* Màu checkbox khi được chọn */
 .checkbox-text input[type='checkbox']:checked {
     border-color: white;
-    background-color: $shopapp-tint-color;
+    background-color: #e60000;
 }
 
 .form-check-input {
@@ -75,19 +98,31 @@
 }
 
 .register-link {
-    color: $shopapp-title-color;
+    color: #1976d2;
     text-decoration: none;
+    transition: color 0.2s;
+}
+
+.register-link:hover,
+.register-link:focus {
+    color: #e60000;
+    text-decoration: underline;
 }
 
 .access-right {
     margin-top: 20px;
-    width: 200px;
-    color: white;
-    border: 1px solid $shopapp-tint-color;
+    width: 100%;
+    color: #222;
+    border: 1.5px solid #e0e0e0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 1.08rem;
+    transition: border-color 0.2s;
 }
 
 .access-right:focus {
-    border: 1px solid $shopapp-tint-color;
+    border: 1.5px solid #e60000;
 }
 
 .form-control::placeholder {
@@ -108,18 +143,35 @@
 }
 
 .login-button {
-    background: linear-gradient(to right, $shopapp-tint-color, $shopapp-color);
-    color: white;
-    border-radius: 30px;
+    background: #e60000;
+    color: #fff;
+    border-radius: 10px;
     width: 100%;
-    padding: 10px 0;
+    padding: 14px 0;
     margin-top: 20px;
     border: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px 0 rgba(230, 0, 0, 0.08);
+    transition: background 0.2s, box-shadow 0.2s;
 }
-
-.divider {
-    height: 1px;
-    background-color: rgb(243, 165, 42);
-    /* background-color: rgb(105, 244, 181) */
-    margin: 20px;
+.login-button:hover,
+.login-button {
+    background: #e60000;
+    color: #fff;
+    border-radius: 12px;
+    width: 100%;
+    padding: 18px 0;
+    margin-top: 28px;
+    border: none;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px 0 rgba(230,0,0,0.10);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.login-button:hover, .login-button:focus {
+    background: #b71c1c;
+    box-shadow: 0 8px 24px 0 rgba(230,0,0,0.18);
 }
