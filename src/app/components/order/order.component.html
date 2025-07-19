@@ -3,43 +3,52 @@
 <div class="order-main-container">
     <div class="order-content">
         <div class="order-cart-section">
-            <div class="order-cart-header">
-                <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
-                <span class="cart-title">Chọn tất cả ({{ cartItems.length }})</span>
-            </div>
-            <div
-                *ngFor="let cartItem of cartItems; let i = index"
-                class="cart-item-box"
-                [class.selected]="cartItem.selected"
-            >
-                <div class="cart-item-row">
-                    <input type="checkbox" [(ngModel)]="cartItem.selected" (change)="onSelectItem()" />
-                    <img [src]="cartItem.product.thumbnail" class="cart-item-img" />
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">{{ cartItem.product.name }}</div>
-                        <!-- <div class="cart-item-variant">Màu: {{ cartItem.product.color || 'Bạc' }}</div> -->
-                        <div class="cart-item-price">
-                            {{ cartItem.product.price | currency : 'VND' : 'symbol' : '1.2-2' }}
+        <div class="order-cart-header" *ngIf="cartItems.length > 0">
+            <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+            <span class="cart-title">Chọn tất cả ({{ cartItems.length }})</span>
+        </div>
+            <ng-container *ngIf="cartItems.length > 0; else emptyCart">
+                <div
+                    *ngFor="let cartItem of cartItems; let i = index"
+                    class="cart-item-box"
+                    [class.selected]="cartItem.selected"
+                >
+                    <div class="cart-item-row">
+                        <input
+                            type="checkbox"
+                            [checked]="cartItem.selected"
+                            (change)="cartItem.selected = !cartItem.selected; onSelectItem()"
+                        />
+                        <img [src]="cartItem.product.thumbnail" class="cart-item-img" />
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">{{ cartItem.product.name }}</div>
+                            <!-- <div class="cart-item-variant">Màu: {{ cartItem.product.color || 'Bạc' }}</div> -->
+                            <div class="cart-item-price">
+                                {{ cartItem.product.price | currency : 'VND' : 'symbol' : '1.2-2' }}
+                            </div>
                         </div>
-                    </div>
-                    <div class="cart-item-qty">
-                        <button type="button" class="qty-btn" (click)="decreaseQty(i)">
-                            <span class="qty-child">-</span>
+                        <div class="cart-item-qty">
+                            <button type="button" class="qty-btn" (click)="decreaseQty(i)">
+                                <span class="qty-child">-</span>
+                            </button>
+                            <span>{{ cartItem.quantity }}</span>
+                            <button type="button" class="qty-btn" (click)="increaseQty(i)">
+                                <span class="qty-child">+</span>
+                            </button>
+                        </div>
+                        <button type="button" class="cart-item-remove" (click)="removeCartItem(i)">
+                            <i class="fa fa-trash"></i>
                         </button>
-                        <span>{{ cartItem.quantity }}</span>
-                        <button type="button" class="qty-btn" (click)="increaseQty(i)">
-                            <span class="qty-child">+</span>
-                        </button>
                     </div>
-                    <button type="button" class="cart-item-remove" (click)="removeCartItem(i)">
-                        <i class="fa fa-trash"></i>
-                    </button>
+                    <!-- Ưu đãi, bảo hành, combo... có thể thêm ở đây nếu cần -->
                 </div>
-                <!-- Ưu đãi, bảo hành, combo... có thể thêm ở đây nếu cần -->
-            </div>
+            </ng-container>
+            <ng-template #emptyCart>
+                <div class="cart-empty-message">Giỏ hàng trống</div>
+            </ng-template>
         </div>
         <div class="order-summary-section">
-            <form [formGroup]="orderForm" class="order-form-box">
+            <form [formGroup]="orderForm" class="order-form-box" [class.form-disabled]="isOrderConfirmed">
                 <div class="order-summary-title">Thông tin đơn hàng</div>
                 <div class="order-summary-row">
                     <label>Họ và tên</label>
@@ -78,7 +87,13 @@
                 <div class="order-summary-row">
                     <label>Nhập coupon</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" [(ngModel)]="couponCode" name="couponCode" />
+                        <input
+                            type="text"
+                            class="form-control"
+                            [(ngModel)]="couponCode"
+                            name="couponCode"
+                            [ngModelOptions]="{ standalone: true }"
+                        />
                         <button class="btn btn-gradient" type="button" (click)="applyCoupon()">Áp dụng</button>
                     </div>
                 </div>
@@ -87,7 +102,9 @@
                     <span class="order-total">{{ totalPrice | currency : 'VND' : 'symbol' : '1.2-2' }}</span>
                 </div>
                 <div class="order-summary-row order-summary-btn">
-                    <button (click)="placeOrder()" class="btn btn-gradient order-btn" type="button">Xác nhận đơn</button>
+                    <button (click)="placeOrder()" class="btn btn-gradient order-btn" type="button" [disabled]="cartItems.length === 0">
+                        {{ isOrderConfirmed ? 'Đặt hàng' : 'Xác nhận đơn' }}
+                    </button>
                 </div>
             </form>
         </div>

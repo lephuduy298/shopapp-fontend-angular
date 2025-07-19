@@ -44,6 +44,8 @@ export class OrderComponent implements OnInit {
         coupon_code: '', // Sẽ được điền từ form khi áp dụng mã giảm giá
         cart_items: [],
     };
+    isOrderConfirmed: boolean = false;
+    isOrderPlaced: boolean = false;
 
     constructor(
         private cartService: CartService,
@@ -56,12 +58,12 @@ export class OrderComponent implements OnInit {
     ) {
         this.orderForm = this.formBuilder.group({
             fullname: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
+            email: ['', [Validators.email]],
             phone_number: ['', [Validators.required, Validators.minLength(6)]],
             address: ['', [Validators.required, Validators.minLength(5)]],
             note: [''],
-            shipping_method: [''],
-            payment_method: [''],
+            shipping_method: ['', Validators.required],
+            payment_method: ['', Validators.required],
         });
     }
 
@@ -152,10 +154,19 @@ export class OrderComponent implements OnInit {
     applyCoupon(): void {}
 
     placeOrder(): void {
-        if (this.orderForm.valid) {
+        if (!this.isOrderConfirmed) {
+            // Lần đầu: xác nhận đơn, disable form
+            if (this.orderForm.valid) {
+                this.isOrderConfirmed = true;
+                this.orderForm.disable();
+            } else {
+                console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
+            }
+        } else if (!this.isOrderPlaced) {
+            // Lần hai: đặt hàng thật sự
             this.orderData = {
                 ...this.orderData,
-                ...this.orderForm.value,
+                ...this.orderForm.getRawValue(),
             };
             this.orderData.cart_items = this.cartItems
                 .filter((item) => item.selected)
@@ -165,10 +176,16 @@ export class OrderComponent implements OnInit {
                 }));
             this.calculatePrice();
             this.orderData.total_money = this.totalPrice;
+            this.isOrderPlaced = true;
             this.orderService.placeOrder(this.orderData).subscribe({
                 next: (response: any) => {
                     this.cartService.clearCart();
-                    this.router.navigate(['/']);
+                    // Điều hướng sang trang chi tiết đơn hàng vừa đặt
+                    if (response && response.id) {
+                        this.router.navigate(['/orders', response.id]);
+                    } else {
+                        this.router.navigate(['/']);
+                    }
                 },
                 complete: () => {
                     this.calculatePrice();
@@ -177,8 +194,6 @@ export class OrderComponent implements OnInit {
                     console.log(`Lỗi khi đặt hàng: ${error}`);
                 },
             });
-        } else {
-            console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
         }
     }
 }

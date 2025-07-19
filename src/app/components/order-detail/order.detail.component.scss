@@ -1,16 +1,20 @@
 @import '../../styles/shared-style.scss';
 
 .container {
-    color: white;
+    color: #222;
     // height: 100vh;
 }
 
-.confirmation-container {
-    margin: 50px auto;
-    padding: 20px;
-    max-width: 600px;
-    border-radius: 10px;
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+.card {
+    border-radius: 14px;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+    background: #fff;
+}
+
+.card-header.bg-gradient-primary {
+    background: red;
+    color: #fff;
+    border-radius: 14px 14px 0 0;
 }
 
 .product-info {
@@ -19,31 +23,48 @@
 }
 
 .product-image {
-    width: 100px;
-    height: 100px;
+    width: 40px;
+    height: 40px;
     border-radius: 5px;
     margin-right: 10px;
+    object-fit: cover;
+    border: 1px solid #eee;
+    background: #f8f8f8;
 }
 
 .product-name {
-    color: white;
+    color: #222;
     margin-right: 10px;
+    font-weight: 500;
 }
 
 table {
     width: 100%;
     border-radius: 10px;
-    border: none;
     border-collapse: separate;
-    border: 1px solid white;
     border-spacing: 0;
-    background-color: rgb(12, 13, 54);
+    background: #f8f9fa;
+    color: #222;
+    font-size: 15px;
+    margin-bottom: 0;
 }
 
 th,
 td {
-    padding: 10px;
+    padding: 10px 8px;
     text-align: center;
+    vertical-align: middle;
+}
+
+th {
+    background: #f1f3f6;
+    font-weight: 600;
+    color: #222;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+td {
+    border-bottom: 1px solid #ececec;
 }
 
 .btn-gradient {

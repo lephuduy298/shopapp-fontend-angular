@@ -8,6 +8,7 @@ import { OrderService } from '../../services/order.service';
 import { response } from 'express';
 import { OrderDetail } from '../models.ts/order.detail';
 import { environment } from '../../environments/environment';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
     selector: 'app-order-detail',
@@ -35,11 +36,16 @@ export class OrderDetailComponent implements OnInit {
         order_details: [],
     };
 
-    constructor(private orderService: OrderService) {}
+    constructor(private orderService: OrderService, private route: ActivatedRoute) {}
 
     ngOnInit(): void {
         debugger;
-        const orderId = 9;
+        const orderIdParam = this.route.snapshot.paramMap.get('id');
+        const orderId = orderIdParam ? Number(orderIdParam) : null;
+        if (orderId === null || isNaN(orderId)) {
+            console.error('Invalid order id');
+            return;
+        }
         this.orderService.getOrderById(orderId).subscribe({
             next: (response: any) => {
                 debugger;
