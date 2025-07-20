@@ -167,7 +167,16 @@ export class HomeComponent implements OnInit {
         });
     }
 
-    onPageChange(page: number) {
+    onPageChange(page: number, event?: Event) {
+        if (event) {
+            event.preventDefault();
+        }
+        
+        // Kiểm tra bounds để ngăn chặn navigation không hợp lệ
+        if (page < 1 || page > this.totalPages || page === this.currentPage) {
+            return;
+        }
+        
         debugger;
         this.currentPage = page;
         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);

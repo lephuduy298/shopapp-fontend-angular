@@ -3,10 +3,10 @@
 <div class="order-main-container">
     <div class="order-content">
         <div class="order-cart-section">
-        <div class="order-cart-header" *ngIf="cartItems.length > 0">
-            <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
-            <span class="cart-title">Chọn tất cả ({{ cartItems.length }})</span>
-        </div>
+            <div class="order-cart-header" *ngIf="cartItems.length > 0">
+                <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+                <span class="cart-title">Chọn tất cả ({{ cartItems.length }})</span>
+            </div>
             <ng-container *ngIf="cartItems.length > 0; else emptyCart">
                 <div
                     *ngFor="let cartItem of cartItems; let i = index"
@@ -53,18 +53,74 @@
                 <div class="order-summary-row">
                     <label>Họ và tên</label>
                     <input type="text" class="form-control" formControlName="fullname" />
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('fullname')?.invalid &&
+                            (orderForm.get('fullname')?.dirty || orderForm.get('fullname')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('fullname')?.errors?.['required']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Vui lòng nhập họ tên
+                        </span>
+                        <span *ngIf="orderForm.get('fullname')?.errors?.['pattern']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Họ tên chỉ được chứa chữ cái (có dấu), từ 2 đến 50 ký tự
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Email</label>
                     <input type="email" class="form-control" formControlName="email" />
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('email')?.invalid &&
+                            (orderForm.get('email')?.dirty || orderForm.get('email')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('email')?.errors?.['email']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Email không đúng định dạng
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Số điện thoại</label>
                     <input type="text" class="form-control" formControlName="phone_number" />
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('phone_number')?.invalid &&
+                            (orderForm.get('phone_number')?.dirty || orderForm.get('phone_number')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('phone_number')?.errors?.['required']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Vui lòng nhập số điện thoại
+                        </span>
+                        <span *ngIf="orderForm.get('phone_number')?.errors?.['pattern']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Địa chỉ</label>
                     <input type="text" class="form-control" formControlName="address" />
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('address')?.invalid &&
+                            (orderForm.get('address')?.dirty || orderForm.get('address')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('address')?.errors?.['required']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Vui lòng nhập địa chỉ
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Ghi chú</label>
@@ -76,6 +132,18 @@
                         <option value="express">Nhanh (Express)</option>
                         <option value="normal">Thường (Normal)</option>
                     </select>
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('shipping_method')?.invalid &&
+                            (orderForm.get('shipping_method')?.dirty || orderForm.get('shipping_method')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('shipping_method')?.errors?.['required']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Vui lòng chọn phương thức giao hàng
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Phương thức thanh toán</label>
@@ -83,6 +151,18 @@
                         <option value="cod">Thanh toán khi nhận hàng (COD)</option>
                         <option value="other">Thanh toán khác</option>
                     </select>
+                    <div
+                        class="error-message"
+                        *ngIf="
+                            orderForm.get('payment_method')?.invalid &&
+                            (orderForm.get('payment_method')?.dirty || orderForm.get('payment_method')?.touched || isFormSubmitted)
+                        "
+                    >
+                        <span *ngIf="orderForm.get('payment_method')?.errors?.['required']">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Vui lòng chọn phương thức thanh toán
+                        </span>
+                    </div>
                 </div>
                 <div class="order-summary-row">
                     <label>Nhập coupon</label>
@@ -102,7 +182,12 @@
                     <span class="order-total">{{ totalPrice | currency : 'VND' : 'symbol' : '1.2-2' }}</span>
                 </div>
                 <div class="order-summary-row order-summary-btn">
-                    <button (click)="placeOrder()" class="btn btn-gradient order-btn" type="button" [disabled]="cartItems.length === 0">
+                    <button
+                        (click)="placeOrder()"
+                        class="btn btn-gradient order-btn"
+                        type="button"
+                        [disabled]="cartItems.length === 0"
+                    >
                         {{ isOrderConfirmed ? 'Đặt hàng' : 'Xác nhận đơn' }}
                     </button>
                 </div>

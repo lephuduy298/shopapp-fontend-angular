@@ -46,6 +46,7 @@ export class OrderComponent implements OnInit {
     };
     isOrderConfirmed: boolean = false;
     isOrderPlaced: boolean = false;
+    isFormSubmitted: boolean = false;
 
     constructor(
         private cartService: CartService,
@@ -57,13 +58,19 @@ export class OrderComponent implements OnInit {
         private userService: UserService
     ) {
         this.orderForm = this.formBuilder.group({
-            fullname: ['', Validators.required],
+            fullname: ['', [Validators.required, Validators.pattern(/^[a-zA-ZÀ-ỹà-ỹ\s.'-]{2,50}$/)]],
             email: ['', [Validators.email]],
-            phone_number: ['', [Validators.required, Validators.minLength(6)]],
-            address: ['', [Validators.required, Validators.minLength(5)]],
+            phone_number: [
+                '',
+                [
+                    Validators.required,
+                    Validators.pattern(/^0\d{9}$/), // bắt đầu bằng 0 và có đúng 10 chữ số
+                ],
+            ],
+            address: ['', Validators.required],
             note: [''],
-            shipping_method: ['', Validators.required],
-            payment_method: ['', Validators.required],
+            shipping_method: ['express', Validators.required], // Giá trị mặc định
+            payment_method: ['cod', Validators.required], // Giá trị mặc định
         });
     }
 
@@ -155,11 +162,16 @@ export class OrderComponent implements OnInit {
 
     placeOrder(): void {
         if (!this.isOrderConfirmed) {
+            // Đánh dấu form đã được submit
+            this.isFormSubmitted = true;
+            
             // Lần đầu: xác nhận đơn, disable form
             if (this.orderForm.valid) {
                 this.isOrderConfirmed = true;
                 this.orderForm.disable();
             } else {
+                // Đánh dấu tất cả các trường là touched để hiển thị lỗi
+                this.orderForm.markAllAsTouched();
                 console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
             }
         } else if (!this.isOrderPlaced) {

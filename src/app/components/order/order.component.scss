@@ -1,5 +1,12 @@
 @import '../../styles/shared-style.scss';
 
+.error-message {
+    color: rgb(242, 60, 60);
+    font-size: 0.85rem;
+    padding-left: 5px;
+    // padding-top: 5px;
+}
+
 .order-main-container {
     display: flex;
     flex-direction: column;
