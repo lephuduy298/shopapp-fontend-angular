@@ -1,0 +1,222 @@
+import { Component, OnInit } from '@angular/core';
+import { HeaderComponent } from '../header/header.component';
+import { FooterComponent } from '../footer/footer.component';
+import { Order } from '../models.ts/order';
+import { OrderResponse } from '../../responses/order/order.reponse';
+import { OrderService } from '../../services/order.service';
+import { CommonModule } from '@angular/common';
+import { UserService } from '../../services/user.service';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { environment } from '../../environments/environment';
+
+@Component({
+    selector: 'app-user-order',
+    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RouterModule],
+    templateUrl: './user-order.component.html',
+    styleUrl: './user-order.component.scss',
+})
+export class UserOrderComponent implements OnInit {
+    userOrders: OrderResponse[] = [];
+    filteredOrders: OrderResponse[] = [];
+    activeFilter: string = 'all';
+    startDate: string = '';
+    endDate: string = '';
+
+    constructor(private orderService: OrderService, private userService: UserService) {}
+
+    ngOnInit(): void {
+        this.getOrdersByUser();
+    }
+
+    getOrdersByUser(): void {
+        const user = this.userService.getUserFromLocalStorage();
+        const userId: number = user && typeof user.id === 'number' ? user.id : 0; // Ensure userId is always a number
+        this.orderService.getOrdersByUser(userId).subscribe({
+            next: (response) => {
+                debugger;
+                // Process product images
+                response.forEach(order => {
+                    order.order_details.forEach(detail => {
+                        if (detail.product.thumbnail && !detail.product.thumbnail.startsWith('http')) {
+                            detail.product.thumbnail = `${environment.apiBaseUrl}/products/images/${detail.product.thumbnail}`;
+                        }
+                    });
+                });
+                
+                this.userOrders = response;
+                this.filteredOrders = response;
+                this.applyFilters();
+            },
+            error: (error) => {
+                console.error('Error fetching user orders:', error);
+            },
+        });
+    }
+
+    setActiveFilter(filter: string): void {
+        this.activeFilter = filter;
+        this.applyFilters();
+    }
+
+    onDateChange(): void {
+        this.applyFilters();
+    }
+
+    applyFilters(): void {
+        let filtered = [...this.userOrders];
+
+        // Filter by status
+        if (this.activeFilter !== 'all') {
+            filtered = filtered.filter(order => {
+                const overallStatus = this.getOverallOrderStatus(order);
+                switch (this.activeFilter) {
+                    case 'completed':
+                        return overallStatus === 'delivered' || overallStatus === 'completed';
+                    case 'cancelled':
+                        return overallStatus === 'cancelled';
+                    case 'summary':
+                        return overallStatus === 'pending' || overallStatus === 'processing';
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Filter by date range
+        if (this.startDate) {
+            filtered = filtered.filter(order => 
+                new Date(order.order_date) >= new Date(this.startDate)
+            );
+        }
+
+        if (this.endDate) {
+            filtered = filtered.filter(order => 
+                new Date(order.order_date) <= new Date(this.endDate)
+            );
+        }
+
+        this.filteredOrders = filtered;
+    }
+
+    getStatusClass(status: string): string {
+        switch (status.toLowerCase()) {
+            case 'delivered':
+            case 'completed':
+                return 'status-delivered';
+            case 'cancelled':
+                return 'status-cancelled';
+            case 'pending':
+                return 'status-pending';
+            case 'processing':
+                return 'status-processing';
+            default:
+                return 'status-default';
+        }
+    }
+
+    getOverallOrderStatus(order: OrderResponse): string {
+        if (!order.order_details || order.order_details.length === 0) {
+            return 'pending';
+        }
+
+        const statuses = order.order_details.map(detail => detail.status || 'pending');
+        
+        // Nếu tất cả items đều cancelled
+        if (statuses.every(status => status === 'cancelled')) {
+            return 'cancelled';
+        }
+        
+        // Nếu tất cả items đều delivered
+        if (statuses.every(status => status === 'delivered' || status === 'completed')) {
+            return 'delivered';
+        }
+        
+        // Nếu có ít nhất một item đang processing
+        if (statuses.some(status => status === 'processing')) {
+            return 'processing';
+        }
+        
+        // Mặc định là pending
+        return 'pending';
+    }
+
+    getOrderStatusSummary(order: OrderResponse): string {
+        if (!order.order_details || order.order_details.length === 0) {
+            return '';
+        }
+
+        const statuses = order.order_details.map(detail => detail.status || 'pending');
+        const statusCounts = statuses.reduce((acc, status) => {
+            acc[status] = (acc[status] || 0) + 1;
+            return acc;
+        }, {} as {[key: string]: number});
+
+        const totalItems = order.order_details.length;
+        const summaryParts: string[] = [];
+
+        if (statusCounts['delivered']) {
+            summaryParts.push(`${statusCounts['delivered']} delivered`);
+        }
+        if (statusCounts['processing']) {
+            summaryParts.push(`${statusCounts['processing']} processing`);
+        }
+        if (statusCounts['cancelled']) {
+            summaryParts.push(`${statusCounts['cancelled']} cancelled`);
+        }
+        if (statusCounts['pending']) {
+            summaryParts.push(`${statusCounts['pending']} pending`);
+        }
+
+        return summaryParts.join(', ') + ` (${totalItems} total)`;
+    }
+
+    getStatusText(status: string): string {
+        switch (status.toLowerCase()) {
+            case 'delivered':
+                return 'Delivered';
+            case 'cancelled':
+                return 'Cancelled';
+            case 'pending':
+                return 'Pending';
+            case 'processing':
+                return 'Processing';
+            case 'completed':
+                return 'Completed';
+            default:
+                return status;
+        }
+    }
+
+    getOrderStatusText(status: string): string {
+        switch (status.toLowerCase()) {
+            case 'delivered':
+            case 'completed':
+                return 'Payment Is Successful';
+            case 'cancelled':
+                return 'cancel order';
+            case 'pending':
+                return 'Payment Pending';
+            case 'processing':
+                return 'Payment Processing';
+            default:
+                return 'Payment Status Unknown';
+        }
+    }
+
+    showInvoice(orderId: number): void {
+        // Navigate to invoice page or show invoice modal
+        console.log('Show invoice for order:', orderId);
+        // You can implement navigation to invoice page here
+    }
+
+    buyNow(orderId: number): void {
+        // Handle buy now functionality
+        console.log('Buy now for order:', orderId);
+        // You can implement re-order functionality here
+    }
+
+    onImageError(event: any): void {
+        event.target.src = '/assets/images/default-product.png';
+    }
+}

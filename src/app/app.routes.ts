@@ -10,6 +10,7 @@ import { AdminComponent } from './components/admin/admin.component';
 import { AuthGuardFn } from './guards/auth.guard';
 import { AdminGuardFn } from './guards/admin.guard';
 import { adminRoutes } from './components/admin/admin.routes';
+import { UserOrderComponent } from './components/user-order/user-order.component';
 
 export const routes: Routes = [
     ...adminRoutes,
@@ -20,5 +21,6 @@ export const routes: Routes = [
     { path: 'products/:id', component: DetailProductComponent },
     { path: 'orders', component: OrderComponent, canActivate: [AuthGuardFn] },
     { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuardFn] },
+    { path: 'user-order', component: UserOrderComponent, canActivate: [AuthGuardFn] },
     { path: 'orders/:id', component: OrderDetailComponent },
 ];

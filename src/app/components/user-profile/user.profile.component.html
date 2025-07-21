@@ -1,64 +1,126 @@
 <app-header></app-header>
 <div class="profile-container">
-  <div class="profile-avatar">
-    <img src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png" alt="avatar" />
-  </div>
-  <form [formGroup]="userProfileForm" class="profile-form">
-    <div class="profile-info-table">
-      <div class="profile-info-row">
-        <div class="profile-info-label">Họ và tên</div>
-        <div class="profile-info-value">
-          <ng-container *ngIf="!isEditMode; else editFullname">{{ userProfileForm.get('fullname')?.value }}</ng-container>
-          <ng-template #editFullname>
-            <input type="text" formControlName="fullname" class="form-control" [class.is-invalid]="userProfileForm.get('fullname')!.invalid && userProfileForm.get('fullname')!.touched" />
-            <div *ngIf="userProfileForm.get('fullname')!.invalid && userProfileForm.get('fullname')!.touched" class="invalid-feedback">Họ và tên là trường bắt buộc.</div>
-          </ng-template>
-        </div>
-      </div>
-      <div class="profile-info-row">
-        <div class="profile-info-label">Số điện thoại</div>
-        <div class="profile-info-value">{{ userResponse?.phone_number || '---' }}</div>
-      </div>
-      <div class="profile-info-row">
-        <div class="profile-info-label">Địa chỉ</div>
-        <div class="profile-info-value">
-          <ng-container *ngIf="!isEditMode; else editAddress">{{ userProfileForm.get('address')?.value }}</ng-container>
-          <ng-template #editAddress>
-            <input type="text" formControlName="address" class="form-control" [class.is-invalid]="userProfileForm.get('address')!.invalid && userProfileForm.get('address')!.touched" />
-            <div *ngIf="userProfileForm.get('address')!.invalid && userProfileForm.get('address')!.touched" class="invalid-feedback">Địa chỉ không hợp lệ</div>
-          </ng-template>
-        </div>
-      </div>
-      <div class="profile-info-row">
-        <div class="profile-info-label">Ngày sinh</div>
-        <div class="profile-info-value">
-          <ng-container *ngIf="!isEditMode; else editDob">{{ userProfileForm.get('date_of_birth')?.value | date:'dd/MM/yyyy' }}</ng-container>
-          <ng-template #editDob>
-            <input type="date" formControlName="date_of_birth" class="form-control" />
-          </ng-template>
-        </div>
-      </div>
-      <ng-container *ngIf="isEditMode">
-        <div class="profile-info-row">
-          <div class="profile-info-label">Mật khẩu</div>
-          <div class="profile-info-value">
-            <input type="password" class="form-control" formControlName="password" placeholder="Mật khẩu" [class.is-invalid]="userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched" />
-            <div *ngIf="userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched" class="invalid-feedback">Mật khẩu ít nhất 3 ký tự.</div>
-          </div>
-        </div>
-        <div class="profile-info-row">
-          <div class="profile-info-label">Nhập lại mật khẩu</div>
-          <div class="profile-info-value">
-            <input type="password" class="form-control" formControlName="retype_password" placeholder="Nhập lại mật khẩu" [class.is-invalid]="userProfileForm.hasError('passwordMismatch') && userProfileForm.get('retype_password')?.touched" />
-            <div *ngIf="userProfileForm.hasError('passwordMismatch') && userProfileForm.get('retype_password')?.touched" class="invalid-feedback">Mật khẩu không khớp.</div>
-          </div>
-        </div>
-      </ng-container>
+    <div class="profile-avatar">
+        <img src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png" alt="avatar" />
     </div>
-    <div class="text-center mt-4">
-      <button *ngIf="!isEditMode" type="button" (click)="isEditMode = true" class="btn btn-danger">Chỉnh sửa thông tin</button>
-      <button *ngIf="isEditMode" type="button" (click)="save()" class="btn btn-primary">Lưu thay đổi</button>
-    </div>
-  </form>
+    <form [formGroup]="userProfileForm" class="profile-form">
+        <div class="profile-info-table">
+            <div class="profile-info-row">
+                <div class="profile-info-label">Họ và tên</div>
+                <div class="profile-info-value">
+                    <ng-container *ngIf="!isEditMode; else editFullname">
+                        {{ userProfileForm.get('fullname')?.value }}
+                    </ng-container>
+                    <ng-template #editFullname>
+                        <input
+                            type="text"
+                            formControlName="fullname"
+                            class="form-control"
+                            [class.is-invalid]="
+                                userProfileForm.get('fullname')!.invalid && userProfileForm.get('fullname')!.touched
+                            "
+                        />
+                        <div
+                            *ngIf="userProfileForm.get('fullname')!.invalid && userProfileForm.get('fullname')!.touched"
+                            class="invalid-feedback"
+                        >
+                            Họ và tên là trường bắt buộc.
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-label">Số điện thoại</div>
+                <div class="profile-info-value">{{ userResponse?.phone_number || '---' }}</div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-label">Địa chỉ</div>
+                <div class="profile-info-value">
+                    <ng-container *ngIf="!isEditMode; else editAddress">
+                        {{ userProfileForm.get('address')?.value }}
+                    </ng-container>
+                    <ng-template #editAddress>
+                        <input
+                            type="text"
+                            formControlName="address"
+                            class="form-control"
+                            [class.is-invalid]="
+                                userProfileForm.get('address')!.invalid && userProfileForm.get('address')!.touched
+                            "
+                        />
+                        <div
+                            *ngIf="userProfileForm.get('address')!.invalid && userProfileForm.get('address')!.touched"
+                            class="invalid-feedback"
+                        >
+                            Địa chỉ không hợp lệ
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+            <div class="profile-info-row">
+                <div class="profile-info-label">Ngày sinh</div>
+                <div class="profile-info-value">
+                    <ng-container *ngIf="!isEditMode; else editDob">
+                        {{ userProfileForm.get('date_of_birth')?.value | date : 'dd/MM/yyyy' }}
+                    </ng-container>
+                    <ng-template #editDob>
+                        <input type="date" formControlName="date_of_birth" class="form-control" />
+                    </ng-template>
+                </div>
+            </div>
+            <ng-container *ngIf="isEditMode">
+                <div class="profile-info-row">
+                    <div class="profile-info-label">Mật khẩu</div>
+                    <div class="profile-info-value">
+                        <input
+                            type="password"
+                            class="form-control"
+                            formControlName="password"
+                            placeholder="Mật khẩu"
+                            [class.is-invalid]="
+                                userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched
+                            "
+                        />
+                        <div
+                            *ngIf="userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched"
+                            class="invalid-feedback"
+                        >
+                            Mật khẩu ít nhất 3 ký tự.
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <div class="profile-info-label">Nhập lại mật khẩu</div>
+                    <div class="profile-info-value">
+                        <input
+                            type="password"
+                            class="form-control"
+                            formControlName="retype_password"
+                            placeholder="Nhập lại mật khẩu"
+                            [class.is-invalid]="
+                                userProfileForm.hasError('passwordMismatch') &&
+                                userProfileForm.get('retype_password')?.touched
+                            "
+                        />
+                        <div
+                            *ngIf="
+                                userProfileForm.hasError('passwordMismatch') &&
+                                userProfileForm.get('retype_password')?.touched
+                            "
+                            class="invalid-feedback"
+                        >
+                            Mật khẩu không khớp.
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+        <div class="text-center mt-4">
+            <button *ngIf="!isEditMode" type="button" (click)="isEditMode = true" class="btn btn-danger">
+                Chỉnh sửa thông tin
+            </button>
+            <button *ngIf="isEditMode" type="button" (click)="save()" class="btn btn-primary">Lưu thay đổi</button>
+        </div>
+    </form>
 </div>
 <app-footer></app-footer>

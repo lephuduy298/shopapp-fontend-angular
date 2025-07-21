@@ -27,7 +27,6 @@ export class OrderDetailComponent implements OnInit {
         address: '',
         note: '',
         order_date: new Date(),
-        status: '',
         total_money: 0, // Hoặc bất kỳ giá trị số nào bạn muốn
         shipping_method: '',
         shipping_address: '',
@@ -78,7 +77,7 @@ export class OrderDetailComponent implements OnInit {
 
                 this.orderResponse.shipping_method = response.shipping_method;
 
-                this.orderResponse.status = response.status;
+                // Note: status is now handled at order_detail level
                 this.orderResponse.total_money = response.total_money;
             },
             complete: () => {

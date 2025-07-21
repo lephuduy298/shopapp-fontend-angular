@@ -86,4 +86,35 @@ export class OrderAdminComponent implements OnInit {
         debugger;
         this.router.navigate(['admin/orders', order.id]);
     }
+
+    getOrderStatus(order: OrderResponse): string {
+        if (!order.order_details || order.order_details.length === 0) {
+            return 'No Items';
+        }
+
+        const statuses = order.order_details.map(detail => detail.status || 'pending');
+        
+        // Nếu tất cả items đều cancelled
+        if (statuses.every(status => status === 'cancelled')) {
+            return 'All Cancelled';
+        }
+        
+        // Nếu tất cả items đều delivered
+        if (statuses.every(status => status === 'delivered' || status === 'completed')) {
+            return 'All Delivered';
+        }
+        
+        // Nếu có ít nhất một item đang processing
+        if (statuses.some(status => status === 'processing')) {
+            return 'Processing';
+        }
+        
+        // Nếu có ít nhất một item đang shipped
+        if (statuses.some(status => status === 'shipped')) {
+            return 'Shipped';
+        }
+        
+        // Mặc định là pending
+        return 'Pending';
+    }
 }

@@ -1,0 +1,128 @@
+<app-header></app-header>
+
+<div class="order-history-container">
+    <div class="container">
+        <div class="order-history-header">
+            <h2>Order History</h2>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab" [class.active]="activeFilter === 'all'" (click)="setActiveFilter('all')">
+                    All Order
+                </button>
+                <button class="filter-tab" [class.active]="activeFilter === 'summary'" (click)="setActiveFilter('summary')">
+                    Summary
+                </button>
+                <button
+                    class="filter-tab"
+                    [class.active]="activeFilter === 'completed'"
+                    (click)="setActiveFilter('completed')"
+                >
+                    Completed
+                </button>
+                <button
+                    class="filter-tab"
+                    [class.active]="activeFilter === 'cancelled'"
+                    (click)="setActiveFilter('cancelled')"
+                >
+                    Cancelled
+                </button>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="date-filter">
+                <div class="date-input">
+                    <i class="fa fa-calendar"></i>
+                    <input type="date" [(ngModel)]="startDate" (change)="onDateChange()" placeholder="11-01-2023" />
+                </div>
+                <span class="to-text">To</span>
+                <div class="date-input">
+                    <i class="fa fa-calendar"></i>
+                    <input type="date" [(ngModel)]="endDate" (change)="onDateChange()" placeholder="11-01-2023" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="orders-list" *ngIf="filteredOrders.length > 0; else noOrders">
+            <div class="order-card" *ngFor="let order of filteredOrders">
+                <div class="order-header">
+                    <div class="order-info">
+                        <div class="order-number">Order : #{{ order.id }}</div>
+                        <div class="order-payment">Order Payment : {{ order.order_date | date : 'dd MMM yyyy' }}</div>
+                        <div class="order-summary">{{ getOrderStatusSummary(order) }}</div>
+                    </div>
+                    <div class="order-actions">
+                        <button class="show-invoice-btn" (click)="showInvoice(order.id)">Show Invoice</button>
+                        <button class="buy-now-btn" (click)="buyNow(order.id)">Buy Now</button>
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    <div class="order-item" *ngFor="let detail of order.order_details">
+                        <div class="item-image">
+                            <img
+                                [src]="detail.product.thumbnail || '/assets/images/default-product.png'"
+                                [alt]="detail.product.name"
+                                (error)="onImageError($event)"
+                            />
+                        </div>
+                        <div class="item-details">
+                            <h4 class="item-name">{{ detail.product.name }}</h4>
+                            <!-- <p class="item-brand">By: Product ID {{ detail.product.category_id }}</p> -->
+                            <div class="item-specs">
+                                <!-- <span class="item-size">Size: {{ detail.color || 'S' }}</span> -->
+                                <span class="item-qty">Qty: {{ detail.number_of_products }}</span>
+                                <span class="item-price">Price ${{ detail.price }}</span>
+                            </div>
+                        </div>
+                        <div class="item-status">
+                            <div class="status-info">
+                                <span class="status-label">Status</span>
+                                <span class="status-value" [ngClass]="getStatusClass(detail.status || 'pending')">
+                                    <i
+                                        class="fa"
+                                        [ngClass]="{
+                                            'fa-check-circle': (detail.status || 'pending') === 'delivered',
+                                            'fa-times-circle': (detail.status || 'pending') === 'cancelled',
+                                            'fa-clock-o': (detail.status || 'pending') === 'pending',
+                                            'fa-spinner': (detail.status || 'pending') === 'processing'
+                                        }"
+                                    ></i>
+                                    {{ getStatusText(detail.status || 'pending') }}
+                                </span>
+                            </div>
+                            <div class="delivery-info">
+                                <span class="delivery-label">Delivery Expected by</span>
+                                <span class="delivery-date">{{ order.shipping_date | date : 'dd MMM yyyy' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-footer">
+                    <div class="order-status">
+                        <i class="fa fa-times cancel-icon" *ngIf="getOverallOrderStatus(order) === 'cancelled'"></i>
+                        <span class="status-text">{{ getOrderStatusText(getOverallOrderStatus(order)) }}</span>
+                    </div>
+                    <div class="order-total">
+                        <span class="total-label">Total Price:</span>
+                        <span class="total-amount">${{ order.total_money }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Orders State -->
+        <ng-template #noOrders>
+            <div class="no-orders">
+                <i class="fa fa-shopping-bag no-orders-icon"></i>
+                <h3>No Orders Found</h3>
+                <p>You haven't placed any orders yet.</p>
+                <button class="start-shopping-btn" routerLink="/">Start Shopping</button>
+            </div>
+        </ng-template>
+    </div>
+</div>
+
+<app-footer></app-footer>

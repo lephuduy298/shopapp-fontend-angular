@@ -24,7 +24,6 @@ export class DetailOrderAdminComponent implements OnInit {
         address: '',
         note: '',
         order_date: new Date(),
-        status: '',
         total_money: 0,
         shipping_method: '',
         shipping_address: '',
@@ -74,7 +73,7 @@ export class DetailOrderAdminComponent implements OnInit {
                     );
                 }
                 this.orderResponse.shipping_method = response.shipping_method;
-                this.orderResponse.status = response.status;
+                // Note: status is now handled at order_detail level
                 debugger;
             },
             complete: () => {
@@ -107,5 +106,60 @@ export class DetailOrderAdminComponent implements OnInit {
                 // console.error('Error updating order:', error);
             },
         });
+    }
+
+    getOverallOrderStatus(): string {
+        if (!this.orderResponse.order_details || this.orderResponse.order_details.length === 0) {
+            return 'No Items';
+        }
+
+        const statuses = this.orderResponse.order_details.map(detail => detail.status || 'pending');
+        
+        // Nếu tất cả items đều cancelled
+        if (statuses.every(status => status === 'cancelled')) {
+            return 'All Cancelled';
+        }
+        
+        // Nếu tất cả items đều delivered
+        if (statuses.every(status => status === 'delivered' || status === 'completed')) {
+            return 'All Delivered';
+        }
+        
+        // Nếu có ít nhất một item đang processing
+        if (statuses.some(status => status === 'processing')) {
+            return 'Processing';
+        }
+        
+        // Nếu có ít nhất một item đang shipped
+        if (statuses.some(status => status === 'shipped')) {
+            return 'Shipped';
+        }
+        
+        // Tính toán thống kê
+        const statusCounts = statuses.reduce((acc, status) => {
+            acc[status] = (acc[status] || 0) + 1;
+            return acc;
+        }, {} as {[key: string]: number});
+
+        const totalItems = this.orderResponse.order_details.length;
+        const summaryParts: string[] = [];
+
+        if (statusCounts['delivered']) {
+            summaryParts.push(`${statusCounts['delivered']} delivered`);
+        }
+        if (statusCounts['shipped']) {
+            summaryParts.push(`${statusCounts['shipped']} shipped`);
+        }
+        if (statusCounts['processing']) {
+            summaryParts.push(`${statusCounts['processing']} processing`);
+        }
+        if (statusCounts['cancelled']) {
+            summaryParts.push(`${statusCounts['cancelled']} cancelled`);
+        }
+        if (statusCounts['pending']) {
+            summaryParts.push(`${statusCounts['pending']} pending`);
+        }
+
+        return summaryParts.join(', ') + ` (${totalItems} total)`;
     }
 }

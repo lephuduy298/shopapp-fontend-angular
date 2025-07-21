@@ -30,7 +30,7 @@
                 <td>{{ order.address }}</td>
                 <td>{{ order.note }}</td>
                 <td>{{ order.order_date | date }}</td>
-                <td>{{ order.status }}</td>
+                <td>{{ getOrderStatus(order) }}</td>
                 <td>{{ order.total_money }}</td>
                 <!-- <td>{{ order.shipping_method }}</td>
                 <td>{{ order.shipping_address }}</td>

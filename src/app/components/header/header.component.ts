@@ -98,6 +98,8 @@ export class HeaderComponent implements OnInit {
     handleItemClick(index: number) {
         if (index === 0) {
             this.router.navigate(['/user-profile']);
+        } else if (index === 1) {
+            this.router.navigate(['/user-order']);
         } else if (index === 2) {
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
