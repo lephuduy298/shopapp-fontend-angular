@@ -102,7 +102,15 @@
 
                 <div class="order-footer">
                     <div class="order-status">
-                        <i class="fa fa-times cancel-icon" *ngIf="getOverallOrderStatus(order) === 'cancelled'"></i>
+                        <i
+                            class="fa status-icon"
+                            [ngClass]="{
+                            'fa-check-circle delivered-icon': getOverallOrderStatus(order) === 'delivered',
+                            'fa-times-circle cancel-icon': getOverallOrderStatus(order) === 'cancelled',
+                            'fa-clock-o pending-icon': getOverallOrderStatus(order) === 'pending',
+                            'fa-cog fa-spin processing-icon': getOverallOrderStatus(order) === 'processing',
+                        }"
+                        ></i>
                         <span class="status-text">{{ getOrderStatusText(getOverallOrderStatus(order)) }}</span>
                     </div>
                     <div class="order-total">

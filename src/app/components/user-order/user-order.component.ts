@@ -36,14 +36,14 @@ export class UserOrderComponent implements OnInit {
             next: (response) => {
                 debugger;
                 // Process product images
-                response.forEach(order => {
-                    order.order_details.forEach(detail => {
+                response.forEach((order) => {
+                    order.order_details.forEach((detail) => {
                         if (detail.product.thumbnail && !detail.product.thumbnail.startsWith('http')) {
                             detail.product.thumbnail = `${environment.apiBaseUrl}/products/images/${detail.product.thumbnail}`;
                         }
                     });
                 });
-                
+
                 this.userOrders = response;
                 this.filteredOrders = response;
                 this.applyFilters();
@@ -68,7 +68,7 @@ export class UserOrderComponent implements OnInit {
 
         // Filter by status
         if (this.activeFilter !== 'all') {
-            filtered = filtered.filter(order => {
+            filtered = filtered.filter((order) => {
                 const overallStatus = this.getOverallOrderStatus(order);
                 switch (this.activeFilter) {
                     case 'completed':
@@ -85,15 +85,11 @@ export class UserOrderComponent implements OnInit {
 
         // Filter by date range
         if (this.startDate) {
-            filtered = filtered.filter(order => 
-                new Date(order.order_date) >= new Date(this.startDate)
-            );
+            filtered = filtered.filter((order) => new Date(order.order_date) >= new Date(this.startDate));
         }
 
         if (this.endDate) {
-            filtered = filtered.filter(order => 
-                new Date(order.order_date) <= new Date(this.endDate)
-            );
+            filtered = filtered.filter((order) => new Date(order.order_date) <= new Date(this.endDate));
         }
 
         this.filteredOrders = filtered;
@@ -120,23 +116,23 @@ export class UserOrderComponent implements OnInit {
             return 'pending';
         }
 
-        const statuses = order.order_details.map(detail => detail.status || 'pending');
-        
+        const statuses = order.order_details.map((detail) => detail.status || 'pending');
+
         // Nếu tất cả items đều cancelled
-        if (statuses.every(status => status === 'cancelled')) {
+        if (statuses.every((status) => status === 'cancelled')) {
             return 'cancelled';
         }
-        
+
         // Nếu tất cả items đều delivered
-        if (statuses.every(status => status === 'delivered' || status === 'completed')) {
+        if (statuses.every((status) => status === 'delivered' || status === 'completed')) {
             return 'delivered';
         }
-        
+
         // Nếu có ít nhất một item đang processing
-        if (statuses.some(status => status === 'processing')) {
+        if (statuses.some((status) => status === 'processing')) {
             return 'processing';
         }
-        
+
         // Mặc định là pending
         return 'pending';
     }
@@ -146,11 +142,11 @@ export class UserOrderComponent implements OnInit {
             return '';
         }
 
-        const statuses = order.order_details.map(detail => detail.status || 'pending');
+        const statuses = order.order_details.map((detail) => detail.status || 'pending');
         const statusCounts = statuses.reduce((acc, status) => {
             acc[status] = (acc[status] || 0) + 1;
             return acc;
-        }, {} as {[key: string]: number});
+        }, {} as { [key: string]: number });
 
         const totalItems = order.order_details.length;
         const summaryParts: string[] = [];

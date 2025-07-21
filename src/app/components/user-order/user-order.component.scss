@@ -312,8 +312,29 @@
                 font-size: 14px;
                 color: #6c757d;
 
-                .cancel-icon {
-                    color: #dc3545;
+                .status-icon {
+                    font-size: 16px;
+
+                    &.delivered-icon {
+                        color: #28a745;
+                    }
+
+                    &.cancel-icon {
+                        color: #dc3545;
+                    }
+
+                    &.pending-icon {
+                        color: #ffc107;
+                    }
+
+                    &.processing-icon {
+                        color: #e53935;
+                        animation: spin 2s linear infinite;
+                    }
+
+                    &.shipped-icon {
+                        color: #17a2b8;
+                    }
                 }
 
                 .status-text {
