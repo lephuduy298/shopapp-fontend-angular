@@ -121,6 +121,14 @@
             </div>
         </div>
 
+        <!-- Load More Button -->
+        <div class="load-more-section" *ngIf="filteredOrders.length > 0 && hasMoreData">
+            <button class="load-more-btn" (click)="loadMoreOrders()" [disabled]="isLoading">
+                <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+                {{ isLoading ? 'Loading...' : 'See More' }}
+            </button>
+        </div>
+
         <!-- No Orders State -->
         <ng-template #noOrders>
             <div class="no-orders">

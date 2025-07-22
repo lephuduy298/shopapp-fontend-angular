@@ -29,10 +29,11 @@ export class OrderService {
         return this.http.get(apiGetOrderId);
     }
 
-    getOrdersByUser(userId: number): Observable<OrderResponse[]> {
+    getOrdersByUser(userId: number, page: number, limit: number): Observable<OrderResponse[]> {
+        const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
         debugger;
         const apiGetOrdersByUser = `${this.apiConfig}/user/${userId}`;
-        return this.http.get<OrderResponse[]>(apiGetOrdersByUser);
+        return this.http.get<OrderResponse[]>(apiGetOrdersByUser, { params });
     }
 
     getAllOrders(keyword: string, page: number, limit: number): Observable<OrderResponse[]> {

@@ -9,6 +9,7 @@ import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { offset } from '@popperjs/core';
 
 @Component({
     selector: 'app-user-order',
@@ -22,6 +23,12 @@ export class UserOrderComponent implements OnInit {
     activeFilter: string = 'all';
     startDate: string = '';
     endDate: string = '';
+    page: number = 1;
+    offset: number = 3;
+    limit: number = 3;
+    hasMoreData: boolean = true;
+    isLoading: boolean = false;
+    totalOrderCount: number = 0;
 
     constructor(private orderService: OrderService, private userService: UserService) {}
 
@@ -30,13 +37,14 @@ export class UserOrderComponent implements OnInit {
     }
 
     getOrdersByUser(): void {
+        this.isLoading = true;
         const user = this.userService.getUserFromLocalStorage();
         const userId: number = user && typeof user.id === 'number' ? user.id : 0; // Ensure userId is always a number
-        this.orderService.getOrdersByUser(userId).subscribe({
-            next: (response) => {
+        this.orderService.getOrdersByUser(userId, this.page, this.limit).subscribe({
+            next: (response: any) => {
                 debugger;
                 // Process product images
-                response.forEach((order) => {
+                response.result.forEach((order: OrderResponse) => {
                     order.order_details.forEach((detail) => {
                         if (detail.product.thumbnail && !detail.product.thumbnail.startsWith('http')) {
                             detail.product.thumbnail = `${environment.apiBaseUrl}/products/images/${detail.product.thumbnail}`;
@@ -44,23 +52,41 @@ export class UserOrderComponent implements OnInit {
                     });
                 });
 
-                this.userOrders = response;
-                this.filteredOrders = response;
+                this.userOrders = response.result;
+                this.filteredOrders = response.result;
+
+                // Check if there are more orders to load
+                this.totalOrderCount = response.meta.totalItems;
+                this.hasMoreData = response.result.length === this.limit && response.result.length !== this.totalOrderCount;
+
                 this.applyFilters();
+                this.isLoading = false;
             },
             error: (error) => {
                 console.error('Error fetching user orders:', error);
+                this.isLoading = false;
             },
         });
     }
 
+    loadMoreOrders(): void {
+        if (!this.isLoading && this.hasMoreData) {
+            this.limit = this.limit + this.offset; // Tăng limit thêm 5
+            this.getOrdersByUser();
+        }
+    }
+
     setActiveFilter(filter: string): void {
         this.activeFilter = filter;
-        this.applyFilters();
+        this.limit = 3; // Reset limit về giá trị ban đầu
+        this.hasMoreData = true; // Reset has more data flag
+        this.getOrdersByUser(); // Fetch new data with filter
     }
 
     onDateChange(): void {
-        this.applyFilters();
+        this.limit = 3; // Reset limit về giá trị ban đầu
+        this.hasMoreData = true; // Reset has more data flag
+        this.getOrdersByUser(); // Fetch new data with date filter
     }
 
     applyFilters(): void {
