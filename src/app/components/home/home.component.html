@@ -45,43 +45,68 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Pagination Info -->
         <div class="pagination-info">
             <span>Trang {{ currentPage }} / {{ totalPages }} ({{ products.length }} sản phẩm)</span>
         </div>
-        
+
         <div class="d-flex justify-content-center">
             <nav aria-label="Page navigation">
                 <ul class="pagination">
                     <li class="page-item" [ngClass]="{ disabled: currentPage === 1 }">
-                        <a class="page-link" href="#" (click)="onPageChange(1, $event)" [attr.aria-disabled]="currentPage === 1">
+                        <a
+                            class="page-link"
+                            href="#"
+                            (click)="onPageChange(1, $event)"
+                            [attr.aria-disabled]="currentPage === 1"
+                        >
                             <i class="fa fa-angle-double-left" aria-hidden="true"></i>
-                            <span>Đầu</span>
+                            <!-- <span>Đầu</span> -->
                         </a>
                     </li>
                     <li class="page-item" [ngClass]="{ disabled: currentPage === 1 }">
-                        <a class="page-link" href="#" (click)="onPageChange(currentPage - 1, $event)" [attr.aria-disabled]="currentPage === 1">
+                        <a
+                            class="page-link"
+                            href="#"
+                            (click)="onPageChange(currentPage - 1, $event)"
+                            [attr.aria-disabled]="currentPage === 1"
+                        >
                             <i class="fa fa-angle-left" aria-hidden="true"></i>
-                            <span>Trước</span>
+                            <!-- <span>Trước</span> -->
                         </a>
                     </li>
                     <ng-container *ngFor="let page of visiblePages">
                         <li class="page-item" [ngClass]="{ active: page === currentPage }">
-                            <a class="page-link" href="#" (click)="onPageChange(page, $event)" [attr.aria-current]="page === currentPage ? 'page' : null">
+                            <a
+                                class="page-link"
+                                href="#"
+                                (click)="onPageChange(page, $event)"
+                                [attr.aria-current]="page === currentPage ? 'page' : null"
+                            >
                                 {{ page }}
                             </a>
                         </li>
                     </ng-container>
                     <li class="page-item" [ngClass]="{ disabled: currentPage === totalPages }">
-                        <a class="page-link" href="#" (click)="onPageChange(currentPage + 1, $event)" [attr.aria-disabled]="currentPage === totalPages">
-                            <span>Sau</span>
+                        <a
+                            class="page-link"
+                            href="#"
+                            (click)="onPageChange(currentPage + 1, $event)"
+                            [attr.aria-disabled]="currentPage === totalPages"
+                        >
+                            <!-- <span>Sau</span> -->
                             <i class="fa fa-angle-right" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="page-item" [ngClass]="{ disabled: currentPage === totalPages }">
-                        <a class="page-link" href="#" (click)="onPageChange(totalPages, $event)" [attr.aria-disabled]="currentPage === totalPages">
-                            <span>Cuối</span>
+                        <a
+                            class="page-link"
+                            href="#"
+                            (click)="onPageChange(totalPages, $event)"
+                            [attr.aria-disabled]="currentPage === totalPages"
+                        >
+                            <!-- <span>Cuối</span> -->
                             <i class="fa fa-angle-double-right" aria-hidden="true"></i>
                         </a>
                     </li>
