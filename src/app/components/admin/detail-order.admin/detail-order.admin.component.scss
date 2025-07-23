@@ -364,6 +364,11 @@
 
                             &.status-cell {
                                 .status-selector {
+                                    position: relative;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.5rem;
+
                                     .status-dropdown {
                                         padding: 0.5rem 1rem;
                                         border: 1px solid #d1d5db;
@@ -378,6 +383,12 @@
                                             outline: none;
                                             border-color: #667eea;
                                             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                                        }
+
+                                        &.status-changed {
+                                            border-color: #f59e0b;
+                                            background: #fffbeb;
+                                            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
                                         }
 
                                         &.status-pending {
@@ -409,6 +420,12 @@
                                             color: #991b1b;
                                             border-color: #f87171;
                                         }
+                                    }
+
+                                    .status-change-icon {
+                                        color: #f59e0b;
+                                        font-size: 0.8rem;
+                                        animation: pulse 2s infinite;
                                     }
                                 }
                             }
@@ -457,8 +474,8 @@
         .status-info {
             .status-item {
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
+                flex-direction: column;
+                align-items: flex-start;
                 padding: 1rem 0;
                 border-bottom: 1px solid #f1f5f9;
 
@@ -470,6 +487,62 @@
                     font-size: 0.9rem;
                     color: #64748b;
                     font-weight: 600;
+                    margin-bottom: 0.5rem;
+                }
+
+                .order-status-select {
+                    width: 100%;
+                    padding: 0.6rem 1rem;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    background: white;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+
+                    &:focus {
+                        outline: none;
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    }
+
+                    &.status-pending {
+                        background: #fef3c7;
+                        color: #92400e;
+                        border-color: #fcd34d;
+                    }
+
+                    &.status-processing {
+                        background: #dbeafe;
+                        color: #1e40af;
+                        border-color: #3b82f6;
+                    }
+
+                    &.status-shipped {
+                        background: #e0e7ff;
+                        color: #3730a3;
+                        border-color: #6366f1;
+                    }
+
+                    &.status-delivered {
+                        background: #d1fae5;
+                        color: #065f46;
+                        border-color: #10b981;
+                    }
+
+                    &.status-cancelled {
+                        background: #fee2e2;
+                        color: #991b1b;
+                        border-color: #f87171;
+                    }
+                }
+
+                .status-help {
+                    font-size: 0.75rem;
+                    color: #6b7280;
+                    margin-top: 0.25rem;
+                    font-style: italic;
                 }
 
                 span {
@@ -649,5 +722,18 @@
         .action-buttons {
             display: none;
         }
+    }
+}
+
+// Animations
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
     }
 }

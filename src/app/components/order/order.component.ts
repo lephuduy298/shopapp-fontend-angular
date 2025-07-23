@@ -131,10 +131,10 @@ export class OrderComponent implements OnInit {
     toggleSelectAll(): void {
         // Toggle the allSelected state first
         this.allSelected = !this.allSelected;
-        
+
         // Then apply this state to all items
         this.cartItems.forEach((item) => (item.selected = this.allSelected));
-        
+
         // Recalculate price
         this.calculatePrice();
     }
@@ -170,7 +170,7 @@ export class OrderComponent implements OnInit {
         if (!this.isOrderConfirmed) {
             // Đánh dấu form đã được submit
             this.isFormSubmitted = true;
-            
+
             // Lần đầu: xác nhận đơn, disable form
             if (this.orderForm.valid) {
                 this.isOrderConfirmed = true;
@@ -191,6 +191,7 @@ export class OrderComponent implements OnInit {
                 .map((cartItem) => ({
                     product_id: cartItem.product.id,
                     quantity: cartItem.quantity,
+                    status: 'pending',
                 }));
             this.calculatePrice();
             this.orderData.total_money = this.totalPrice;

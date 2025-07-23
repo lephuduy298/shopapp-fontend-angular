@@ -28,9 +28,14 @@
                     <i class="fas fa-print"></i>
                     Print
                 </button>
-                <button class="action-btn primary" (click)="saveOrder()">
+                <button
+                    class="action-btn primary"
+                    (click)="saveOrder()"
+                    [class.has-changes]="hasUnsavedChanges()"
+                    [title]="hasUnsavedChanges() ? 'You have unsaved changes' : 'No changes to save'"
+                >
                     <i class="fas fa-save"></i>
-                    Save Changes
+                    {{ hasUnsavedChanges() ? 'Save Changes *' : 'Save Changes' }}
                 </button>
             </div>
         </div>
@@ -150,7 +155,12 @@
                                                 <select
                                                     class="status-dropdown"
                                                     [(ngModel)]="order_detail.status"
-                                                    [class]="'status-' + order_detail.status"
+                                                    [class]="
+                                                        'status-' +
+                                                        order_detail.status +
+                                                        (isStatusChanged(order_detail.id) ? ' status-changed' : '')
+                                                    "
+                                                    (ngModelChange)="onOrderDetailStatusChange()"
                                                 >
                                                     <option value="pending">Pending</option>
                                                     <option value="processing">Processing</option>
@@ -158,6 +168,11 @@
                                                     <option value="delivered">Delivered</option>
                                                     <option value="cancelled">Cancelled</option>
                                                 </select>
+                                                <i
+                                                    *ngIf="isStatusChanged(order_detail.id)"
+                                                    class="fas fa-exclamation-circle status-change-icon"
+                                                    title="Status changed"
+                                                ></i>
                                             </div>
                                         </td>
                                     </tr>
@@ -213,12 +228,19 @@
                         <div class="status-info">
                             <div class="status-item">
                                 <label>Overall Status</label>
-                                <span
-                                    class="status-badge"
-                                    [class]="'status-' + getOverallOrderStatus().toLowerCase().replace(' ', '-')"
+                                <select
+                                    class="status-dropdown order-status-select"
+                                    [(ngModel)]="currentOrderStatus"
+                                    [class]="'status-' + currentOrderStatus"
+                                    (ngModelChange)="onOverallStatusChange()"
                                 >
-                                    {{ getOverallOrderStatus() }}
-                                </span>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                                <small class="status-help">Auto-calculated: {{ getOverallOrderStatus() }}</small>
                             </div>
                             <div class="status-item">
                                 <label>Payment Method</label>
@@ -242,6 +264,10 @@
                     </div>
                     <div class="card-content">
                         <div class="action-buttons">
+                            <button class="action-btn-full secondary" (click)="testStatusChange()">
+                                <i class="fas fa-bug"></i>
+                                Debug Status (Console)
+                            </button>
                             <button class="action-btn-full secondary" (click)="sendNotification()">
                                 <i class="fas fa-bell"></i>
                                 Send Notification
