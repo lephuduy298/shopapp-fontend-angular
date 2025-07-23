@@ -16,6 +16,7 @@ import { RouterOutlet } from '@angular/router';
 export class AdminComponent implements OnInit {
     adminComponent: string = 'dashboard';
     userResponse?: UserResponse | null;
+    isSidebarCollapsed: boolean = false;
     constructor(private userService: UserService, private tokenService: TokenService, private router: Router) {}
     ngOnInit() {
         this.userResponse = this.userService.getUserFromLocalStorage();
@@ -27,7 +28,7 @@ export class AdminComponent implements OnInit {
     }
 
     showAdminComponent(componentName: string): void {
-        //this.adminComponent = componentName;orders,categories
+        this.adminComponent = componentName;
         if (componentName == 'dashboard') {
             this.router.navigate(['/admin/dashboard']);
         } else if (componentName == 'orders') {
@@ -37,5 +38,9 @@ export class AdminComponent implements OnInit {
         } else if (componentName == 'products') {
             this.router.navigate(['/admin/products']);
         }
+    }
+
+    toggleSidebar(): void {
+        this.isSidebarCollapsed = !this.isSidebarCollapsed;
     }
 }

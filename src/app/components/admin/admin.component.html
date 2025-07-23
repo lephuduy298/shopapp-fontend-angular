@@ -1,47 +1,97 @@
-<div class="container-fluid">
-    <header class="header bg-success text-white d-flex justify-content-between">
-        <h1 class="header-title">Dashboard Header</h1>
-        <!-- Logout Button -->
-        <button class="btn btn-danger btn-sm" (click)="logout()">Logout</button>
+<div class="admin-layout">
+    <!-- Header -->
+    <header class="top-header">
+        <div class="header-content">
+            <!-- Title Section -->
+            <div class="title-section">
+                <h1 class="header-title">Admin Dashboard</h1>
+            </div>
+
+            <!-- User Section -->
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img
+                            src="https://static.vecteezy.com/system/resources/previews/012/210/707/non_2x/worker-employee-businessman-avatar-profile-icon-vector.jpg"
+                            alt="User Avatar"
+                        />
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">{{ userResponse?.fullname || 'Admin' }}</span>
+                    </div>
+                    <button class="logout-btn" (click)="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Đăng xuất</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </header>
-    <div class="row">
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-            <div class="position-sticky">
-                <ul class="nav flex-column">
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
+            <div class="sidebar-content">
+                <ul class="nav-list">
+                    <li class="toggle-item">
+                        <button class="sidebar-toggle" (click)="toggleSidebar()">
+                            <i
+                                class="fas"
+                                [class.fa-chevron-left]="!isSidebarCollapsed"
+                                [class.fa-chevron-right]="isSidebarCollapsed"
+                            ></i>
+                        </button>
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link" (click)="showAdminComponent('dashboard')">
-                            <i class="fas fa-tachometer-alt icon"></i>
-                            Dashboard
+                        <a
+                            class="nav-link"
+                            (click)="showAdminComponent('dashboard')"
+                            [class.active]="adminComponent === 'dashboard'"
+                            [title]="isSidebarCollapsed ? 'Dashboard' : ''"
+                        >
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" (click)="showAdminComponent('orders')">
-                            <i class="fab fa-first-order icon"></i>
-                            Orders
+                        <a
+                            class="nav-link"
+                            (click)="showAdminComponent('orders')"
+                            [class.active]="adminComponent === 'orders'"
+                            [title]="isSidebarCollapsed ? 'Orders' : ''"
+                        >
+                            <i class="fas fa-shopping-bag"></i>
+                            <span class="nav-text">Orders</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" (click)="showAdminComponent('categories')">
-                            <i class="fab fa-canadian-maple-leaf icon"></i>
-                            Categories
+                        <a
+                            class="nav-link"
+                            (click)="showAdminComponent('products')"
+                            [class.active]="adminComponent === 'products'"
+                            [title]="isSidebarCollapsed ? 'Products' : ''"
+                        >
+                            <i class="fas fa-box"></i>
+                            <span class="nav-text">Products</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" (click)="showAdminComponent('products')">
-                            <i class="fab fa-codepen icon"></i>
-                            Products
+                        <a
+                            class="nav-link"
+                            (click)="showAdminComponent('categories')"
+                            [class.active]="adminComponent === 'categories'"
+                            [title]="isSidebarCollapsed ? 'Categories' : ''"
+                        >
+                            <i class="fas fa-tags"></i>
+                            <span class="nav-text">Categories</span>
                         </a>
                     </li>
                 </ul>
             </div>
         </nav>
-        <div class="info-page col-md-10 col-lg-10 overflow-auto">
-            <!-- <ng-container [ngSwitch]="adminComponent">
-                <app-order-admin *ngSwitchCase="'orders'"></app-order-admin>
-                <app-product-admin *ngSwitchCase="'products'"></app-product-admin>
-                <app-category-admin *ngSwitchCase="'categories'"></app-category-admin>
-            </ng-container> -->
+        <!-- Main Content -->
+        <main class="main-content">
             <router-outlet></router-outlet>
-        </div>
+        </main>
     </div>
 </div>
