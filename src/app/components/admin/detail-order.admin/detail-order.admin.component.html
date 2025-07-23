@@ -1,84 +1,263 @@
-<h1>This is detail order admin</h1>
-<div class="container">
-    <h1>Order Details</h1>
+<div class="admin-order-detail-container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="back-btn" (click)="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Orders
+                </button>
+                <div class="header-info">
+                    <h1 class="page-title">Order #{{ orderResponse.id }}</h1>
+                    <div class="order-meta">
+                        <span class="order-date">
+                            <i class="fas fa-calendar"></i>
+                            {{ orderResponse.order_date | date : 'MMMM dd, yyyy' }}
+                        </span>
+                        <span
+                            class="overall-status"
+                            [class]="'status-' + getOverallOrderStatus().toLowerCase().replace(' ', '-')"
+                        >
+                            {{ getOverallOrderStatus() }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn secondary" (click)="printOrder()">
+                    <i class="fas fa-print"></i>
+                    Print
+                </button>
+                <button class="action-btn primary" (click)="saveOrder()">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h3>Order Information</h3>
-            <p>
-                <strong>Order ID:</strong>
-                {{ orderResponse.id }}
-            </p>
-            <p>
-                <strong>User ID:</strong>
-                {{ orderResponse.user_id }}
-            </p>
-            <p>
-                <strong>Full Name:</strong>
-                {{ orderResponse.fullname }}
-            </p>
-            <p>
-                <strong>Phone Number:</strong>
-                {{ orderResponse.phone_number }}
-            </p>
-            <p>
-                <strong>Email:</strong>
-                {{ orderResponse.email }}
-            </p>
-            <p>
-                <strong>Address:</strong>
-                {{ orderResponse.address }}
-            </p>
-            <p>
-                <strong>Note:</strong>
-                {{ orderResponse.note }}
-            </p>
-            <p>
-                <strong>Order Date:</strong>
-                {{ orderResponse.order_date | date }}
-            </p>
+    <div class="page-content">
+        <div class="row">
+            <!-- Left Column - Order Information -->
+            <div class="col-lg-8">
+                <!-- Customer Information -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user"></i>
+                            Customer Information
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="customer-info">
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Customer ID</label>
+                                    <span class="customer-id">#{{ orderResponse.user_id }}</span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Full Name</label>
+                                    <span>{{ orderResponse.fullname }}</span>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Email Address</label>
+                                    <span>{{ orderResponse.email }}</span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Phone Number</label>
+                                    <span>{{ orderResponse.phone_number }}</span>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-group full-width">
+                                    <label>Delivery Address</label>
+                                    <span>{{ orderResponse.address }}</span>
+                                </div>
+                            </div>
+                            <div class="info-row" *ngIf="orderResponse.note">
+                                <div class="info-group full-width">
+                                    <label>Order Notes</label>
+                                    <span class="order-notes">{{ orderResponse.note }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="overallStatus"><strong>Overall Status:</strong></label>
-                <div class="overall-status-display">
-                    {{ getOverallOrderStatus() }}
+                <!-- Order Items -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-shopping-bag"></i>
+                            Order Items ({{ orderResponse.order_details.length }})
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="items-table-container">
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th class="product-col">Product</th>
+                                        <th class="price-col">Unit Price</th>
+                                        <th class="qty-col">Quantity</th>
+                                        <th class="total-col">Total</th>
+                                        <th class="status-col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngFor="let order_detail of orderResponse.order_details; let i = index"
+                                        class="item-row"
+                                    >
+                                        <td class="product-cell">
+                                            <div class="product-info">
+                                                <div class="product-image">
+                                                    <img
+                                                        [src]="order_detail.product.thumbnail"
+                                                        [alt]="order_detail.product.name"
+                                                        onerror="this.src='https://via.placeholder.com/60x60/f0f0f0/666?text=No+Image'"
+                                                    />
+                                                </div>
+                                                <div class="product-details">
+                                                    <h4 class="product-name">{{ order_detail.product.name }}</h4>
+                                                    <span class="product-sku">SKU: {{ order_detail.product.id }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="price-cell">
+                                            <span class="price">
+                                                {{ order_detail.product.price | number : '1.0-0' }} VNĐ
+                                            </span>
+                                        </td>
+                                        <td class="qty-cell">
+                                            <div class="quantity-display">
+                                                <span class="qty-value">{{ order_detail.number_of_products }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="total-cell">
+                                            <span class="total-price">
+                                                {{
+                                                    order_detail.product.price * order_detail.number_of_products
+                                                        | number : '1.0-0'
+                                                }}
+                                                VNĐ
+                                            </span>
+                                        </td>
+                                        <td class="status-cell">
+                                            <div class="status-selector">
+                                                <select
+                                                    class="status-dropdown"
+                                                    [(ngModel)]="order_detail.status"
+                                                    [class]="'status-' + order_detail.status"
+                                                >
+                                                    <option value="pending">Pending</option>
+                                                    <option value="processing">Processing</option>
+                                                    <option value="shipped">Shipped</option>
+                                                    <option value="delivered">Delivered</option>
+                                                    <option value="cancelled">Cancelled</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Order Summary -->
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-receipt"></i>
+                            Order Summary
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="summary-details">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span>{{ getTotalAmount() | number : '1.0-0' }} VNĐ</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <span class="text-success">Free</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax</span>
+                                <span>0 VNĐ</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-row total">
+                                <span>Total Amount</span>
+                                <span>{{ getTotalAmount() | number : '1.0-0' }} VNĐ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Status -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-info-circle"></i>
+                            Order Status
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="status-info">
+                            <div class="status-item">
+                                <label>Overall Status</label>
+                                <span
+                                    class="status-badge"
+                                    [class]="'status-' + getOverallOrderStatus().toLowerCase().replace(' ', '-')"
+                                >
+                                    {{ getOverallOrderStatus() }}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <label>Payment Method</label>
+                                <span>{{ orderResponse.payment_method || 'Cash on Delivery' }}</span>
+                            </div>
+                            <div class="status-item">
+                                <label>Shipping Method</label>
+                                <span>{{ orderResponse.shipping_method || 'Standard Delivery' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-cogs"></i>
+                            Quick Actions
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="action-buttons">
+                            <button class="action-btn-full secondary" (click)="sendNotification()">
+                                <i class="fas fa-bell"></i>
+                                Send Notification
+                            </button>
+                            <button class="action-btn-full secondary" (click)="generateInvoice()">
+                                <i class="fas fa-file-invoice"></i>
+                                Generate Invoice
+                            </button>
+                            <button class="action-btn-full danger" (click)="cancelOrder()">
+                                <i class="fas fa-times-circle"></i>
+                                Cancel Order
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <h3>Order Details</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let order_detail of orderResponse.order_details; let i = index">
-                    <td>{{ order_detail.product.name }}</td>
-                    <td>
-                        <p>{{ order_detail.product.price }}</p>
-                    </td>
-
-                    <td>
-                        <p>{{ order_detail.number_of_products }}</p>
-                    </td>
-                    <td>{{ order_detail.product.price * order_detail.number_of_products | number : '1.2-2' }}</td>
-                    <td>
-                        <select class="form-control" [(ngModel)]="order_detail.status">
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="btn btn-primary col-md-2" (click)="saveOrder()">Save</button>
     </div>
 </div>

@@ -1,71 +1,137 @@
-<div class="container-fluid d-flex flex-column min-vh-100">
-    <h1>Orders Admin Page</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Phone Number</th>
-                <th>Address</th>
-                <th>Note</th>
-                <th>Order Date</th>
-                <th>Status</th>
-                <th>Total Money</th>
-                <!-- <th>Shipping Method</th>
-                <th>Shipping Address</th>
-                <th>Shipping Date</th>
-                <th>Payment Method</th> -->
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let order of orders">
-                <td>{{ order.id }}</td>
-                <td>{{ order.user_id }}</td>
-                <td>{{ order.fullname }}</td>
-                <td>{{ order.email }}</td>
-                <td>{{ order.phone_number }}</td>
-                <td>{{ order.address }}</td>
-                <td>{{ order.note }}</td>
-                <td>{{ order.order_date | date }}</td>
-                <td>{{ getOrderStatus(order) }}</td>
-                <td>{{ order.total_money }}</td>
-                <!-- <td>{{ order.shipping_method }}</td>
-                <td>{{ order.shipping_address }}</td>
-                <td>{{ order.shipping_date | date }}</td>
-                <td>{{ order.payment_method }}</td> -->
-                <td>
-                    <div style="display: flex; gap: 10px">
-                        <button (click)="viewDetails(order)" class="btn btn-primary" style="white-space: nowrap">
-                            View Details
+<div class="orders-admin-container">
+    <div class="header-section">
+        <div class="header-top">
+            <h1 class="page-title">Orders</h1>
+            <div class="header-actions">
+                <div class="search-container">
+                    <form class="header__search" (submit)="handleSearch($event)">
+                        <input type="text" placeholder="Nhập thông tin đơn hàng..." [(ngModel)]="keyword" name="keyword" />
+                        <button type="submit" class="header__search-btn">
+                            <span class="header__search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                         </button>
-                        <button class="btn btn-danger" (click)="deleteOrder(order.id)">Delete</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="d-flex justify-content-center mt-auto">
-        <nav aria-label="Page navigation">
+                    </form>
+                </div>
+                <button class="add-btn">
+                    <i class="fas fa-plus"></i>
+                    Add
+                </button>
+                <button class="more-btn">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="tab-btn active">All</button>
+            <button class="tab-btn">Unfulfilled</button>
+            <button class="tab-btn">Unpaid</button>
+            <button class="tab-btn">Open</button>
+            <button class="tab-btn">Closed</button>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="table-container">
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th class="checkbox-col">
+                        <input type="checkbox" class="checkbox" />
+                    </th>
+                    <th class="sortable">
+                        Order
+                        <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th class="sortable">
+                        Date
+                        <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <!-- <th>Delivery</th> -->
+                    <th>Items</th>
+                    <th>Fulfilment</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let order of orders; let i = index" class="table-row">
+                    <td class="checkbox-col">
+                        <input type="checkbox" class="checkbox" />
+                    </td>
+                    <td class="order-id">#{{ order.id }}</td>
+                    <td class="order-date">{{ order.order_date | date : 'dd MMM, yyyy' }}</td>
+                    <td class="customer-name">{{ order.fullname }}</td>
+                    <td class="order-status">
+                        <span
+                            class="status-badge"
+                            [class.status-delivered]="getOrderStatus(order) === 'All Delivered'"
+                            [class.status-processing]="getOrderStatus(order) === 'Processing'"
+                            [class.status-shipped]="getOrderStatus(order) === 'Shipped'"
+                            [class.status-pending]="getOrderStatus(order) === 'Pending'"
+                            [class.status-cancelled]="getOrderStatus(order) === 'All Cancelled'"
+                        >
+                            {{ getOrderStatus(order) }}
+                        </span>
+                    </td>
+                    <td class="total-amount">{{ order.total_money | number : '1.0-0' }} đ</td>
+                    <!-- <td class="delivery-status">N/A</td> -->
+                    <td class="items-count">{{ getItemsCount(order) }} items</td>
+                    <td class="fulfilment-status">
+                        <span
+                            class="status-badge"
+                            [class.status-fulfilled]="getFulfilmentStatus(order) === 'Fulfilled'"
+                            [class.status-unfulfilled]="getFulfilmentStatus(order) === 'Unfulfilled'"
+                        >
+                            {{ getFulfilmentStatus(order) }}
+                        </span>
+                    </td>
+                    <td class="action-col">
+                        <div class="action-buttons">
+                            <!-- <button class="action-btn view-btn" (click)="viewDetails(order)" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button> -->
+                            <button class="action-btn edit-btn" title="Edit">
+                                <i class="fas fa-edit" (click)="viewDetails(order)"></i>
+                            </button>
+                            <button class="action-btn delete-btn" (click)="deleteOrder(order.id)" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
+            {{ totalItems }} results
+        </div>
+        <nav class="pagination-nav">
             <ul class="pagination">
-                <li class="page-item" *ngIf="currentPage > 1">
-                    <a class="page-link" (click)="onPageChange(1)">First</a>
-                </li>
-                <li class="page-item" *ngIf="currentPage > 1">
-                    <a class="page-link" (click)="onPageChange(currentPage - 1)">Previous</a>
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                    <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
                 </li>
                 <ng-container *ngFor="let page of visiblePages">
-                    <li class="page-item" [ngClass]="{ active: page === currentPage }">
-                        <a class="page-link" (click)="onPageChange(page)">{{ page }}</a>
+                    <li class="page-item" [class.active]="page === currentPage">
+                        <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
                     </li>
                 </ng-container>
-                <li class="page-item" *ngIf="currentPage < totalPages">
-                    <a class="page-link" (click)="onPageChange(currentPage + 1)">Next</a>
-                </li>
-                <li class="page-item" *ngIf="currentPage < totalPages">
-                    <a class="page-link" (click)="onPageChange(totalPages)">Last</a>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <button
+                        class="page-link"
+                        (click)="onPageChange(currentPage + 1)"
+                        [disabled]="currentPage === totalPages"
+                    >
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </li>
             </ul>
         </nav>
