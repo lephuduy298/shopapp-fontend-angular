@@ -129,7 +129,13 @@ export class OrderComponent implements OnInit {
     }
 
     toggleSelectAll(): void {
+        // Toggle the allSelected state first
+        this.allSelected = !this.allSelected;
+        
+        // Then apply this state to all items
         this.cartItems.forEach((item) => (item.selected = this.allSelected));
+        
+        // Recalculate price
         this.calculatePrice();
     }
 
