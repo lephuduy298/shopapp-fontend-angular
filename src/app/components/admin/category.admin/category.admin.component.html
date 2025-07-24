@@ -1,1 +1,197 @@
-<p>category.admin works!</p>
+<div class="category-admin-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-top">
+            <h1 class="page-title">Categories Management</h1>
+            <div class="header-actions">
+                <div class="search-container">
+                    <form class="header__search" (submit)="handleSearch($event)">
+                        <input type="text" placeholder="Search categories..." [(ngModel)]="keyword" name="keyword" />
+                        <button type="submit" class="header__search-btn">
+                            <span class="header__search-icon">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <button class="add-btn" (click)="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Add Category
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading categories...</p>
+    </div>
+
+    <!-- Categories Table -->
+    <div *ngIf="!isLoading" class="table-container">
+        <table class="categories-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let category of filteredCategories" class="table-row">
+                    <td>{{ category.id }}</td>
+                    <td class="category-name">{{ category.name }}</td>
+                    <td class="actions-cell">
+                        <button class="action-btn edit-btn" (click)="openEditModal(category)" title="Edit category">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" (click)="openDeleteModal(category)" title="Delete category">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr *ngIf="filteredCategories.length === 0" class="no-data-row">
+                    <td colspan="3" class="no-data">
+                        <div class="no-data-content">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No categories found</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && totalPages > 1" class="pagination-container">
+        <div class="pagination-info">
+            Showing page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} total categories)
+        </div>
+        <nav class="pagination-nav">
+            <ul class="pagination">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                    <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </li>
+                <ng-container *ngFor="let page of visiblePages">
+                    <li class="page-item" [class.active]="page === currentPage">
+                        <button class="page-link" (click)="onPageChange(page)">
+                            {{ page }}
+                        </button>
+                    </li>
+                </ng-container>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <button
+                        class="page-link"
+                        (click)="onPageChange(currentPage + 1)"
+                        [disabled]="currentPage === totalPages"
+                    >
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div *ngIf="showAddModal" class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Add New Category</h2>
+            <button class="close-btn" (click)="closeModals()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form [formGroup]="addForm" (ngSubmit)="addCategory()" class="modal-form">
+            <div class="form-group">
+                <label for="addName">Category Name *</label>
+                <input
+                    type="text"
+                    id="addName"
+                    formControlName="name"
+                    class="form-control"
+                    [class.error]="getFieldError(addForm, 'name')"
+                    placeholder="Enter category name"
+                />
+                <div *ngIf="getFieldError(addForm, 'name')" class="error-message">
+                    {{ getFieldError(addForm, 'name') }}
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="addForm.invalid || isSubmitting">
+                    <span *ngIf="isSubmitting" class="spinner-small"></span>
+                    {{ isSubmitting ? 'Adding...' : 'Add Category' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Edit Category</h2>
+            <button class="close-btn" (click)="closeModals()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="updateCategory()" class="modal-form">
+            <div class="form-group">
+                <label for="editName">Category Name *</label>
+                <input
+                    type="text"
+                    id="editName"
+                    formControlName="name"
+                    class="form-control"
+                    [class.error]="getFieldError(editForm, 'name')"
+                    placeholder="Enter category name"
+                />
+                <div *ngIf="getFieldError(editForm, 'name')" class="error-message">
+                    {{ getFieldError(editForm, 'name') }}
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="editForm.invalid || isSubmitting">
+                    <span *ngIf="isSubmitting" class="spinner-small"></span>
+                    {{ isSubmitting ? 'Updating...' : 'Update Category' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Confirm Delete</h2>
+            <button class="close-btn" (click)="closeModals()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="delete-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>
+                    Are you sure you want to delete the category
+                    <strong>"{{ selectedCategory?.name }}"</strong>
+                    ?
+                </p>
+                <p class="warning-text">This action cannot be undone.</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="deleteCategory()" [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-small"></span>
+                {{ isSubmitting ? 'Deleting...' : 'Delete' }}
+            </button>
+        </div>
+    </div>
+</div>
