@@ -108,7 +108,6 @@
                                         <th class="price-col">Unit Price</th>
                                         <th class="qty-col">Quantity</th>
                                         <th class="total-col">Total</th>
-                                        <th class="status-col">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -149,31 +148,6 @@
                                                 }}
                                                 VNĐ
                                             </span>
-                                        </td>
-                                        <td class="status-cell">
-                                            <div class="status-selector">
-                                                <select
-                                                    class="status-dropdown"
-                                                    [(ngModel)]="order_detail.status"
-                                                    [class]="
-                                                        'status-' +
-                                                        order_detail.status +
-                                                        (isStatusChanged(order_detail.id) ? ' status-changed' : '')
-                                                    "
-                                                    (ngModelChange)="onOrderDetailStatusChange()"
-                                                >
-                                                    <option value="pending">Pending</option>
-                                                    <option value="processing">Processing</option>
-                                                    <option value="shipped">Shipped</option>
-                                                    <option value="delivered">Delivered</option>
-                                                    <option value="cancelled">Cancelled</option>
-                                                </select>
-                                                <i
-                                                    *ngIf="isStatusChanged(order_detail.id)"
-                                                    class="fas fa-exclamation-circle status-change-icon"
-                                                    title="Status changed"
-                                                ></i>
-                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>

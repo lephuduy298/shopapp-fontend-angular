@@ -79,17 +79,17 @@
                         <div class="item-status">
                             <div class="status-info">
                                 <span class="status-label">Status</span>
-                                <span class="status-value" [ngClass]="getStatusClass(detail.status || 'pending')">
+                                <span class="status-value" [ngClass]="getStatusClass(order.status || 'pending')">
                                     <i
                                         class="fa"
                                         [ngClass]="{
-                                            'fa-check-circle': (detail.status || 'pending') === 'delivered',
-                                            'fa-times-circle': (detail.status || 'pending') === 'cancelled',
-                                            'fa-clock-o': (detail.status || 'pending') === 'pending',
-                                            'fa-spinner': (detail.status || 'pending') === 'processing'
+                                            'fa-check-circle': (order.status || 'pending') === 'delivered',
+                                            'fa-times-circle': (order.status || 'pending') === 'cancelled',
+                                            'fa-clock-o': (order.status || 'pending') === 'pending',
+                                            'fa-spinner': (order.status || 'pending') === 'processing'
                                         }"
                                     ></i>
-                                    {{ getStatusText(detail.status || 'pending') }}
+                                    {{ getStatusText(order.status || 'pending') }}
                                 </span>
                             </div>
                             <div class="delivery-info">
@@ -111,7 +111,7 @@
                             'fa-cog fa-spin processing-icon': getOverallOrderStatus(order) === 'processing',
                         }"
                         ></i>
-                        <span class="status-text">{{ getOrderStatusText(getOverallOrderStatus(order)) }}</span>
+                        <span class="status-text">{{ getOrderStatusText(order) }}</span>
                     </div>
                     <div class="order-total">
                         <span class="total-label">Total Price:</span>

@@ -24,6 +24,7 @@ export class DetailOrderAdminComponent implements OnInit {
         address: '',
         note: '',
         order_date: new Date(),
+        status: 'pending',
         total_money: 0,
         shipping_method: '',
         shipping_address: '',
@@ -32,8 +33,7 @@ export class DetailOrderAdminComponent implements OnInit {
         order_details: [],
     };
 
-    // Store original statuses to detect changes
-    private originalStatuses: { [key: number]: string } = {};
+    // Store original order status to detect changes
     private originalOrderStatus: string = 'pending';
 
     // Current overall order status
@@ -70,14 +70,6 @@ export class DetailOrderAdminComponent implements OnInit {
                     order_detail.number_of_products = order_detail.number_of_products;
                     order_detail.total_money = order_detail.total_money;
 
-                    // Initialize status if not present
-                    if (!order_detail.status) {
-                        order_detail.status = 'pending';
-                    }
-
-                    // Store original status for change detection
-                    this.originalStatuses[order_detail.id] = order_detail.status;
-
                     return order_detail;
                 });
                 this.orderResponse.payment_method = response.payment_method;
@@ -108,21 +100,12 @@ export class DetailOrderAdminComponent implements OnInit {
     saveOrder() {
         console.log('=== SAVE ORDER DEBUG ===');
         
-        // Check if any order detail status has been changed
-        const hasOrderDetailChanges = this.orderResponse.order_details.some((detail) => {
-            const currentStatus = detail.status || 'pending';
-            const originalStatus = this.originalStatuses[detail.id] || 'pending';
-            const hasChange = currentStatus !== originalStatus;
-            console.log(`Detail ${detail.id}: ${originalStatus} -> ${currentStatus} (changed: ${hasChange})`);
-            return hasChange;
-        });
-
         // Check if order status has been changed
         const hasOrderStatusChange = this.currentOrderStatus !== this.originalOrderStatus;
         console.log(`Order status: ${this.originalOrderStatus} -> ${this.currentOrderStatus} (changed: ${hasOrderStatusChange})`);
 
-        if (!hasOrderDetailChanges && !hasOrderStatusChange) {
-            alert('No changes detected. Please update order status or at least one order item status before saving.');
+        if (!hasOrderStatusChange) {
+            alert('No changes detected. Please update order status before saving.');
             return;
         }
 
@@ -142,8 +125,7 @@ export class DetailOrderAdminComponent implements OnInit {
             order_date: this.orderResponse.order_date,
             cart_items: this.orderResponse.order_details.map((detail) => ({
                 product_id: detail.product.id,
-                quantity: detail.number_of_products,
-                status: detail.status || 'pending' // Include status in cart items
+                quantity: detail.number_of_products
             })),
         };
 
@@ -157,32 +139,16 @@ export class DetailOrderAdminComponent implements OnInit {
             next: (response: any) => {
                 console.log('Order updated successfully:', response);
 
-                // If there are individual order detail status changes, update them separately
-                if (hasOrderDetailChanges) {
-                    this.updateOrderDetailStatuses();
-                }
-
                 // Show success message
                 let successMessage = 'Order updated successfully!';
-                if (hasOrderDetailChanges) {
-                    const changedItems = this.orderResponse.order_details.filter((detail) => {
-                        const currentStatus = detail.status || 'pending';
-                        const originalStatus = this.originalStatuses[detail.id] || 'pending';
-                        return currentStatus !== originalStatus;
-                    }).length;
-                    successMessage += ` ${changedItems} item(s) status changed.`;
-                }
                 if (hasOrderStatusChange) {
                     successMessage += ' Order status updated.';
                 }
 
                 alert(successMessage);
 
-                // Update original statuses after successful save
+                // Update original status after successful save
                 this.originalOrderStatus = this.currentOrderStatus;
-                this.orderResponse.order_details.forEach((detail) => {
-                    this.originalStatuses[detail.id] = detail.status || 'pending';
-                });
 
                 // Refresh the order data to show latest changes
                 this.getOrderDetail();
@@ -209,104 +175,18 @@ export class DetailOrderAdminComponent implements OnInit {
         });
     }
 
-    // Update individual order detail statuses
-    private updateOrderDetailStatuses(): void {
-        console.log('Updating individual order detail statuses...');
-        
-        // For now, we'll handle this through the main order update
-        // In the future, you might want to add a separate API endpoint for updating order details
-        const changedDetails = this.orderResponse.order_details.filter((detail) => {
-            const currentStatus = detail.status || 'pending';
-            const originalStatus = this.originalStatuses[detail.id] || 'pending';
-            return currentStatus !== originalStatus;
-        });
-
-        console.log('Changed order details:', changedDetails);
-        
-        // If your backend supports updating individual order details, 
-        // you can call a separate API here
-        // For example:
-        // changedDetails.forEach(detail => {
-        //     this.orderService.updateOrderDetail(detail.id, detail.status).subscribe(...);
-        // });
-    }
-
     getOverallOrderStatus(): string {
-        if (!this.orderResponse.order_details || this.orderResponse.order_details.length === 0) {
-            return 'No Items';
-        }
-
-        const statuses = this.orderResponse.order_details.map((detail) => detail.status || 'pending');
-
-        // Nếu tất cả items đều cancelled
-        if (statuses.every((status) => status === 'cancelled')) {
-            return 'All Cancelled';
-        }
-
-        // Nếu tất cả items đều delivered
-        if (statuses.every((status) => status === 'delivered' || status === 'completed')) {
-            return 'All Delivered';
-        }
-
-        // Nếu có ít nhất một item đang processing
-        if (statuses.some((status) => status === 'processing')) {
-            return 'Processing';
-        }
-
-        // Nếu có ít nhất một item đang shipped
-        if (statuses.some((status) => status === 'shipped')) {
-            return 'Shipped';
-        }
-
-        // Tính toán thống kê
-        const statusCounts = statuses.reduce((acc, status) => {
-            acc[status] = (acc[status] || 0) + 1;
-            return acc;
-        }, {} as { [key: string]: number });
-
-        const totalItems = this.orderResponse.order_details.length;
-        const summaryParts: string[] = [];
-
-        if (statusCounts['delivered']) {
-            summaryParts.push(`${statusCounts['delivered']} delivered`);
-        }
-        if (statusCounts['shipped']) {
-            summaryParts.push(`${statusCounts['shipped']} shipped`);
-        }
-        if (statusCounts['processing']) {
-            summaryParts.push(`${statusCounts['processing']} processing`);
-        }
-        if (statusCounts['cancelled']) {
-            summaryParts.push(`${statusCounts['cancelled']} cancelled`);
-        }
-        if (statusCounts['pending']) {
-            summaryParts.push(`${statusCounts['pending']} pending`);
-        }
-
-        return summaryParts.join(', ') + ` (${totalItems} total)`;
+        return this.orderResponse.status || this.currentOrderStatus || 'pending';
     }
 
-    // Check if a specific order detail status has been changed
-    isStatusChanged(orderDetailId: number): boolean {
-        const detail = this.orderResponse.order_details.find((d) => d.id === orderDetailId);
-        if (!detail) return false;
-
-        const currentStatus = detail.status || 'pending';
-        const originalStatus = this.originalStatuses[orderDetailId] || 'pending';
-        return currentStatus !== originalStatus;
+    // Check if order status has been changed
+    isOrderStatusChanged(): boolean {
+        return this.currentOrderStatus !== this.originalOrderStatus;
     }
 
     // Check if there are unsaved changes
     hasUnsavedChanges(): boolean {
-        const hasOrderDetailChanges = this.orderResponse.order_details.some((detail) => {
-            const currentStatus = detail.status || 'pending';
-            const originalStatus = this.originalStatuses[detail.id] || 'pending';
-            return currentStatus !== originalStatus;
-        });
-
-        const hasOrderStatusChange = this.currentOrderStatus !== this.originalOrderStatus;
-
-        return hasOrderDetailChanges || hasOrderStatusChange;
+        return this.currentOrderStatus !== this.originalOrderStatus;
     }
 
     // Get available order statuses
@@ -319,85 +199,15 @@ export class DetailOrderAdminComponent implements OnInit {
         console.log('=== CURRENT STATE ===');
         console.log('Current order status:', this.currentOrderStatus);
         console.log('Original order status:', this.originalOrderStatus);
-        console.log('Order details statuses:');
-        this.orderResponse.order_details.forEach(detail => {
-            console.log(`Detail ${detail.id}: current=${detail.status}, original=${this.originalStatuses[detail.id]}`);
-        });
         console.log('Has unsaved changes:', this.hasUnsavedChanges());
     }
 
-    // When overall status changes, update all order details
+    // When overall status changes
     onOverallStatusChange(): void {
         console.log('Overall status changed to:', this.currentOrderStatus);
-        
-        // Update all order detail statuses to match the overall status
-        this.orderResponse.order_details.forEach((detail) => {
-            detail.status = this.currentOrderStatus;
-        });
-        
-        console.log('All order detail statuses updated to:', this.currentOrderStatus);
-    }
-
-    // When individual order detail status changes, update overall status
-    onOrderDetailStatusChange(): void {
-        console.log('Order detail status changed, recalculating overall status...');
-        
-        // Get all current statuses
-        const statuses = this.orderResponse.order_details.map((detail) => detail.status || 'pending');
-        console.log('Current detail statuses:', statuses);
-        
-        // Auto-update overall status based on detail statuses
-        const calculatedStatus = this.calculateOverallStatus(statuses);
-        console.log('Calculated overall status:', calculatedStatus);
-        
-        // Only update if it's a simple status (not a complex summary)
-        const simpleStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-        if (simpleStatuses.includes(calculatedStatus)) {
-            this.currentOrderStatus = calculatedStatus;
-            console.log('Overall status updated to:', this.currentOrderStatus);
-        }
-    }
-
-    // Calculate overall status from order detail statuses
-    private calculateOverallStatus(statuses: string[]): string {
-        if (statuses.length === 0) {
-            return 'pending';
-        }
-
-        // If all items have the same status, use that status
-        if (statuses.every(status => status === statuses[0])) {
-            return statuses[0];
-        }
-
-        // Priority logic for mixed statuses
-        if (statuses.some(status => status === 'cancelled')) {
-            // If any item is cancelled, check if all are cancelled
-            if (statuses.every(status => status === 'cancelled')) {
-                return 'cancelled';
-            }
-            // If mixed with cancelled, keep current overall status or set to processing
-            return 'processing';
-        }
-
-        if (statuses.some(status => status === 'delivered')) {
-            // If any delivered, check if all are delivered
-            if (statuses.every(status => status === 'delivered')) {
-                return 'delivered';
-            }
-            // If mixed with delivered, set to shipped
-            return 'shipped';
-        }
-
-        if (statuses.some(status => status === 'shipped')) {
-            return 'shipped';
-        }
-
-        if (statuses.some(status => status === 'processing')) {
-            return 'processing';
-        }
-
-        // Default to pending if all are pending or mixed
-        return 'pending';
+        // Update the order response status as well
+        this.orderResponse.status = this.currentOrderStatus;
+        console.log('Order status updated to:', this.currentOrderStatus);
     }
 
     // Navigation method
@@ -447,11 +257,7 @@ export class DetailOrderAdminComponent implements OnInit {
         if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
             // Update order status to cancelled
             this.currentOrderStatus = 'cancelled';
-
-            // Update all order details status to cancelled
-            this.orderResponse.order_details.forEach((detail) => {
-                detail.status = 'cancelled';
-            });
+            this.orderResponse.status = 'cancelled';
 
             // Save the changes
             this.saveOrder();

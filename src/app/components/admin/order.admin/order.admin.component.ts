@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 })
 export class OrderAdminComponent implements OnInit {
     orders: OrderResponse[] = [];
+    filteredOrders: OrderResponse[] = [];
     currentPage: number = 1;
     itemsPerPage: number = 12;
     pages: number[] = [];
@@ -21,6 +22,7 @@ export class OrderAdminComponent implements OnInit {
     totalItems: number = 0;
     keyword: string = '';
     visiblePages: number[] = [];
+    activeFilter: string = 'all';
     Math = Math;
 
     constructor(private orderService: OrderService, private router: Router) {}
@@ -37,6 +39,7 @@ export class OrderAdminComponent implements OnInit {
                 this.totalPages = response.meta.totalPage;
                 this.totalItems = response.meta.totalItems || this.orders.length;
                 this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                this.applyFilter(); // Apply current filter after loading data
             },
             complete: () => {
                 debugger;
@@ -47,10 +50,38 @@ export class OrderAdminComponent implements OnInit {
             },
         });
     }
+
+    getAllOrdersWithFilter(keyword: string, page: number, limit: number, status?: string) {
+        debugger;
+        this.orderService.getAllOrdersWithFilter(keyword, page, limit, status).subscribe({
+            next: (response: any) => {
+                debugger;
+                this.orders = response.result;
+                this.totalPages = response.meta.totalPage;
+                this.totalItems = response.meta.totalItems || this.orders.length;
+                this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                // For server-side filtering, no need to apply client-side filter
+                this.filteredOrders = [...this.orders];
+            },
+            complete: () => {
+                debugger;
+            },
+            error: (error: any) => {
+                debugger;
+                console.error('Error fetching filtered orders:', error);
+            },
+        });
+    }
     onPageChange(page: number) {
         debugger;
         this.currentPage = page;
-        this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
+
+        // Use server-side filtering if any filter is active
+        if (this.activeFilter && this.activeFilter !== 'all') {
+            this.getAllOrdersWithFilter(this.keyword, this.currentPage, this.itemsPerPage, this.activeFilter);
+        } else {
+            this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
+        }
     }
 
     generateVisiblePageArray(currentPage: number, totalPages: number): number[] {
@@ -92,51 +123,19 @@ export class OrderAdminComponent implements OnInit {
     }
 
     getOrderStatus(order: OrderResponse): string {
-        if (!order.order_details || order.order_details.length === 0) {
-            return 'No Items';
-        }
-
-        const statuses = order.order_details.map((detail) => detail.status || 'pending');
-
-        // Nếu tất cả items đều cancelled
-        if (statuses.every((status) => status === 'cancelled')) {
-            return 'All Cancelled';
-        }
-
-        // Nếu tất cả items đều delivered
-        if (statuses.every((status) => status === 'delivered' || status === 'completed')) {
-            return 'All Delivered';
-        }
-
-        // Nếu có ít nhất một item đang processing
-        if (statuses.some((status) => status === 'processing')) {
-            return 'Processing';
-        }
-
-        // Nếu có ít nhất một item đang shipped
-        if (statuses.some((status) => status === 'shipped')) {
-            return 'Shipped';
-        }
-
-        // Mặc định là pending
-        return 'Pending';
+        return order.status || 'pending';
     }
 
     getPaymentStatus(order: OrderResponse): string {
-        // Lấy status từ order_details đầu tiên hoặc tổng hợp
-        if (!order.order_details || order.order_details.length === 0) {
-            return 'Pending';
-        }
+        const status = order.status || 'pending';
 
-        const statuses = order.order_details.map((detail) => detail.status || 'pending');
-
-        // Nếu có bất kỳ item nào đã payment success
-        if (statuses.some((status) => status === 'completed' || status === 'delivered')) {
+        // Nếu order đã completed hoặc delivered
+        if (status === 'completed' || status === 'delivered') {
             return 'Success';
         }
 
-        // Nếu có item đang processing
-        if (statuses.some((status) => status === 'processing' || status === 'shipped')) {
+        // Nếu order đang processing hoặc shipped
+        if (status === 'processing' || status === 'shipped') {
             return 'Success';
         }
 
@@ -144,19 +143,15 @@ export class OrderAdminComponent implements OnInit {
     }
 
     getFulfilmentStatus(order: OrderResponse): string {
-        if (!order.order_details || order.order_details.length === 0) {
-            return 'Unfulfilled';
-        }
+        const status = order.status || 'pending';
 
-        const statuses = order.order_details.map((detail) => detail.status || 'pending');
-
-        // Nếu tất cả items đều completed/delivered
-        if (statuses.every((status) => status === 'completed' || status === 'delivered')) {
+        // Nếu order đã completed/delivered
+        if (status === 'completed' || status === 'delivered') {
             return 'Fulfilled';
         }
 
-        // Nếu có ít nhất một item đã shipped hoặc delivered
-        if (statuses.some((status) => status === 'shipped' || status === 'delivered')) {
+        // Nếu order đã shipped
+        if (status === 'shipped') {
             return 'Fulfilled';
         }
 
@@ -170,6 +165,32 @@ export class OrderAdminComponent implements OnInit {
     handleSearch(event: Event): void {
         event.preventDefault();
         this.currentPage = 1; // Reset to first page when searching
-        this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
+
+        // Keep current filter when searching
+        if (this.activeFilter && this.activeFilter !== 'all') {
+            this.getAllOrdersWithFilter(this.keyword, this.currentPage, this.itemsPerPage, this.activeFilter);
+        } else {
+            this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
+        }
+    }
+
+    // Filter methods
+    setActiveFilter(filter: string): void {
+        this.activeFilter = filter;
+        this.currentPage = 1; // Reset to first page when filtering
+
+        // Use server-side filtering for all filters
+        this.getAllOrdersWithFilter(this.keyword, this.currentPage, this.itemsPerPage, filter);
+    }
+
+    applyFilter(): void {
+        // This method is now only used for 'all' filter when loading initial data
+        // For other filters, server-side filtering is used via getAllOrdersWithFilter()
+        this.filteredOrders = [...this.orders];
+    }
+
+    updatePaginationInfo(): void {
+        // This method is now integrated into applyFilter()
+        // Keep it for future use if needed
     }
 }

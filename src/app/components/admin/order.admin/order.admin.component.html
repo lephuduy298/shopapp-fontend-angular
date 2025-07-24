@@ -23,11 +23,48 @@
 
         <!-- Filter Tabs -->
         <div class="filter-tabs">
-            <button class="tab-btn active">All</button>
-            <button class="tab-btn">Unfulfilled</button>
-            <button class="tab-btn">Unpaid</button>
-            <button class="tab-btn">Open</button>
-            <button class="tab-btn">Closed</button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'all'"
+                (click)="setActiveFilter('all')"
+            >
+                All
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'pending'"
+                (click)="setActiveFilter('pending')"
+            >
+                Pending
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'processing'"
+                (click)="setActiveFilter('processing')"
+            >
+                Processing
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'shipped'"
+                (click)="setActiveFilter('shipped')"
+            >
+                Shipped
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'delivered'"
+                (click)="setActiveFilter('delivered')"
+            >
+                Delivered
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'cancelled'"
+                (click)="setActiveFilter('cancelled')"
+            >
+                Cancelled
+            </button>
         </div>
     </div>
 
@@ -57,7 +94,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let order of orders; let i = index" class="table-row">
+                <tr *ngFor="let order of filteredOrders; let i = index" class="table-row">
                     <td class="checkbox-col">
                         <input type="checkbox" class="checkbox" />
                     </td>
@@ -67,11 +104,11 @@
                     <td class="order-status">
                         <span
                             class="status-badge"
-                            [class.status-delivered]="getOrderStatus(order) === 'All Delivered'"
-                            [class.status-processing]="getOrderStatus(order) === 'Processing'"
-                            [class.status-shipped]="getOrderStatus(order) === 'Shipped'"
-                            [class.status-pending]="getOrderStatus(order) === 'Pending'"
-                            [class.status-cancelled]="getOrderStatus(order) === 'All Cancelled'"
+                            [class.status-delivered]="getOrderStatus(order) === 'delivered'"
+                            [class.status-processing]="getOrderStatus(order) === 'processing'"
+                            [class.status-shipped]="getOrderStatus(order) === 'shipped'"
+                            [class.status-pending]="getOrderStatus(order) === 'pending'"
+                            [class.status-cancelled]="getOrderStatus(order) === 'cancelled'"
                         >
                             {{ getOrderStatus(order) }}
                         </span>
@@ -102,6 +139,25 @@
                         </div>
                     </td>
                 </tr>
+                
+                <!-- No orders found message -->
+                <tr *ngIf="filteredOrders.length === 0" class="no-orders-row">
+                    <td colspan="9" class="no-orders-cell">
+                        <div class="no-orders-content">
+                            <i class="fas fa-search no-orders-icon"></i>
+                            <h3>No orders found</h3>
+                            <p *ngIf="activeFilter !== 'all'">
+                                No orders match the current filter: <strong>{{ activeFilter }}</strong>
+                            </p>
+                            <p *ngIf="activeFilter === 'all' && keyword">
+                                No orders match your search: <strong>{{ keyword }}</strong>
+                            </p>
+                            <p *ngIf="activeFilter === 'all' && !keyword">
+                                There are no orders to display.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -109,8 +165,15 @@
     <!-- Pagination -->
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
-            {{ totalItems }} results
+            <ng-container *ngIf="filteredOrders.length > 0">
+                Showing page {{ currentPage }} of {{ totalPages }} 
+                <span *ngIf="activeFilter === 'all'">({{ totalItems }} total orders)</span>
+                <span *ngIf="activeFilter !== 'all'">({{ totalItems }} {{ activeFilter }} orders)</span>
+            </ng-container>
+            <ng-container *ngIf="filteredOrders.length === 0">
+                <span *ngIf="activeFilter === 'all'">No orders found</span>
+                <span *ngIf="activeFilter !== 'all'">No {{ activeFilter }} orders found</span>
+            </ng-container>
         </div>
         <nav class="pagination-nav">
             <ul class="pagination">

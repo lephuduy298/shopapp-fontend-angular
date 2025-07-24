@@ -27,6 +27,7 @@ export class OrderDetailComponent implements OnInit {
         address: '',
         note: '',
         order_date: new Date(),
+        status: 'pending',
         total_money: 0, // Hoặc bất kỳ giá trị số nào bạn muốn
         shipping_method: '',
         shipping_address: '',

@@ -150,16 +150,41 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
                 white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+
+                .count {
+                    background: #e2e8f0;
+                    color: #2d3748;
+                    padding: 2px 6px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    min-width: 20px;
+                    text-align: center;
+                    transition: all 0.3s ease;
+                }
 
                 &:hover {
                     background: rgba(66, 153, 225, 0.1);
                     color: #4299e1;
+
+                    .count {
+                        background: #4299e1;
+                        color: white;
+                    }
                 }
 
                 &.active {
                     background: white;
                     color: #2d3748;
                     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+                    .count {
+                        background: #4299e1;
+                        color: white;
+                    }
                 }
             }
         }
@@ -216,6 +241,13 @@
                         width: 50px;
                         padding-left: 20px;
                     }
+
+                    // Status column header styling
+                    &:nth-child(5) {
+                        // Status column (5th column)
+                        text-align: center;
+                        min-width: 120px;
+                    }
                 }
             }
 
@@ -256,6 +288,12 @@
                             font-weight: 500;
                         }
 
+                        &.order-status {
+                            text-align: center;
+                            padding: 12px 8px;
+                            min-width: 120px;
+                        }
+
                         &.total-amount {
                             font-weight: 600;
                             color: #2d3748;
@@ -270,51 +308,135 @@
                         }
 
                         .status-badge {
-                            display: inline-block;
-                            padding: 4px 12px;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                            padding: 6px 12px;
                             border-radius: 20px;
                             font-size: 12px;
-                            font-weight: 500;
+                            font-weight: 600;
                             text-transform: capitalize;
+                            letter-spacing: 0.025em;
+                            transition: all 0.3s ease;
+                            border: 1px solid transparent;
+                            white-space: nowrap;
+                            min-width: 80px;
+                            justify-content: center;
 
-                            &.status-success {
-                                background: #c6f6d5;
-                                color: #276749;
+                            // Add icons before text with pseudo-elements
+                            &::before {
+                                content: '';
+                                width: 6px;
+                                height: 6px;
+                                border-radius: 50%;
+                                display: inline-block;
                             }
 
                             &.status-pending {
-                                background: #fed7aa;
-                                color: #c05621;
-                            }
+                                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                                color: #d97706;
+                                border-color: #f59e0b;
 
-                            &.status-delivered {
-                                background: #c6f6d5;
-                                color: #276749;
+                                &::before {
+                                    background: #f59e0b;
+                                    animation: pulse 2s infinite;
+                                }
                             }
 
                             &.status-processing {
-                                background: #bee3f8;
-                                color: #2c5282;
+                                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                                color: #1d4ed8;
+                                border-color: #3b82f6;
+
+                                &::before {
+                                    background: #3b82f6;
+                                    animation: spin 1s linear infinite;
+                                }
                             }
 
                             &.status-shipped {
-                                background: #e9d8fd;
-                                color: #553c9a;
+                                background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
+                                color: #7c3aed;
+                                border-color: #8b5cf6;
+
+                                &::before {
+                                    background: #8b5cf6;
+                                }
+                            }
+
+                            &.status-delivered {
+                                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                                color: #065f46;
+                                border-color: #10b981;
+
+                                &::before {
+                                    background: #10b981;
+                                }
                             }
 
                             &.status-cancelled {
-                                background: #fecaca;
-                                color: #991b1b;
+                                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                                color: #dc2626;
+                                border-color: #ef4444;
+
+                                &::before {
+                                    background: #ef4444;
+                                }
+                            }
+
+                            // Legacy support for old status names
+                            &.status-success {
+                                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                                color: #065f46;
+                                border-color: #10b981;
+
+                                &::before {
+                                    background: #10b981;
+                                }
                             }
 
                             &.status-fulfilled {
-                                background: #c6f6d5;
-                                color: #276749;
+                                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                                color: #065f46;
+                                border-color: #10b981;
+                                &::before {
+                                    background: #10b981;
+                                }
                             }
 
                             &.status-unfulfilled {
-                                background: #fecaca;
-                                color: #991b1b;
+                                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                                color: #dc2626;
+                                border-color: #ef4444;
+                                &::before {
+                                    background: #ef4444;
+                                }
+                            }
+
+                            // Hover effects
+                            &:hover {
+                                transform: translateY(-1px);
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                            }
+                        }
+
+                        // Animations
+                        @keyframes pulse {
+                            0%,
+                            100% {
+                                opacity: 1;
+                            }
+                            50% {
+                                opacity: 0.5;
+                            }
+                        }
+
+                        @keyframes spin {
+                            from {
+                                transform: rotate(0deg);
+                            }
+                            to {
+                                transform: rotate(360deg);
                             }
                         }
 
@@ -384,6 +506,12 @@
         .pagination-info {
             color: #4a5568;
             font-size: 14px;
+
+            .filter-info {
+                color: #718096;
+                font-style: italic;
+                margin-left: 4px;
+            }
         }
 
         .pagination-nav {
@@ -466,6 +594,50 @@
 
         &:hover {
             border-color: #cbd5e0;
+        }
+    }
+
+    // No Orders Found Styling
+    .no-orders-row {
+        .no-orders-cell {
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8fafc;
+            border: none;
+
+            .no-orders-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+                max-width: 400px;
+                margin: 0 auto;
+
+                .no-orders-icon {
+                    font-size: 48px;
+                    color: #a0aec0;
+                    margin-bottom: 8px;
+                }
+
+                h3 {
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #2d3748;
+                    margin: 0;
+                }
+
+                p {
+                    font-size: 14px;
+                    color: #4a5568;
+                    margin: 0;
+                    line-height: 1.5;
+
+                    strong {
+                        color: #2d3748;
+                        font-weight: 600;
+                    }
+                }
+            }
         }
     }
 }

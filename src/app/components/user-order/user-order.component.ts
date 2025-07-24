@@ -138,29 +138,8 @@ export class UserOrderComponent implements OnInit {
     }
 
     getOverallOrderStatus(order: OrderResponse): string {
-        if (!order.order_details || order.order_details.length === 0) {
-            return 'pending';
-        }
-
-        const statuses = order.order_details.map((detail) => detail.status || 'pending');
-
-        // Nếu tất cả items đều cancelled
-        if (statuses.every((status) => status === 'cancelled')) {
-            return 'cancelled';
-        }
-
-        // Nếu tất cả items đều delivered
-        if (statuses.every((status) => status === 'delivered' || status === 'completed')) {
-            return 'delivered';
-        }
-
-        // Nếu có ít nhất một item đang processing
-        if (statuses.some((status) => status === 'processing')) {
-            return 'processing';
-        }
-
-        // Mặc định là pending
-        return 'pending';
+        // Lấy trạng thái trực tiếp từ order thay vì tính toán từ order_details
+        return order.status || 'pending';
     }
 
     getOrderStatusSummary(order: OrderResponse): string {
@@ -168,29 +147,11 @@ export class UserOrderComponent implements OnInit {
             return '';
         }
 
-        const statuses = order.order_details.map((detail) => detail.status || 'pending');
-        const statusCounts = statuses.reduce((acc, status) => {
-            acc[status] = (acc[status] || 0) + 1;
-            return acc;
-        }, {} as { [key: string]: number });
-
         const totalItems = order.order_details.length;
-        const summaryParts: string[] = [];
-
-        if (statusCounts['delivered']) {
-            summaryParts.push(`${statusCounts['delivered']} delivered`);
-        }
-        if (statusCounts['processing']) {
-            summaryParts.push(`${statusCounts['processing']} processing`);
-        }
-        if (statusCounts['cancelled']) {
-            summaryParts.push(`${statusCounts['cancelled']} cancelled`);
-        }
-        if (statusCounts['pending']) {
-            summaryParts.push(`${statusCounts['pending']} pending`);
-        }
-
-        return summaryParts.join(', ') + ` (${totalItems} total)`;
+        const orderStatus = order.status || 'pending';
+        
+        // Hiển thị tổng quan về đơn hàng dựa trên trạng thái chung
+        return `${this.getStatusText(orderStatus)} (${totalItems} items)`;
     }
 
     getStatusText(status: string): string {
@@ -210,7 +171,8 @@ export class UserOrderComponent implements OnInit {
         }
     }
 
-    getOrderStatusText(status: string): string {
+    getOrderStatusText(order: OrderResponse): string {
+        const status = order.status || 'pending';
         switch (status.toLowerCase()) {
             case 'delivered':
             case 'completed':

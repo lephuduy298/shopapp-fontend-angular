@@ -42,6 +42,17 @@ export class OrderService {
         return this.http.get<any>(this.apiGetAllOrders, { params });
     }
 
+    getAllOrdersWithFilter(keyword: string, page: number, limit: number, status?: string): Observable<any> {
+        debugger;
+        let params = new HttpParams().set('keyword', keyword).set('page', page.toString()).set('limit', limit.toString());
+
+        if (status && status !== 'all') {
+            params = params.set('status', status);
+        }
+
+        return this.http.get<any>(this.apiGetAllOrders, { params });
+    }
+
     saveOrder(orderId: number, orderDTO: OrderDTO) {
         debugger;
         const apiUpdateOrder = `${environment.apiBaseUrl}/orders/${orderId}`;
