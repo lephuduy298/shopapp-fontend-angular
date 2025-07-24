@@ -37,14 +37,20 @@ export class ProductService {
     }
 
     // Admin methods for CRUD operations
-    getAllProductsForAdmin(page: number, limit: number, keyword: string): Observable<any> {
-        debugger;
+    getAllProductsForAdmin(page: number, limit: number, keyword: string, categoryId: number = 0): Observable<any> {
         // Convert 0-based page to 1-based for backend
         const backendPage = page + 1;
-        const params = new HttpParams()
+        console.log(`Calling API with: frontend page=${page}, backend page=${backendPage}, limit=${limit}, keyword="${keyword}", categoryId=${categoryId}`);
+        
+        let params = new HttpParams()
             .set('page', backendPage.toString())
             .set('limit', limit.toString())
             .set('keyword', keyword);
+            
+        // Only add category_id if it's not 0 (all categories)
+        if (categoryId > 0) {
+            params = params.set('category_id', categoryId.toString());
+        }
 
         return this.http.get<any>(`${this.apiGetProducts}`, { params });
     }

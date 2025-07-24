@@ -90,6 +90,35 @@
                     }
                 }
 
+                .category-filter {
+                    .category-select,
+                    .form-select {
+                        padding: 10px 12px;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        background: white;
+                        color: #4a5568;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        min-width: 180px;
+
+                        &:hover {
+                            border-color: #cbd5e0;
+                        }
+
+                        &:focus {
+                            outline: none;
+                            border-color: #4299e1;
+                            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+                        }
+
+                        option {
+                            padding: 8px;
+                        }
+                    }
+                }
+
                 .add-btn {
                     background: #4299e1;
                     color: white;
@@ -175,10 +204,10 @@
         .products-table {
             width: 100%;
             border-collapse: collapse;
-            
+
             thead {
                 background: #f8f9fa;
-                
+
                 tr {
                     th {
                         padding: 16px 20px;
@@ -245,7 +274,7 @@
 
                         &.checkbox-col {
                             text-align: center;
-                            
+
                             .checkbox {
                                 width: 16px;
                                 height: 16px;

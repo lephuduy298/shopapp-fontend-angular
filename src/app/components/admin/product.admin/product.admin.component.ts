@@ -33,6 +33,7 @@ export class ProductAdminComponent implements OnInit {
     totalPages = 0;
     totalElements = 0;
     keyword = '';
+    selectedCategoryId = 0; // Add category filter
 
     // Modal states
     showCreateModal = false;
@@ -61,50 +62,52 @@ export class ProductAdminComponent implements OnInit {
 
     loadProducts(): void {
         this.loading = true;
-        this.productService.getAllProductsForAdmin(this.currentPage, this.itemsPerPage, this.keyword).subscribe({
-            next: (response: any) => {
-                console.log('Product API Response:', response);
+        this.productService
+            .getAllProductsForAdmin(this.currentPage, this.itemsPerPage, this.keyword, this.selectedCategoryId)
+            .subscribe({
+                next: (response: any) => {
+                    console.log('Product API Response:', response);
 
-                // Handle different response formats
-                let products = [];
-                let totalPages = 0;
-                let totalElements = 0;
+                    // Handle different response formats
+                    let products = [];
+                    let totalPages = 0;
+                    let totalElements = 0;
 
-                if (Array.isArray(response)) {
-                    // Old format: direct array
-                    products = response;
-                    totalPages = Math.ceil(products.length / this.itemsPerPage);
-                    totalElements = products.length;
-                } else if (response.result) {
-                    // New format with result property
-                    products = response.result;
-                    totalPages = response.meta?.totalPage || Math.ceil(products.length / this.itemsPerPage);
-                    totalElements = response.meta?.totalItems || products.length;
-                } else if (response.content) {
-                    // Spring Boot format
-                    products = response.content;
-                    totalPages = response.totalPages || Math.ceil(products.length / this.itemsPerPage);
-                    totalElements = response.totalElements || products.length;
-                }
+                    if (Array.isArray(response)) {
+                        // Old format: direct array
+                        products = response;
+                        totalPages = Math.ceil(products.length / this.itemsPerPage);
+                        totalElements = products.length;
+                    } else if (response.result) {
+                        // New format with result property
+                        products = response.result;
+                        totalPages = response.meta?.totalPage || Math.ceil(products.length / this.itemsPerPage);
+                        totalElements = response.meta?.totalItems || products.length;
+                    } else if (response.content) {
+                        // Spring Boot format
+                        products = response.content;
+                        totalPages = response.totalPages || Math.ceil(products.length / this.itemsPerPage);
+                        totalElements = response.totalElements || products.length;
+                    }
 
-                // Add image URLs
-                products.forEach((product: Product) => {
-                    product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
-                });
+                    // Add image URLs
+                    products.forEach((product: Product) => {
+                        product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
+                    });
 
-                this.products = products;
-                this.totalPages = Math.max(1, totalPages); // Ensure at least 1 page
-                this.totalElements = totalElements;
-                this.loading = false;
-                this.filterProducts();
-                this.updateVisiblePages();
-            },
-            error: (error) => {
-                console.error('Error loading products:', error);
-                this.error = 'Không thể tải danh sách sản phẩm';
-                this.loading = false;
-            },
-        });
+                    this.products = products;
+                    this.totalPages = Math.max(1, totalPages); // Ensure at least 1 page
+                    this.totalElements = totalElements;
+                    this.loading = false;
+                    this.filterProducts();
+                    this.updateVisiblePages();
+                },
+                error: (error) => {
+                    console.error('Error loading products:', error);
+                    this.error = 'Không thể tải danh sách sản phẩm';
+                    this.loading = false;
+                },
+            });
     }
 
     loadCategories(): void {
@@ -122,12 +125,20 @@ export class ProductAdminComponent implements OnInit {
         console.log('Search triggered with keyword:', this.keyword);
         console.log('Resetting to page 0');
         this.currentPage = 0;
+        this.selectedCategoryId = 0; // Reset category when searching
         this.activeFilter = 'all'; // Reset filter when searching
         this.loadProducts();
     }
 
     onPageChange(page: number): void {
         this.currentPage = page;
+        this.loadProducts();
+    }
+
+    onCategoryChange(): void {
+        console.log('Category filter changed to:', this.selectedCategoryId);
+        this.currentPage = 0;
+        this.activeFilter = 'all'; // Reset filter when changing category
         this.loadProducts();
     }
 

@@ -11,6 +11,19 @@
                         </button>
                     </form>
                 </div>
+                <div class="category-filter">
+                    <select
+                        class="form-select category-select"
+                        [(ngModel)]="selectedCategoryId"
+                        (change)="onCategoryChange()"
+                        name="categoryFilter"
+                    >
+                        <option value="0">Tất cả danh mục</option>
+                        <option *ngFor="let category of categories" [value]="category.id">
+                            {{ category.name }}
+                        </option>
+                    </select>
+                </div>
                 <button class="add-btn" (click)="openCreateModal()">
                     <i class="fas fa-plus"></i>
                     Add
@@ -23,32 +36,18 @@
 
         <!-- Filter Tabs -->
         <div class="filter-tabs">
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'all'"
-                (click)="setActiveFilter('all')"
-            >
-                All
-            </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'available'"
-                (click)="setActiveFilter('available')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'all'" (click)="setActiveFilter('all')">All</button>
+            <button class="tab-btn" [class.active]="activeFilter === 'available'" (click)="setActiveFilter('available')">
                 Available
             </button>
-            <button 
-                class="tab-btn" 
+            <button
+                class="tab-btn"
                 [class.active]="activeFilter === 'out-of-stock'"
                 (click)="setActiveFilter('out-of-stock')"
             >
                 Out of Stock
             </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'featured'"
-                (click)="setActiveFilter('featured')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'featured'" (click)="setActiveFilter('featured')">
                 Featured
             </button>
         </div>
@@ -95,23 +94,25 @@
                     </td>
                     <td class="product-info">
                         <div class="product-details">
-                            <img [src]="product.url || product.thumbnail || '/assets/no-image.png'" 
-                                 [alt]="product.name" 
-                                 class="product-thumbnail">
+                            <img
+                                [src]="product.url || product.thumbnail || '/assets/no-image.png'"
+                                [alt]="product.name"
+                                class="product-thumbnail"
+                            />
                             <div class="product-text">
                                 <div class="product-name">{{ product.name }}</div>
                                 <div class="product-id">#{{ product.id }}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="product-price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</td>
+                    <td class="product-price">{{ product.price | currency : 'VND' : 'symbol' : '1.0-0' }}</td>
                     <td class="product-category">{{ getCategoryName(product.category_id) }}</td>
                     <td class="product-status">
-                        <span class="status-badge status-available">
-                            Available
-                        </span>
+                        <span class="status-badge status-available">Available</span>
                     </td>
-                    <td class="product-description">{{ product.description | slice:0:50 }}{{ product.description.length > 50 ? '...' : '' }}</td>
+                    <td class="product-description">
+                        {{ product.description | slice : 0 : 50 }}{{ product.description.length > 50 ? '...' : '' }}
+                    </td>
                     <td class="action-col">
                         <div class="action-buttons">
                             <button class="action-btn edit-btn" (click)="openEditModal(product)" title="Edit">
@@ -123,7 +124,7 @@
                         </div>
                     </td>
                 </tr>
-                
+
                 <!-- No products found message -->
                 <tr *ngIf="filteredProducts.length === 0" class="no-products-row">
                     <td colspan="7" class="no-products-cell">
@@ -131,13 +132,25 @@
                             <i class="fas fa-search no-products-icon"></i>
                             <h3>No products found</h3>
                             <p *ngIf="activeFilter !== 'all'">
-                                No products match the current filter: <strong>{{ activeFilter }}</strong>
+                                No products match the current filter:
+                                <strong>{{ activeFilter }}</strong>
                             </p>
-                            <p *ngIf="activeFilter === 'all' && keyword">
-                                No products match your search: <strong>{{ keyword }}</strong>
+                            <p *ngIf="activeFilter === 'all' && keyword && selectedCategoryId === 0">
+                                No products match your search:
+                                <strong>{{ keyword }}</strong>
                             </p>
-                            <p *ngIf="activeFilter === 'all' && !keyword">
+                            <p *ngIf="activeFilter === 'all' && !keyword && selectedCategoryId === 0">
                                 There are no products to display.
+                            </p>
+                            <p *ngIf="selectedCategoryId > 0 && !keyword">
+                                No products found in category:
+                                <strong>{{ getCategoryName(selectedCategoryId) }}</strong>
+                            </p>
+                            <p *ngIf="selectedCategoryId > 0 && keyword">
+                                No products match "
+                                <strong>{{ keyword }}</strong>
+                                " in category:
+                                <strong>{{ getCategoryName(selectedCategoryId) }}</strong>
                             </p>
                         </div>
                     </td>
@@ -150,15 +163,29 @@
     <div class="pagination-container">
         <div class="pagination-info">
             <ng-container *ngIf="filteredProducts.length > 0">
-                Showing page {{ currentPage + 1 }} of {{ totalPages }} 
-                <span *ngIf="activeFilter === 'all' && !keyword">({{ totalElements }} total products)</span>
+                Showing page {{ currentPage + 1 }} of {{ totalPages }}
+                <span *ngIf="activeFilter === 'all' && !keyword && selectedCategoryId === 0">
+                    ({{ totalElements }} total products)
+                </span>
                 <span *ngIf="activeFilter !== 'all'">({{ filteredProducts.length }} {{ activeFilter }} products)</span>
                 <span *ngIf="keyword && activeFilter === 'all'">({{ filteredProducts.length }} search results)</span>
+                <span *ngIf="selectedCategoryId > 0 && !keyword">
+                    ({{ totalElements }} products in {{ getCategoryName(selectedCategoryId) }})
+                </span>
+                <span *ngIf="selectedCategoryId > 0 && keyword">
+                    ({{ filteredProducts.length }} search results in {{ getCategoryName(selectedCategoryId) }})
+                </span>
             </ng-container>
             <ng-container *ngIf="filteredProducts.length === 0">
-                <span *ngIf="activeFilter === 'all' && !keyword">No products found</span>
+                <span *ngIf="activeFilter === 'all' && !keyword && selectedCategoryId === 0">No products found</span>
                 <span *ngIf="activeFilter !== 'all'">No {{ activeFilter }} products found</span>
-                <span *ngIf="keyword">No products match your search: "{{ keyword }}"</span>
+                <span *ngIf="keyword && selectedCategoryId === 0">No products match your search: "{{ keyword }}"</span>
+                <span *ngIf="selectedCategoryId > 0 && !keyword">
+                    No products found in {{ getCategoryName(selectedCategoryId) }}
+                </span>
+                <span *ngIf="selectedCategoryId > 0 && keyword">
+                    No products match your search in {{ getCategoryName(selectedCategoryId) }}
+                </span>
             </ng-container>
         </div>
         <nav class="pagination-nav">
