@@ -1,1 +1,346 @@
-<p>product.admin works!</p>
+<div class="products-admin-container">
+    <div class="header-section">
+        <div class="header-top">
+            <h1 class="page-title">Products</h1>
+            <div class="header-actions">
+                <div class="search-container">
+                    <form class="header__search" (submit)="onSearch(); $event.preventDefault()">
+                        <input type="text" placeholder="Nhập thông tin sản phẩm..." [(ngModel)]="keyword" name="keyword" />
+                        <button type="submit" class="header__search-btn">
+                            <span class="header__search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        </button>
+                    </form>
+                </div>
+                <button class="add-btn" (click)="openCreateModal()">
+                    <i class="fas fa-plus"></i>
+                    Add
+                </button>
+                <button class="more-btn">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'all'"
+                (click)="setActiveFilter('all')"
+            >
+                All
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'available'"
+                (click)="setActiveFilter('available')"
+            >
+                Available
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'out-of-stock'"
+                (click)="setActiveFilter('out-of-stock')"
+            >
+                Out of Stock
+            </button>
+            <button 
+                class="tab-btn" 
+                [class.active]="activeFilter === 'featured'"
+                (click)="setActiveFilter('featured')"
+            >
+                Featured
+            </button>
+        </div>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="text-center my-4">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Đang tải...</span>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-container" *ngIf="!loading">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th class="checkbox-col">
+                        <input type="checkbox" class="checkbox" />
+                    </th>
+                    <th class="sortable">
+                        Product
+                        <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th class="sortable">
+                        Price
+                        <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let product of filteredProducts; let i = index" class="table-row">
+                    <td class="checkbox-col">
+                        <input type="checkbox" class="checkbox" />
+                    </td>
+                    <td class="product-info">
+                        <div class="product-details">
+                            <img [src]="product.url || product.thumbnail || '/assets/no-image.png'" 
+                                 [alt]="product.name" 
+                                 class="product-thumbnail">
+                            <div class="product-text">
+                                <div class="product-name">{{ product.name }}</div>
+                                <div class="product-id">#{{ product.id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="product-price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</td>
+                    <td class="product-category">{{ getCategoryName(product.category_id) }}</td>
+                    <td class="product-status">
+                        <span class="status-badge status-available">
+                            Available
+                        </span>
+                    </td>
+                    <td class="product-description">{{ product.description | slice:0:50 }}{{ product.description.length > 50 ? '...' : '' }}</td>
+                    <td class="action-col">
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" (click)="openEditModal(product)" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" (click)="openDeleteModal(product)" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- No products found message -->
+                <tr *ngIf="filteredProducts.length === 0" class="no-products-row">
+                    <td colspan="7" class="no-products-cell">
+                        <div class="no-products-content">
+                            <i class="fas fa-search no-products-icon"></i>
+                            <h3>No products found</h3>
+                            <p *ngIf="activeFilter !== 'all'">
+                                No products match the current filter: <strong>{{ activeFilter }}</strong>
+                            </p>
+                            <p *ngIf="activeFilter === 'all' && keyword">
+                                No products match your search: <strong>{{ keyword }}</strong>
+                            </p>
+                            <p *ngIf="activeFilter === 'all' && !keyword">
+                                There are no products to display.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            <ng-container *ngIf="filteredProducts.length > 0">
+                Showing page {{ currentPage + 1 }} of {{ totalPages }} 
+                <span *ngIf="activeFilter === 'all' && !keyword">({{ totalElements }} total products)</span>
+                <span *ngIf="activeFilter !== 'all'">({{ filteredProducts.length }} {{ activeFilter }} products)</span>
+                <span *ngIf="keyword && activeFilter === 'all'">({{ filteredProducts.length }} search results)</span>
+            </ng-container>
+            <ng-container *ngIf="filteredProducts.length === 0">
+                <span *ngIf="activeFilter === 'all' && !keyword">No products found</span>
+                <span *ngIf="activeFilter !== 'all'">No {{ activeFilter }} products found</span>
+                <span *ngIf="keyword">No products match your search: "{{ keyword }}"</span>
+            </ng-container>
+        </div>
+        <nav class="pagination-nav">
+            <ul class="pagination">
+                <li class="page-item" [class.disabled]="currentPage === 0">
+                    <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </li>
+                <ng-container *ngFor="let page of visiblePages">
+                    <li class="page-item" [class.active]="page === currentPage + 1">
+                        <button class="page-link" (click)="onPageChange(page - 1)">{{ page }}</button>
+                    </li>
+                </ng-container>
+                <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <button
+                        class="page-link"
+                        (click)="onPageChange(currentPage + 1)"
+                        [disabled]="currentPage === totalPages - 1"
+                    >
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div
+    class="modal"
+    [style.display]="showCreateModal || showEditModal ? 'block' : 'none'"
+    *ngIf="showCreateModal || showEditModal"
+>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ currentProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới' }}
+                </h5>
+                <button type="button" class="btn-close" (click)="closeModals()"></button>
+            </div>
+            <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Tên sản phẩm *</label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    class="form-control"
+                                    formControlName="name"
+                                    [class.is-invalid]="isFieldInvalid('name')"
+                                />
+                                <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                                    {{ getFieldError('name') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Giá *</label>
+                                <input
+                                    type="number"
+                                    id="price"
+                                    class="form-control"
+                                    formControlName="price"
+                                    min="0"
+                                    [class.is-invalid]="isFieldInvalid('price')"
+                                />
+                                <div class="invalid-feedback" *ngIf="isFieldInvalid('price')">
+                                    {{ getFieldError('price') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Danh mục *</label>
+                                <select
+                                    id="category_id"
+                                    class="form-control"
+                                    formControlName="category_id"
+                                    [class.is-invalid]="isFieldInvalid('category_id')"
+                                >
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option *ngFor="let category of categories" [value]="category.id">
+                                        {{ category.name }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" *ngIf="isFieldInvalid('category_id')">
+                                    {{ getFieldError('category_id') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="thumbnail" class="form-label">URL Hình ảnh</label>
+                                <input
+                                    type="url"
+                                    id="thumbnail"
+                                    class="form-control"
+                                    formControlName="thumbnail"
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL sản phẩm</label>
+                        <input
+                            type="url"
+                            id="url"
+                            class="form-control"
+                            formControlName="url"
+                            placeholder="https://example.com/product"
+                        />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả *</label>
+                        <textarea
+                            id="description"
+                            class="form-control"
+                            formControlName="description"
+                            rows="4"
+                            [class.is-invalid]="isFieldInvalid('description')"
+                        ></textarea>
+                        <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">
+                            {{ getFieldError('description') }}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger" *ngIf="error">
+                        {{ error }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="closeModals()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="loading">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ currentProduct ? 'Cập nhật' : 'Tạo mới' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" [style.display]="showDeleteModal ? 'block' : 'none'" *ngIf="showDeleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" (click)="closeModals()"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Bạn có chắc chắn muốn xóa sản phẩm
+                    <strong>{{ productToDelete?.name }}</strong>
+                    ?
+                </p>
+                <p class="text-danger">Hành động này không thể hoàn tác!</p>
+                <div class="alert alert-danger" *ngIf="error">
+                    {{ error }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeModals()">Hủy</button>
+                <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="loading">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                    Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade show" *ngIf="showCreateModal || showEditModal || showDeleteModal"></div>
