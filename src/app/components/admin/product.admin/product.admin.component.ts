@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductService } from '../../../services/product.service';
@@ -6,6 +6,7 @@ import { CategoryService } from '../../../services/category.service';
 import { Product } from '../../models.ts/product';
 import { environment } from '../../../environments/environment';
 import { Category } from '../../models.ts/category';
+import { UpdateProductDTO } from '../../../dtos/product/update.product.dto';
 
 @Component({
     selector: 'app-product-admin',
@@ -14,6 +15,8 @@ import { Category } from '../../models.ts/category';
     styleUrl: './product.admin.component.scss',
 })
 export class ProductAdminComponent implements OnInit {
+    @ViewChild('otherFileInput') otherFileInput!: ElementRef<HTMLInputElement>;
+
     products: Product[] = [];
     categories: Category[] = [];
     currentProduct: Product | null = null;
@@ -21,6 +24,13 @@ export class ProductAdminComponent implements OnInit {
 
     // Make Math available in template
     Math = Math;
+
+    // Image upload properties
+    selectedMainImage: string | null = null;
+    otherImages: (string | null)[] = [null, null, null, null];
+    productTags: string[] = [];
+    selectedMainImageFile: File | null = null;
+    otherImagesFile: File[] = []; // For other images
 
     // Filter and pagination
     activeFilter = 'all';
@@ -52,6 +62,7 @@ export class ProductAdminComponent implements OnInit {
             category_id: ['', [Validators.required]],
             thumbnail: [''],
             url: [''],
+            active: [true],
         });
     }
 
@@ -145,6 +156,12 @@ export class ProductAdminComponent implements OnInit {
     openCreateModal(): void {
         this.currentProduct = null;
         this.productForm.reset();
+        this.productForm.patchValue({ active: true });
+        this.selectedMainImage = null;
+        this.selectedMainImageFile = null;
+        this.otherImages = [null, null, null, null];
+        this.otherImagesFile = [];
+        this.productTags = [];
         this.showCreateModal = true;
     }
 
@@ -157,7 +174,22 @@ export class ProductAdminComponent implements OnInit {
             category_id: product.category_id,
             thumbnail: product.thumbnail,
             url: product.url,
+            active: true,
         });
+        this.selectedMainImage =
+            product.url || product.thumbnail ? `${environment.apiBaseUrl}/products/images/${product.thumbnail}` : null;
+
+        // Always ensure otherImages has exactly 4 elements
+        this.otherImages = [null, null, null, null];
+        if (product.product_images && product.product_images.length > 0) {
+            product.product_images.slice(0, 4).forEach((img, index) => {
+                if (img.image_url) {
+                    this.otherImages[index] = `${environment.apiBaseUrl}/products/images/${img.image_url}`;
+                }
+            });
+        }
+
+        this.productTags = [];
         this.showEditModal = true;
     }
 
@@ -172,6 +204,11 @@ export class ProductAdminComponent implements OnInit {
         this.showDeleteModal = false;
         this.currentProduct = null;
         this.productToDelete = null;
+        this.selectedMainImage = null;
+        this.selectedMainImageFile = null;
+        this.otherImages = [null, null, null, null];
+        this.otherImagesFile = [];
+        this.productTags = [];
         this.error = '';
     }
 
@@ -181,38 +218,147 @@ export class ProductAdminComponent implements OnInit {
             return;
         }
 
-        const formData = this.productForm.value;
         this.loading = true;
+        this.error = '';
 
         if (this.currentProduct) {
-            // Edit mode
-            this.productService.updateProduct(this.currentProduct.id, formData).subscribe({
-                next: () => {
-                    this.loadProducts();
-                    this.closeModals();
-                    this.loading = false;
-                },
-                error: (error) => {
-                    console.error('Error updating product:', error);
-                    this.error = 'Không thể cập nhật sản phẩm';
-                    this.loading = false;
-                },
-            });
+            // Edit mode - handle differently for updates
+            this.handleUpdateProduct();
         } else {
-            // Create mode
-            this.productService.createProduct(formData).subscribe({
-                next: () => {
-                    this.loadProducts();
-                    this.closeModals();
-                    this.loading = false;
-                },
-                error: (error) => {
-                    console.error('Error creating product:', error);
-                    this.error = 'Không thể tạo sản phẩm mới';
-                    this.loading = false;
-                },
-            });
+            // Create mode - prepare FormData with all fields
+            const formData = this.prepareFormDataForSubmit();
+            this.createProduct(formData);
         }
+    }
+
+    private handleUpdateProduct(): void {
+        // For updates, only send what's changed
+        const formData = new FormData();
+
+        // Add product JSON data
+        const updateProductDTO = new UpdateProductDTO({
+            name: this.productForm.get('name')?.value,
+            price: this.productForm.get('price')?.value,
+            description: this.productForm.get('description')?.value,
+            category_id: this.productForm.get('category_id')?.value,
+            active: this.productForm.get('active')?.value,
+        });
+
+        formData.append('product', new Blob([JSON.stringify(updateProductDTO)], { type: 'application/json' }));
+
+        // Only add thumbnail if a new one is selected
+        if (this.selectedMainImageFile) {
+            formData.append('thumbnail', this.selectedMainImageFile);
+        }
+
+        // Add other images if any
+        this.otherImagesFile.forEach((file, index) => {
+            if (file) {
+                formData.append('images', file);
+            }
+        });
+
+        this.updateProduct(formData);
+    }
+
+    private prepareFormDataForSubmit(): FormData {
+        const formData = new FormData();
+
+        // Add product JSON data
+        const updateProductDTO = new UpdateProductDTO({
+            name: this.productForm.get('name')?.value,
+            price: this.productForm.get('price')?.value,
+            description: this.productForm.get('description')?.value,
+            category_id: this.productForm.get('category_id')?.value,
+            active: this.productForm.get('active')?.value,
+        });
+
+        formData.append('product', new Blob([JSON.stringify(updateProductDTO)], { type: 'application/json' }));
+
+        // For create, always add thumbnail field (empty blob if no file selected)
+        if (this.selectedMainImageFile) {
+            formData.append('thumbnail', this.selectedMainImageFile);
+        } else {
+            // Add empty blob to satisfy backend requirements for create
+            formData.append('thumbnail', new Blob([]), '');
+        }
+
+        // Add other images if any
+        this.otherImagesFile.forEach((file, index) => {
+            if (file) {
+                formData.append('images', file);
+            }
+        });
+
+        return formData;
+    }
+
+    private createProduct(formData: FormData): void {
+        this.productService.createProduct(formData).subscribe({
+            next: (response) => {
+                console.log('Product created successfully:', response);
+                this.loadProducts();
+                this.closeModals();
+                this.loading = false;
+                this.showSuccessMessage('Sản phẩm đã được tạo thành công!');
+            },
+            error: (error) => {
+                console.error('Error creating product:', error);
+                this.handleError(error, 'Không thể tạo sản phẩm mới');
+            },
+        });
+    }
+
+    private updateProduct(formData: FormData): void {
+        if (!this.currentProduct) return;
+
+        this.productService.updateProduct(this.currentProduct.id, formData).subscribe({
+            next: (response) => {
+                console.log('Product updated successfully:', response);
+                this.loadProducts();
+                this.closeModals();
+                this.loading = false;
+                this.showSuccessMessage('Sản phẩm đã được cập nhật thành công!');
+            },
+            error: (error) => {
+                console.error('Error updating product:', error);
+                this.handleError(error, 'Không thể cập nhật sản phẩm');
+            },
+        });
+    }
+
+    private handleError(error: any, defaultMessage: string): void {
+        this.loading = false;
+
+        // Handle different types of errors
+        if (error.status === 400) {
+            // Validation errors
+            if (error.error && error.error.message) {
+                this.error = error.error.message;
+            } else if (error.error && error.error.errors) {
+                // Handle validation errors array
+                const errorMessages = Object.values(error.error.errors).flat();
+                this.error = errorMessages.join(', ');
+            } else {
+                this.error = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+            }
+        } else if (error.status === 401) {
+            this.error = 'Bạn không có quyền thực hiện thao tác này.';
+        } else if (error.status === 403) {
+            this.error = 'Truy cập bị từ chối.';
+        } else if (error.status === 404) {
+            this.error = 'Không tìm thấy sản phẩm.';
+        } else if (error.status === 500) {
+            this.error = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+        } else {
+            this.error = defaultMessage;
+        }
+    }
+
+    private showSuccessMessage(message: string): void {
+        // You can implement a toast notification or success message here
+        console.log('Success:', message);
+        // For now, we'll just log it. You can integrate with a toast library later
     }
 
     confirmDelete(): void {
@@ -306,5 +452,81 @@ export class ProductAdminComponent implements OnInit {
             const end = Math.min(totalPages, start + maxVisible - 1);
             this.visiblePages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }
+    }
+
+    // Image upload methods
+    onMainImageSelected(event: any): void {
+        this.selectedMainImageFile = event.target.files[0];
+        if (this.selectedMainImageFile) {
+            const reader = new FileReader();
+            // this.productForm.patchValue({ thumbnail: this.selectedMainImageFile.name });
+            // this.productForm.get('mainImage')?.setValue(this.selectedMainImageFile.name);
+
+            reader.onload = (e: any) => {
+                this.selectedMainImage = e.target.result;
+                // Update form control for backend compatibility
+            };
+            reader.readAsDataURL(this.selectedMainImageFile);
+        }
+    }
+
+    onOtherImageSelected(event: any): void {
+        const file = event.target.files[0];
+        if (file && this.currentOtherImageIndex !== null) {
+            // Store the file for later upload
+            this.otherImagesFile[this.currentOtherImageIndex] = file;
+
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.otherImages[this.currentOtherImageIndex!] = e.target.result;
+                this.currentOtherImageIndex = null;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    private currentOtherImageIndex: number | null = null;
+
+    selectOtherImage(index: number): void {
+        this.currentOtherImageIndex = index;
+        if (this.otherFileInput) {
+            this.otherFileInput.nativeElement.click();
+        }
+    }
+
+    addOtherImage(): void {
+        const emptyIndex = this.otherImages.findIndex((img) => img === null);
+        if (emptyIndex !== -1) {
+            this.selectOtherImage(emptyIndex);
+        }
+    }
+
+    removeOtherImage(index: number): void {
+        this.otherImages[index] = null;
+        // Also remove the corresponding file
+        if (this.otherImagesFile[index]) {
+            this.otherImagesFile.splice(index, 1);
+        }
+    }
+
+    // Tag management methods
+    addTag(event: any): void {
+        const tagValue = event.target.value.trim();
+        if (tagValue && !this.productTags.includes(tagValue)) {
+            this.productTags.push(tagValue);
+            event.target.value = '';
+        }
+    }
+
+    removeTag(tag: string): void {
+        const index = this.productTags.indexOf(tag);
+        if (index > -1) {
+            this.productTags.splice(index, 1);
+        }
+    }
+
+    // Check if there are empty image slots
+    hasEmptyImageSlot(): boolean {
+        return this.otherImages.some((img) => img === null);
     }
 }

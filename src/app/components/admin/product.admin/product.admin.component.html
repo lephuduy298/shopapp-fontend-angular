@@ -216,126 +216,240 @@
 
 <!-- Create/Edit Modal -->
 <div
-    class="modal"
+    class="product-modal-overlay"
     [style.display]="showCreateModal || showEditModal ? 'block' : 'none'"
     *ngIf="showCreateModal || showEditModal"
 >
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    {{ currentProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới' }}
-                </h5>
-                <button type="button" class="btn-close" (click)="closeModals()"></button>
-            </div>
-            <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Tên sản phẩm *</label>
+    <div class="product-modal">
+        <div class="product-modal-header">
+            <h2 class="product-modal-title">Add Products</h2>
+            <button type="button" class="product-modal-close" (click)="closeModals()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+            <div class="product-modal-body">
+                <div class="product-form-grid">
+                    <!-- Left Column - Image Upload -->
+                    <div class="product-images-section">
+                        <!-- Main Image -->
+                        <div class="main-image-section">
+                            <label class="image-label">Main Image</label>
+                            <div class="main-image-upload">
+                                <div class="image-upload-area" (click)="fileInput.click()">
+                                    <div class="upload-content" *ngIf="!selectedMainImage">
+                                        <i class="fas fa-camera upload-icon"></i>
+                                        <p class="upload-text">Click to upload image</p>
+                                    </div>
+                                    <img
+                                        *ngIf="selectedMainImage"
+                                        [src]="selectedMainImage"
+                                        alt="Preview"
+                                        class="preview-image"
+                                    />
+                                </div>
                                 <input
-                                    type="text"
-                                    id="name"
-                                    class="form-control"
-                                    formControlName="name"
-                                    [class.is-invalid]="isFieldInvalid('name')"
+                                    #fileInput
+                                    type="file"
+                                    accept="image/*"
+                                    (change)="onMainImageSelected($event)"
+                                    style="display: none"
                                 />
-                                <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
-                                    {{ getFieldError('name') }}
+                                <div class="image-url-option">
+                                    <i class="fas fa-link"></i>
+                                    <span>Image from URL</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="price" class="form-label">Giá *</label>
-                                <input
-                                    type="number"
-                                    id="price"
-                                    class="form-control"
-                                    formControlName="price"
-                                    min="0"
-                                    [class.is-invalid]="isFieldInvalid('price')"
-                                />
-                                <div class="invalid-feedback" *ngIf="isFieldInvalid('price')">
-                                    {{ getFieldError('price') }}
+
+                        <!-- Other Images -->
+                        <div class="other-images-section">
+                            <label class="image-label">Others Images</label>
+                            <div class="other-images-grid">
+                                <div class="other-image-upload" *ngFor="let image of otherImages; let i = index">
+                                    <div class="image-upload-small" (click)="selectOtherImage(i)">
+                                        <img *ngIf="image" [src]="image" alt="Other image" class="small-preview" />
+                                        <div *ngIf="!image" class="upload-placeholder">
+                                            <i class="fas fa-plus"></i>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="remove-image-btn"
+                                        *ngIf="image"
+                                        (click)="removeOtherImage(i)"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="other-image-upload" (click)="addOtherImage()">
+                                    <div class="image-upload-small">
+                                        <div class="upload-placeholder">
+                                            <i class="fas fa-plus"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="category_id" class="form-label">Danh mục *</label>
+                    <!-- Right Column - Product Details -->
+                    <div class="product-details-section">
+                        <!-- Product Name -->
+                        <div class="form-group">
+                            <label for="productName" class="form-label">Product Name</label>
+                            <input
+                                type="text"
+                                id="productName"
+                                class="form-input"
+                                formControlName="name"
+                                placeholder="Give your product a short name"
+                                [class.error]="isFieldInvalid('name')"
+                            />
+                            <div class="error-message" *ngIf="isFieldInvalid('name')">
+                                {{ getFieldError('name') }}
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description</label>
+                            <div class="description-editor">
+                                <div class="editor-toolbar">
+                                    <select class="format-select">
+                                        <option>Normal</option>
+                                    </select>
+                                    <div class="editor-tools">
+                                        <button type="button" class="editor-btn">Roboto Light</button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-bold"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-italic"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-underline"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-list-ul"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-list-ol"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-align-left"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-link"></i></button>
+                                        <button type="button" class="editor-btn"><i class="fas fa-image"></i></button>
+                                    </div>
+                                </div>
+                                <textarea
+                                    id="description"
+                                    class="form-textarea"
+                                    formControlName="description"
+                                    placeholder="What is your current workspace setup and what are somethings you just cant live without?"
+                                    rows="6"
+                                    [class.error]="isFieldInvalid('description')"
+                                ></textarea>
+                            </div>
+                            <div class="error-message" *ngIf="isFieldInvalid('description')">
+                                {{ getFieldError('description') }}
+                            </div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="category" class="form-label">Category</label>
+                            <div class="category-select-wrapper">
                                 <select
-                                    id="category_id"
-                                    class="form-control"
+                                    id="category"
+                                    class="form-select"
                                     formControlName="category_id"
-                                    [class.is-invalid]="isFieldInvalid('category_id')"
+                                    [class.error]="isFieldInvalid('category_id')"
                                 >
-                                    <option value="">-- Chọn danh mục --</option>
+                                    <!-- <option value="">Envelopes & Letter Paper</option> -->
                                     <option *ngFor="let category of categories" [value]="category.id">
                                         {{ category.name }}
                                     </option>
                                 </select>
-                                <div class="invalid-feedback" *ngIf="isFieldInvalid('category_id')">
-                                    {{ getFieldError('category_id') }}
+                                <div class="category-dropdown">
+                                    <div class="category-search">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" placeholder="Search Category" />
+                                    </div>
+                                    <div class="category-options">
+                                        <div class="category-option highlighted">Envelopes & Letter Paper</div>
+                                        <div class="category-option">Chinese New Year</div>
+                                        <div class="category-option">Storage & Gift Boxes</div>
+                                        <div class="category-option">Notebooks & Journals</div>
+                                        <div class="category-option">Calendars</div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="error-message" *ngIf="isFieldInvalid('category_id')">
+                                {{ getFieldError('category_id') }}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="thumbnail" class="form-label">URL Hình ảnh</label>
+
+                        <!-- Price -->
+                        <div class="form-group">
+                            <label for="price" class="form-label">Price</label>
+                            <input
+                                type="number"
+                                id="price"
+                                class="form-input"
+                                formControlName="price"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                                [class.error]="isFieldInvalid('price')"
+                            />
+                            <div class="error-message" *ngIf="isFieldInvalid('price')">
+                                {{ getFieldError('price') }}
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group">
+                            <label class="form-label">Tag</label>
+                            <div class="tags-container">
+                                <div class="tag-item" *ngFor="let tag of productTags">
+                                    {{ tag }}
+                                    <button type="button" class="tag-remove" (click)="removeTag(tag)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                                 <input
-                                    type="url"
-                                    id="thumbnail"
-                                    class="form-control"
-                                    formControlName="thumbnail"
-                                    placeholder="https://example.com/image.jpg"
+                                    type="text"
+                                    class="tag-input"
+                                    placeholder="Add tag..."
+                                    (keyup.enter)="addTag($event)"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="url" class="form-label">URL sản phẩm</label>
-                        <input
-                            type="url"
-                            id="url"
-                            class="form-control"
-                            formControlName="url"
-                            placeholder="https://example.com/product"
-                        />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Mô tả *</label>
-                        <textarea
-                            id="description"
-                            class="form-control"
-                            formControlName="description"
-                            rows="4"
-                            [class.is-invalid]="isFieldInvalid('description')"
-                        ></textarea>
-                        <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">
-                            {{ getFieldError('description') }}
+                        <!-- Product Active Toggle -->
+                        <div class="form-group">
+                            <div class="toggle-container">
+                                <label class="form-label">Product active</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="productActive" formControlName="active" />
+                                    <label for="productActive" class="toggle-label"></label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="alert alert-danger" *ngIf="error">
-                        {{ error }}
+                        <!-- Hidden fields for backward compatibility -->
+                        <input type="hidden" formControlName="thumbnail" />
+                        <input type="hidden" formControlName="url" />
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" (click)="closeModals()">Hủy</button>
-                    <button type="submit" class="btn btn-primary" [disabled]="loading">
-                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-                        {{ currentProduct ? 'Cập nhật' : 'Tạo mới' }}
-                    </button>
+
+                <div class="alert alert-danger" *ngIf="error">
+                    {{ error }}
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="product-modal-footer">
+                <button type="button" class="btn-cancel" (click)="closeModals()">Cancel</button>
+                <button type="submit" class="btn-save" [disabled]="loading">
+                    <span *ngIf="loading" class="spinner"></span>
+                    Save
+                </button>
+            </div>
+        </form>
+
+        <!-- Hidden file input for other images -->
+        <input #otherFileInput type="file" accept="image/*" (change)="onOtherImageSelected($event)" style="display: none" />
     </div>
 </div>
 
@@ -370,4 +484,4 @@
 </div>
 
 <!-- Modal backdrop -->
-<div class="modal-backdrop fade show" *ngIf="showCreateModal || showEditModal || showDeleteModal"></div>
+<div class="modal-backdrop fade show" *ngIf="showDeleteModal"></div>

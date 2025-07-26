@@ -59,11 +59,11 @@ export class ProductService {
         return this.http.get<Product>(`${this.apiGetProducts}/${id}`);
     }
 
-    createProduct(product: Omit<Product, 'id'>): Observable<Product> {
+    createProduct(product: Omit<Product, 'id'> | FormData): Observable<Product> {
         return this.http.post<Product>(this.apiGetProducts, product);
     }
 
-    updateProduct(id: number, product: Partial<Product>): Observable<Product> {
+    updateProduct(id: number, product: Partial<Product> | FormData): Observable<Product> {
         return this.http.put<Product>(`${this.apiGetProducts}/${id}`, product);
     }
 
@@ -75,5 +75,57 @@ export class ProductService {
         const formData = new FormData();
         formData.append('file', file);
         return this.http.post(`${this.apiGetProducts}/${productId}/upload-image`, formData);
+    }
+
+    // Create product with files
+    createProductWithFiles(productData: any, mainImageFile?: File, otherImageFiles?: File[]): Observable<Product> {
+        const formData = new FormData();
+        
+        // Add product data
+        Object.keys(productData).forEach(key => {
+            if (productData[key] !== null && productData[key] !== undefined) {
+                formData.append(key, productData[key]);
+            }
+        });
+        
+        // Add main image
+        if (mainImageFile) {
+            formData.append('mainImage', mainImageFile);
+        }
+        
+        // Add other images
+        if (otherImageFiles && otherImageFiles.length > 0) {
+            otherImageFiles.forEach((file, index) => {
+                formData.append('otherImages', file);
+            });
+        }
+        
+        return this.http.post<Product>(this.apiGetProducts, formData);
+    }
+
+    // Update product with files
+    updateProductWithFiles(id: number, productData: any, mainImageFile?: File, otherImageFiles?: File[]): Observable<Product> {
+        const formData = new FormData();
+        
+        // Add product data
+        Object.keys(productData).forEach(key => {
+            if (productData[key] !== null && productData[key] !== undefined) {
+                formData.append(key, productData[key]);
+            }
+        });
+        
+        // Add main image
+        if (mainImageFile) {
+            formData.append('mainImage', mainImageFile);
+        }
+        
+        // Add other images
+        if (otherImageFiles && otherImageFiles.length > 0) {
+            otherImageFiles.forEach((file, index) => {
+                formData.append('otherImages', file);
+            });
+        }
+        
+        return this.http.put<Product>(`${this.apiGetProducts}/${id}`, formData);
     }
 }
