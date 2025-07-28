@@ -76,12 +76,12 @@
         </div>
         <div class="col-md-6">
             <div class="product-details">
-                <h2>Thông tin chi tiết sản phẩm</h2>
+                <h2>{{ product?.name }}</h2>
                 <!-- <p>{{ product?.description }}</p> -->
                 <div class="product-price-block">
                     <div class="main-price">
-                        <span class="price-new">{{ product?.price | number }} đ</span>
-                        <span class="price-old" *ngIf="originalPrice">{{ originalPrice | number }} đ</span>
+                        <span class="price-new">{{ product?.price | vndCurrency }}</span>
+                        <span class="price-old" *ngIf="originalPrice">{{ originalPrice | vndCurrency }}</span>
                         <span class="discount-badge" *ngIf="originalPrice && product && product.price">
                             -{{ (1 - product.price / originalPrice) * 100 | number : '1.0-0' }}%
                         </span>

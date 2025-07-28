@@ -15,11 +15,13 @@ import { TokenService } from '../../services/token.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { UserResponse } from '../../responses/user/user.response';
+import { ToastrService } from 'ngx-toastr';
+import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
 
 @Component({
     selector: 'app-order',
     standalone: true,
-    imports: [HeaderComponent, FooterComponent, FormsModule, CommonModule, ReactiveFormsModule],
+    imports: [HeaderComponent, FooterComponent, FormsModule, CommonModule, ReactiveFormsModule, VndCurrencyPipe],
     templateUrl: './order.component.html',
     styleUrl: './order.component.scss',
 })
@@ -55,7 +57,8 @@ export class OrderComponent implements OnInit {
         private formBuilder: FormBuilder,
         private tokenService: TokenService,
         private router: Router,
-        private userService: UserService
+        private userService: UserService,
+        private toastr: ToastrService
     ) {
         this.orderForm = this.formBuilder.group({
             fullname: ['', [Validators.required, Validators.pattern(/^[a-zA-ZÀ-ỹà-ỹ\s.'-]{2,50}$/)]],
@@ -148,12 +151,36 @@ export class OrderComponent implements OnInit {
         const removed = this.cartItems.splice(index, 1)[0];
         this.cartService.removeFromCart(removed.product.id);
         this.calculatePrice();
+        
+        // Hiển thị toast thông báo xóa thành công
+        this.toastr.info(
+            `${removed.product.name} đã được xóa khỏi giỏ hàng`,
+            'Xóa sản phẩm',
+            {
+                timeOut: 2000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right'
+            }
+        );
     }
 
     increaseQty(index: number): void {
         this.cartItems[index].quantity++;
         this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
         this.calculatePrice();
+        
+        // Hiển thị toast thông báo cập nhật số lượng
+        this.toastr.success(
+            `Đã tăng số lượng ${this.cartItems[index].product.name} lên ${this.cartItems[index].quantity}`,
+            'Cập nhật giỏ hàng',
+            {
+                timeOut: 1500,
+                progressBar: true,
+                closeButton: false,
+                positionClass: 'toast-top-right'
+            }
+        );
     }
 
     decreaseQty(index: number): void {
@@ -161,6 +188,30 @@ export class OrderComponent implements OnInit {
             this.cartItems[index].quantity--;
             this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
             this.calculatePrice();
+            
+            // Hiển thị toast thông báo cập nhật số lượng
+            this.toastr.success(
+                `Đã giảm số lượng ${this.cartItems[index].product.name} xuống ${this.cartItems[index].quantity}`,
+                'Cập nhật giỏ hàng',
+                {
+                    timeOut: 1500,
+                    progressBar: true,
+                    closeButton: false,
+                    positionClass: 'toast-top-right'
+                }
+            );
+        } else {
+            // Thông báo cảnh báo khi số lượng không thể giảm thêm
+            this.toastr.warning(
+                `${this.cartItems[index].product.name} đã ở số lượng tối thiểu`,
+                'Không thể giảm thêm',
+                {
+                    timeOut: 2000,
+                    progressBar: true,
+                    closeButton: false,
+                    positionClass: 'toast-top-right'
+                }
+            );
         }
     }
 
@@ -175,10 +226,34 @@ export class OrderComponent implements OnInit {
             if (this.orderForm.valid) {
                 this.isOrderConfirmed = true;
                 this.orderForm.disable();
+                
+                // Hiển thị toast thông báo xác nhận đơn hàng
+                this.toastr.info(
+                    'Thông tin đặt hàng đã được xác nhận. Nhấn "Đặt hàng" lần nữa để hoàn tất.',
+                    'Xác nhận thông tin',
+                    {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
             } else {
                 // Đánh dấu tất cả các trường là touched để hiển thị lỗi
                 this.orderForm.markAllAsTouched();
                 console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
+                
+                // Hiển thị toast cảnh báo về form không hợp lệ
+                this.toastr.warning(
+                    'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc.',
+                    'Thông tin chưa đầy đủ',
+                    {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
             }
         } else if (!this.isOrderPlaced) {
             // Lần hai: đặt hàng thật sự
@@ -198,6 +273,18 @@ export class OrderComponent implements OnInit {
             this.isOrderPlaced = true;
             this.orderService.placeOrder(this.orderData).subscribe({
                 next: (response: any) => {
+                    // Hiển thị toast thành công
+                    this.toastr.success(
+                        `Đơn hàng của bạn đã được đặt thành công! Mã đơn hàng: #${response.id || 'N/A'}`,
+                        'Đặt hàng thành công',
+                        {
+                            timeOut: 5000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right'
+                        }
+                    );
+
                     this.cartService.clearCart();
                     // Điều hướng sang trang chi tiết đơn hàng vừa đặt
                     if (response && response.id) {
@@ -211,6 +298,23 @@ export class OrderComponent implements OnInit {
                 },
                 error: (error: any) => {
                     console.log(`Lỗi khi đặt hàng: ${error}`);
+                    
+                    // Hiển thị toast lỗi với thông báo từ backend
+                    const errorMessage = error.error?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
+                    this.toastr.error(
+                        errorMessage,
+                        'Đặt hàng thất bại',
+                        {
+                            timeOut: 5000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right',
+                            enableHtml: true
+                        }
+                    );
+                    
+                    // Cho phép người dùng thử đặt hàng lại
+                    this.isOrderPlaced = false;
                 },
             });
         }

@@ -24,7 +24,7 @@
                             <div class="cart-item-name">{{ cartItem.product.name }}</div>
                             <!-- <div class="cart-item-variant">Màu: {{ cartItem.product.color || 'Bạc' }}</div> -->
                             <div class="cart-item-price">
-                                {{ cartItem.product.price | currency : 'VND' : 'symbol' : '1.2-2' }}
+                                {{ cartItem.product.price | vndCurrency }}
                             </div>
                         </div>
                         <div class="cart-item-qty">
@@ -179,7 +179,7 @@
                 </div>
                 <div class="order-summary-row order-summary-total">
                     <span>Tổng tiền</span>
-                    <span class="order-total">{{ totalPrice | currency : 'VND' : 'symbol' : '1.2-2' }}</span>
+                    <span class="order-total">{{ totalPrice | vndCurrency }}</span>
                 </div>
                 <div class="order-summary-row order-summary-btn">
                     <button

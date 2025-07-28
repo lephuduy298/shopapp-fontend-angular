@@ -11,6 +11,7 @@ import { LoginResponse } from '../../responses/user/login.response';
 import { RoleService } from '../../services/role.service';
 import { Role } from '../models.ts/role';
 import { UserResponse } from '../../responses/user/user.response';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-login',
@@ -28,7 +29,7 @@ export class LoginComponent implements OnInit {
     rememberMe: boolean = true;
     selectedRole: Role | undefined;
     userResponse?: UserResponse;
-    
+
     // Thêm thuộc tính để hiển thị thông báo lỗi
     errorMessage: string = '';
     isLoading: boolean = false;
@@ -37,7 +38,8 @@ export class LoginComponent implements OnInit {
         private userService: UserService,
         private router: Router,
         private tokenService: TokenService,
-        private roleService: RoleService
+        private roleService: RoleService,
+        private toastr: ToastrService
     ) {}
 
     //gọi ngonit để lấy roles
@@ -76,7 +78,7 @@ export class LoginComponent implements OnInit {
         const loginDTO: LoginDTO = {
             phone_number: this.phoneNumber,
             password: this.password,
-            role_id: this.phoneNumber.startsWith('admin') ? 2 : (this.selectedRole?.id ?? 1),
+            role_id: this.phoneNumber.startsWith('admin') ? 2 : this.selectedRole?.id ?? 1,
         };
 
         this.userService.login(loginDTO).subscribe({
@@ -109,22 +111,40 @@ export class LoginComponent implements OnInit {
 
                         this.isLoading = false;
 
-                        if (this.userResponse?.role.name == 'admin') {
-                            this.router.navigate(['/admin']);
-                        } else if (this.userResponse?.role.name == 'user') {
-                            this.router.navigate(['/']);
-                        }
+                        // Hiển thị toast thông báo đăng nhập thành công
+                        this.toastr.success(
+                            `Chào mừng ${this.userResponse?.fullname || 'bạn'} đã quay trở lại!`,
+                            'Đăng nhập thành công!',
+                            {
+                                timeOut: 3000,
+                                progressBar: true,
+                                closeButton: true,
+                            }
+                        );
+
+                        // Điều hướng sau khi hiển thị toast
+                        setTimeout(() => {
+                            if (this.userResponse?.role.name == 'admin') {
+                                this.router.navigate(['/admin']);
+                            } else if (this.userResponse?.role.name == 'user') {
+                                this.router.navigate(['/']);
+                            }
+                        }, 1000); // Delay 1 giây để người dùng thấy toast
                     },
                     error: (error: any) => {
                         this.isLoading = false;
                         console.log(`Cannot get user details: ${error.error.message}`);
-                        
+
                         // Hiển thị message từ backend hoặc fallback message
-                        if (error.error && error.error.message) {
-                            this.errorMessage = error.error.message;
-                        } else {
-                            this.errorMessage = 'Không thể tải thông tin người dùng. Vui lòng thử lại.';
-                        }
+                        const errorMsg = error.error?.message || 'Không thể tải thông tin người dùng. Vui lòng thử lại.';
+                        this.errorMessage = errorMsg;
+
+                        // Hiển thị toast lỗi
+                        this.toastr.error(errorMsg, 'Lỗi đăng nhập', {
+                            timeOut: 5000,
+                            progressBar: true,
+                            closeButton: true,
+                        });
                     },
                 });
             },
@@ -136,7 +156,7 @@ export class LoginComponent implements OnInit {
                 this.isLoading = false;
                 debugger;
                 console.log(`Cannot login: ${error.error.message}`);
-                
+
                 // Hiển thị message từ backend hoặc fallback message
                 if (error.error && error.error.message) {
                     this.errorMessage = error.error.message;

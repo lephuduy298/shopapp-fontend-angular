@@ -11,6 +11,7 @@ import { AuthGuardFn } from './guards/auth.guard';
 import { AdminGuardFn } from './guards/admin.guard';
 import { adminRoutes } from './components/admin/admin.routes';
 import { UserOrderComponent } from './components/user-order/user-order.component';
+import { ToastlertComponent } from './components/toastlert/toastlert.component';
 
 export const routes: Routes = [
     ...adminRoutes,
@@ -23,4 +24,5 @@ export const routes: Routes = [
     { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuardFn] },
     { path: 'user-order', component: UserOrderComponent, canActivate: [AuthGuardFn] },
     { path: 'orders/:id', component: OrderDetailComponent },
+    { path: 'toastr', component: ToastlertComponent },
 ];

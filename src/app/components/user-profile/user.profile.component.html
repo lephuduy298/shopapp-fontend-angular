@@ -116,10 +116,13 @@
             </ng-container>
         </div>
         <div class="text-center mt-4">
-            <button *ngIf="!isEditMode" type="button" (click)="isEditMode = true" class="btn btn-danger">
+            <button *ngIf="!isEditMode" type="button" (click)="toggleEditMode()" class="btn btn-danger">
                 Chỉnh sửa thông tin
             </button>
-            <button *ngIf="isEditMode" type="button" (click)="save()" class="btn btn-primary">Lưu thay đổi</button>
+            <div *ngIf="isEditMode" class="d-flex justify-content-center gap-2">
+                <button type="button" (click)="save()" class="btn btn-primary">Lưu thay đổi</button>
+                <button type="button" (click)="toggleEditMode()" class="btn btn-secondary">Hủy</button>
+            </div>
         </div>
     </form>
 </div>

@@ -11,6 +11,7 @@ import { filter } from 'rxjs';
 import { Category } from '../models.ts/category';
 import { CategoryService } from '../../services/category.service';
 import { CartService } from '../../services/cart.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-header',
@@ -34,7 +35,8 @@ export class HeaderComponent implements OnInit {
         private tokenService: TokenService,
         private router: Router,
         private categoryService: CategoryService,
-        public cartService: CartService
+        public cartService: CartService,
+        private toastr: ToastrService
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
@@ -101,10 +103,30 @@ export class HeaderComponent implements OnInit {
         } else if (index === 1) {
             this.router.navigate(['/user-order']);
         } else if (index === 2) {
+            // Lưu tên người dùng trước khi đăng xuất
+            const userName = this.userResponse?.fullname || 'bạn';
+
+            // Thực hiện đăng xuất
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
             this.userResponse = this.userService.getUserFromLocalStorage();
-            this.router.navigate(['/']);
+
+            // Hiển thị toast thông báo đăng xuất thành công
+            this.toastr.success(
+                // `Hẹn gặp lại ${userName}!`,
+                '',
+                'Đăng xuất thành công',
+                {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                }
+            );
+
+            // Điều hướng về trang chủ sau một chút delay
+            setTimeout(() => {
+                this.router.navigate(['/']);
+            }, 500);
         }
         this.isPopoverOpen = false;
     }

@@ -11,11 +11,13 @@ import { CartService } from '../../services/cart.service';
 import { ActivatedRoute } from '@angular/router';
 import { CategoryService } from '../../services/category.service';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
 
 @Component({
     selector: 'app-detail-product',
     standalone: true,
-    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule],
+    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, VndCurrencyPipe],
     templateUrl: './detail-product.component.html',
     styleUrl: './detail-product.component.scss',
 })
@@ -32,7 +34,8 @@ export class DetailProductComponent implements OnInit {
         private cartService: CartService,
         private activatedRoute: ActivatedRoute,
         private router: Router,
-        private categoryService: CategoryService
+        private categoryService: CategoryService,
+        private toastr: ToastrService
     ) {}
 
     ngOnInit() {
@@ -123,13 +126,96 @@ export class DetailProductComponent implements OnInit {
     addToCart() {
         debugger;
         if (this.product) {
-            this.cartService.addToCart(this.productId, this.quantity);
-            console.log('Thêm sản phẩm thành công');
-        } else console.log('không thể thêm sản phẩm vào giỏ hàng');
+            try {
+                this.cartService.addToCart(this.productId, this.quantity);
+                
+                // Hiển thị toast thành công
+                this.toastr.success(
+                    `${this.product.name} (x${this.quantity}) đã được thêm vào giỏ hàng thành công!`,
+                    'Thêm vào giỏ hàng',
+                    {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
+                
+                console.log('Thêm sản phẩm thành công');
+            } catch (error) {
+                // Hiển thị toast lỗi
+                this.toastr.error(
+                    'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
+                    'Lỗi',
+                    {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
+                console.log('Không thể thêm sản phẩm vào giỏ hàng');
+            }
+        } else {
+            this.toastr.warning(
+                'Không tìm thấy thông tin sản phẩm!',
+                'Cảnh báo',
+                {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right'
+                }
+            );
+            console.log('Không thể thêm sản phẩm vào giỏ hàng');
+        }
     }
 
     buyNow(productId: number) {
-        this.cartService.addToCart(productId, 1);
-        this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
+        if (this.product) {
+            try {
+                this.cartService.addToCart(productId, 1);
+                
+                // Hiển thị toast thông báo
+                this.toastr.info(
+                    `${this.product.name} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`,
+                    'Mua ngay',
+                    {
+                        timeOut: 2000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
+                
+                // Chuyển hướng sau 1 giây để user thấy được toast
+                setTimeout(() => {
+                    this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
+                }, 1000);
+                
+            } catch (error) {
+                this.toastr.error(
+                    'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
+                    'Lỗi',
+                    {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right'
+                    }
+                );
+            }
+        } else {
+            this.toastr.warning(
+                'Không tìm thấy thông tin sản phẩm!',
+                'Cảnh báo',
+                {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right'
+                }
+            );
+        }
     }
 }

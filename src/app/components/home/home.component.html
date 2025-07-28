@@ -31,7 +31,7 @@
                     <img [src]="product.url" alt="" class="product-image" (click)="onProductClick(product.id)" />
                     <h3 class="product-name">{{ product.name }}</h3>
                     <p class="product-description">{{ product.description }}</p>
-                    <p class="product-price">Giá: ${{ product.price }}</p>
+                    <p class="product-price">Giá: {{ product.price | vndCurrency }}</p>
                     <div class="product-action">
                         <button class="btn-cart-icon" (click)="addToCart(product.id)">
                             <span class="cart-icon">
