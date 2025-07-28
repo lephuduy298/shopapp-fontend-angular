@@ -4,6 +4,7 @@ import { OrderService } from '../../../services/order.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-order-admin',
@@ -25,7 +26,12 @@ export class OrderAdminComponent implements OnInit {
     activeFilter: string = 'all';
     Math = Math;
 
-    constructor(private orderService: OrderService, private router: Router) {}
+    // Delete confirmation modal states
+    showDeleteModal: boolean = false;
+    orderToDelete: OrderResponse | null = null;
+    isDeleting: boolean = false;
+
+    constructor(private orderService: OrderService, private router: Router, private toastr: ToastrService) {}
     ngOnInit(): void {
         debugger;
         this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
@@ -46,7 +52,8 @@ export class OrderAdminComponent implements OnInit {
             },
             error: (error: any) => {
                 debugger;
-                // console.error('Error fetching products:', error);
+                console.error('Error fetching orders:', error);
+                // this.toastr.error('Failed to load orders. Please try again.', 'Error');
             },
         });
     }
@@ -69,6 +76,7 @@ export class OrderAdminComponent implements OnInit {
             error: (error: any) => {
                 debugger;
                 console.error('Error fetching filtered orders:', error);
+                this.toastr.error('Failed to load filtered orders. Please try again.', 'Error');
             },
         });
     }
@@ -98,23 +106,50 @@ export class OrderAdminComponent implements OnInit {
         return new Array(endPage - startPage + 1).fill(0).map((_, index) => startPage + index);
     }
     deleteOrder(orderId: number) {
-        const confirmDelete = window.confirm('Are you sure to delete this order?');
+        // Find the order to delete
+        this.orderToDelete = this.filteredOrders.find((order) => order.id === orderId) || null;
+        if (this.orderToDelete) {
+            this.showDeleteModal = true;
+            // this.toastr.warning(`You are about to delete order #${orderId}. This action cannot be undone.`, 'Confirm Delete', {
+            //     timeOut: 5000,
+            // });
+        }
+    }
 
-        if (confirmDelete) {
-            this.orderService.deleteOrder(orderId).subscribe({
+    confirmDeleteOrder() {
+        if (this.orderToDelete && !this.isDeleting) {
+            this.isDeleting = true;
+
+            this.orderService.deleteOrder(this.orderToDelete.id).subscribe({
                 next: (response: any) => {
                     debugger;
-                    location.reload();
+                    this.toastr.success('Order deleted successfully!', 'Success');
+                    this.closeDeleteModal();
+                    // Refresh current page instead of full reload
+                    if (this.activeFilter && this.activeFilter !== 'all') {
+                        this.getAllOrdersWithFilter(this.keyword, this.currentPage, this.itemsPerPage, this.activeFilter);
+                    } else {
+                        this.getAllOrders(this.keyword, this.currentPage, this.itemsPerPage);
+                    }
                 },
                 complete: () => {
                     debugger;
                 },
                 error: (error: any) => {
                     debugger;
-                    console.error('Error fetching products:', error);
+                    console.error('Error deleting order:', error);
+                    const errorMessage = error.error?.message || 'Failed to delete order. Please try again.';
+                    this.toastr.error(errorMessage, 'Error');
+                    this.isDeleting = false;
                 },
             });
         }
+    }
+
+    closeDeleteModal() {
+        this.showDeleteModal = false;
+        this.orderToDelete = null;
+        this.isDeleting = false;
     }
 
     viewDetails(order: OrderResponse) {

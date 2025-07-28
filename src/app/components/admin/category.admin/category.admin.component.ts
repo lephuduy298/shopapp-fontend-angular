@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Category } from '../../models.ts/category';
 import { CategoryService } from '../../../services/category.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-category-admin',
@@ -20,27 +21,24 @@ export class CategoryAdminComponent implements OnInit {
     totalItems: number = 0;
     keyword: string = '';
     visiblePages: number[] = [];
-    
+
     // Modal states
     showAddModal: boolean = false;
     showEditModal: boolean = false;
     showDeleteModal: boolean = false;
-    
+
     // Forms
     addForm!: FormGroup;
     editForm!: FormGroup;
-    
+
     // Current category being edited/deleted
     selectedCategory: Category | null = null;
-    
+
     // Loading states
     isLoading: boolean = false;
     isSubmitting: boolean = false;
 
-    constructor(
-        private categoryService: CategoryService,
-        private formBuilder: FormBuilder
-    ) {
+    constructor(private categoryService: CategoryService, private formBuilder: FormBuilder, private toastr: ToastrService) {
         this.initializeForms();
     }
 
@@ -50,11 +48,11 @@ export class CategoryAdminComponent implements OnInit {
 
     initializeForms(): void {
         this.addForm = this.formBuilder.group({
-            name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]]
+            name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
         });
 
         this.editForm = this.formBuilder.group({
-            name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]]
+            name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
         });
     }
 
@@ -71,10 +69,11 @@ export class CategoryAdminComponent implements OnInit {
             },
             error: (error: any) => {
                 console.error('Error loading categories:', error);
+                this.toastr.error('Failed to load categories. Please try again.', 'Error');
                 this.isLoading = false;
                 // Fallback to simple getCategories if pagination API doesn't exist
                 this.loadCategoriesSimple();
-            }
+            },
         });
     }
 
@@ -90,8 +89,9 @@ export class CategoryAdminComponent implements OnInit {
             },
             error: (error: any) => {
                 console.error('Error loading categories:', error);
+                this.toastr.error('Failed to load categories. Please try again.', 'Error');
                 this.isLoading = false;
-            }
+            },
         });
     }
 
@@ -136,13 +136,16 @@ export class CategoryAdminComponent implements OnInit {
         this.selectedCategory = category;
         this.showEditModal = true;
         this.editForm.patchValue({
-            name: category.name
+            name: category.name,
         });
     }
 
     openDeleteModal(category: Category): void {
         this.selectedCategory = category;
         this.showDeleteModal = true;
+        this.toastr.warning(`You are about to delete "${category.name}". This action cannot be undone.`, 'Confirm Delete', {
+            timeOut: 5000,
+        });
     }
 
     closeModals(): void {
@@ -158,18 +161,24 @@ export class CategoryAdminComponent implements OnInit {
         if (this.addForm.valid && !this.isSubmitting) {
             this.isSubmitting = true;
             const categoryData: Omit<Category, 'id'> = this.addForm.value;
-            
+
             this.categoryService.createCategory(categoryData).subscribe({
                 next: (response: any) => {
                     console.log('Category added successfully:', response);
+                    this.toastr.success('Category added successfully!', 'Success');
                     this.loadCategories();
                     this.closeModals();
                 },
                 error: (error: any) => {
                     console.error('Error adding category:', error);
+                    const errorMessage = error.error?.message || 'Failed to add category. Please try again.';
+                    this.toastr.error(errorMessage, 'Error');
                     this.isSubmitting = false;
-                }
+                },
             });
+        } else {
+            this.toastr.warning('Please fill in all required fields correctly.', 'Validation Error');
+            this.markFormGroupTouched(this.addForm);
         }
     }
 
@@ -177,35 +186,44 @@ export class CategoryAdminComponent implements OnInit {
         if (this.editForm.valid && this.selectedCategory && !this.isSubmitting) {
             this.isSubmitting = true;
             const categoryData: Partial<Category> = this.editForm.value;
-            
+
             this.categoryService.updateCategory(this.selectedCategory.id, categoryData).subscribe({
                 next: (response: any) => {
                     console.log('Category updated successfully:', response);
+                    this.toastr.success('Category updated successfully!', 'Success');
                     this.loadCategories();
                     this.closeModals();
                 },
                 error: (error: any) => {
                     console.error('Error updating category:', error);
+                    const errorMessage = error.error?.message || 'Failed to update category. Please try again.';
+                    this.toastr.error(errorMessage, 'Error');
                     this.isSubmitting = false;
-                }
+                },
             });
+        } else {
+            this.toastr.warning('Please fill in all required fields correctly.', 'Validation Error');
+            this.markFormGroupTouched(this.editForm);
         }
     }
 
     deleteCategory(): void {
         if (this.selectedCategory && !this.isSubmitting) {
             this.isSubmitting = true;
-            
+
             this.categoryService.deleteCategory(this.selectedCategory.id).subscribe({
                 next: (response: any) => {
                     console.log('Category deleted successfully:', response);
+                    this.toastr.success('Category deleted successfully!', 'Success');
                     this.loadCategories();
                     this.closeModals();
                 },
                 error: (error: any) => {
                     console.error('Error deleting category:', error);
+                    const errorMessage = error.error?.message || 'Failed to delete category. Please try again.';
+                    this.toastr.error(errorMessage, 'Error');
                     this.isSubmitting = false;
-                }
+                },
             });
         }
     }
@@ -215,9 +233,22 @@ export class CategoryAdminComponent implements OnInit {
         const field = form.get(fieldName);
         if (field?.errors && field.touched) {
             if (field.errors['required']) return `${fieldName} is required`;
-            if (field.errors['minlength']) return `${fieldName} must be at least ${field.errors['minlength'].requiredLength} characters`;
-            if (field.errors['maxlength']) return `${fieldName} must be no more than ${field.errors['maxlength'].requiredLength} characters`;
+            if (field.errors['minlength'])
+                return `${fieldName} must be at least ${field.errors['minlength'].requiredLength} characters`;
+            if (field.errors['maxlength'])
+                return `${fieldName} must be no more than ${field.errors['maxlength'].requiredLength} characters`;
         }
         return '';
+    }
+
+    private markFormGroupTouched(formGroup: FormGroup): void {
+        Object.keys(formGroup.controls).forEach((key) => {
+            const control = formGroup.get(key);
+            control?.markAsTouched();
+
+            if (control instanceof FormGroup) {
+                this.markFormGroupTouched(control);
+            }
+        });
     }
 }

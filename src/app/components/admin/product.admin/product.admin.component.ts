@@ -7,6 +7,7 @@ import { Product } from '../../models.ts/product';
 import { environment } from '../../../environments/environment';
 import { Category } from '../../models.ts/category';
 import { UpdateProductDTO } from '../../../dtos/product/update.product.dto';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-product-admin',
@@ -54,7 +55,12 @@ export class ProductAdminComponent implements OnInit {
     loading = false;
     error = '';
 
-    constructor(private productService: ProductService, private categoryService: CategoryService, private fb: FormBuilder) {
+    constructor(
+        private productService: ProductService,
+        private categoryService: CategoryService,
+        private fb: FormBuilder,
+        private toastr: ToastrService
+    ) {
         this.productForm = this.fb.group({
             name: ['', [Validators.required, Validators.minLength(3)]],
             price: ['', [Validators.required, Validators.min(0)]],
@@ -117,6 +123,7 @@ export class ProductAdminComponent implements OnInit {
                     console.error('Error loading products:', error);
                     this.error = 'Không thể tải danh sách sản phẩm';
                     this.loading = false;
+                    this.toastr.error('Không thể tải danh sách sản phẩm', 'Lỗi');
                 },
             });
     }
@@ -128,6 +135,7 @@ export class ProductAdminComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error loading categories:', error);
+                this.toastr.error('Không thể tải danh sách danh mục', 'Lỗi');
             },
         });
     }
@@ -300,7 +308,7 @@ export class ProductAdminComponent implements OnInit {
                 this.loadProducts();
                 this.closeModals();
                 this.loading = false;
-                this.showSuccessMessage('Sản phẩm đã được tạo thành công!');
+                this.toastr.success('Sản phẩm đã được tạo thành công!', 'Thành công');
             },
             error: (error) => {
                 console.error('Error creating product:', error);
@@ -318,7 +326,7 @@ export class ProductAdminComponent implements OnInit {
                 this.loadProducts();
                 this.closeModals();
                 this.loading = false;
-                this.showSuccessMessage('Sản phẩm đã được cập nhật thành công!');
+                this.toastr.success('Sản phẩm đã được cập nhật thành công!', 'Thành công');
             },
             error: (error) => {
                 console.error('Error updating product:', error);
@@ -329,36 +337,32 @@ export class ProductAdminComponent implements OnInit {
 
     private handleError(error: any, defaultMessage: string): void {
         this.loading = false;
+        let errorMessage = defaultMessage;
 
         // Handle different types of errors
         if (error.status === 400) {
             // Validation errors
             if (error.error && error.error.message) {
-                this.error = error.error.message;
+                errorMessage = error.error.message;
             } else if (error.error && error.error.errors) {
                 // Handle validation errors array
                 const errorMessages = Object.values(error.error.errors).flat();
-                this.error = errorMessages.join(', ');
+                errorMessage = errorMessages.join(', ');
             } else {
-                this.error = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
             }
         } else if (error.status === 401) {
-            this.error = 'Bạn không có quyền thực hiện thao tác này.';
+            errorMessage = 'Bạn không có quyền thực hiện thao tác này.';
         } else if (error.status === 403) {
-            this.error = 'Truy cập bị từ chối.';
+            errorMessage = 'Truy cập bị từ chối.';
         } else if (error.status === 404) {
-            this.error = 'Không tìm thấy sản phẩm.';
+            errorMessage = 'Không tìm thấy sản phẩm.';
         } else if (error.status === 500) {
-            this.error = 'Lỗi máy chủ. Vui lòng thử lại sau.';
-        } else {
-            this.error = defaultMessage;
+            errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
         }
-    }
 
-    private showSuccessMessage(message: string): void {
-        // You can implement a toast notification or success message here
-        console.log('Success:', message);
-        // For now, we'll just log it. You can integrate with a toast library later
+        this.error = errorMessage;
+        this.toastr.error(errorMessage, 'Lỗi');
     }
 
     confirmDelete(): void {
@@ -367,14 +371,18 @@ export class ProductAdminComponent implements OnInit {
         this.loading = true;
         this.productService.deleteProduct(this.productToDelete.id).subscribe({
             next: () => {
+                debugger;
                 this.loadProducts();
                 this.closeModals();
                 this.loading = false;
+                this.toastr.success('Sản phẩm đã được xóa thành công!', 'Thành công');
             },
             error: (error) => {
+                debugger;
                 console.error('Error deleting product:', error);
                 this.error = 'Không thể xóa sản phẩm';
                 this.loading = false;
+                this.toastr.error('Không thể xóa sản phẩm', 'Lỗi');
             },
         });
     }

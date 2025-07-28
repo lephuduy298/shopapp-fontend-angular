@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OrderService } from '../../../services/order.service';
 import { environment } from '../../../environments/environment';
 import { OrderDTO } from '../../../dtos/order/order.dto';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-detail-order.admin',
@@ -34,12 +35,20 @@ export class DetailOrderAdminComponent implements OnInit {
     };
 
     // Store original order status to detect changes
-    private originalOrderStatus: string = 'pending';
+    originalOrderStatus: string = 'pending';
 
     // Current overall order status
     currentOrderStatus: string = 'pending';
 
-    constructor(private route: ActivatedRoute, private orderService: OrderService, private router: Router) {}
+    // Unsaved changes confirmation modal
+    showUnsavedChangesModal: boolean = false;
+
+    constructor(
+        private route: ActivatedRoute,
+        private orderService: OrderService,
+        private router: Router,
+        private toastr: ToastrService
+    ) {}
 
     ngOnInit(): void {
         this.getOrderDetail();
@@ -99,10 +108,12 @@ export class DetailOrderAdminComponent implements OnInit {
 
     saveOrder() {
         console.log('=== SAVE ORDER DEBUG ===');
-        
+
         // Check if order status has been changed
         const hasOrderStatusChange = this.currentOrderStatus !== this.originalOrderStatus;
-        console.log(`Order status: ${this.originalOrderStatus} -> ${this.currentOrderStatus} (changed: ${hasOrderStatusChange})`);
+        console.log(
+            `Order status: ${this.originalOrderStatus} -> ${this.currentOrderStatus} (changed: ${hasOrderStatusChange})`
+        );
 
         if (!hasOrderStatusChange) {
             alert('No changes detected. Please update order status before saving.');
@@ -125,11 +136,14 @@ export class DetailOrderAdminComponent implements OnInit {
             order_date: this.orderResponse.order_date,
             cart_items: this.orderResponse.order_details.map((detail) => ({
                 product_id: detail.product.id,
-                quantity: detail.number_of_products
+                quantity: detail.number_of_products,
             })),
         };
 
         console.log('Update data to send:', updateData);
+
+        // Show loading notification
+        this.toastr.info(`Updating order status to "${this.currentOrderStatus}"...`, 'Saving Changes');
 
         // Create OrderDTO with the update data
         const orderDTO = new OrderDTO(updateData);
@@ -142,16 +156,18 @@ export class DetailOrderAdminComponent implements OnInit {
                 // Show success message
                 let successMessage = 'Order updated successfully!';
                 if (hasOrderStatusChange) {
-                    successMessage += ' Order status updated.';
+                    successMessage = `Order status updated to "${this.currentOrderStatus}" successfully!`;
                 }
 
-                alert(successMessage);
+                this.toastr.success(successMessage, 'Success');
 
                 // Update original status after successful save
                 this.originalOrderStatus = this.currentOrderStatus;
 
-                // Refresh the order data to show latest changes
-                this.getOrderDetail();
+                // Navigate back to orders list after a short delay
+                setTimeout(() => {
+                    this.router.navigate(['/admin/orders']);
+                }, 1500);
             },
             complete: () => {
                 console.log('Order update completed');
@@ -167,7 +183,7 @@ export class DetailOrderAdminComponent implements OnInit {
                     errorMessage = error.message;
                 }
 
-                alert('Error: ' + errorMessage);
+                this.toastr.error(errorMessage, 'Update Failed');
 
                 // Optionally refresh the data to revert any local changes
                 this.getOrderDetail();
@@ -208,17 +224,46 @@ export class DetailOrderAdminComponent implements OnInit {
         // Update the order response status as well
         this.orderResponse.status = this.currentOrderStatus;
         console.log('Order status updated to:', this.currentOrderStatus);
+
+        // Show info notification about status change
+        this.toastr.info(`Order status changed to: ${this.currentOrderStatus}`, 'Status Changed', {
+            timeOut: 2000,
+        });
     }
 
     // Navigation method
     goBack(): void {
         if (this.hasUnsavedChanges()) {
-            const confirmLeave = confirm('You have unsaved changes. Are you sure you want to leave without saving?');
-            if (!confirmLeave) {
-                return;
-            }
+            this.showUnsavedChangesModal = true;
+            // this.toastr.warning(
+            //     'You have unsaved changes. Save them before leaving or they will be lost.',
+            //     'Unsaved Changes',
+            //     {
+            //         timeOut: 5000,
+            //     }
+            // );
+        } else {
+            this.router.navigate(['/admin/orders']);
         }
+    }
+
+    // Confirm leave without saving
+    confirmLeaveWithoutSaving(): void {
+        this.showUnsavedChangesModal = false;
         this.router.navigate(['/admin/orders']);
+    }
+
+    // Cancel leaving and stay on current page
+    cancelLeave(): void {
+        this.showUnsavedChangesModal = false;
+    }
+
+    // Save changes and then navigate
+    saveAndLeave(): void {
+        // First save the order
+        this.saveOrder();
+        // Navigation will happen automatically after successful save in saveOrder() method
+        this.showUnsavedChangesModal = false;
     }
 
     // Calculate total amount
@@ -233,27 +278,32 @@ export class DetailOrderAdminComponent implements OnInit {
 
     // Print order functionality
     printOrder(): void {
-        window.print();
+        this.toastr.info('Preparing order for printing...', 'Print Order');
+        setTimeout(() => {
+            window.print();
+        }, 500);
     }
 
     // Send notification
     sendNotification(): void {
         // Implement notification logic here
         console.log('Sending notification for order:', this.orderId);
-        // You can integrate with notification service
-        alert('Notification sent successfully!');
+        this.toastr.success('Notification sent to customer successfully!', 'Notification Sent');
     }
 
     // Generate invoice
     generateInvoice(): void {
         // Implement invoice generation logic here
         console.log('Generating invoice for order:', this.orderId);
-        // You can integrate with invoice generation service
-        alert('Invoice generated successfully!');
+        this.toastr.success('Invoice generated and downloaded successfully!', 'Invoice Generated');
     }
 
     // Cancel order
     cancelOrder(): void {
+        this.toastr.warning('You are about to cancel this order. This action cannot be undone.', 'Confirm Cancellation', {
+            timeOut: 5000,
+        });
+
         if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
             // Update order status to cancelled
             this.currentOrderStatus = 'cancelled';

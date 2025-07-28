@@ -200,3 +200,43 @@
         </nav>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Confirm Delete Order</h2>
+            <button class="close-btn" (click)="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="delete-warning">
+                <i class="fas fa-exclamation-triangle warning-icon"></i>
+                <div class="warning-content">
+                    <h3>Are you sure you want to delete this order?</h3>
+                    <div class="order-info" *ngIf="orderToDelete">
+                        <p><strong>Order ID:</strong> #{{ orderToDelete.id }}</p>
+                        <p><strong>Customer:</strong> {{ orderToDelete.fullname }}</p>
+                        <p><strong>Total:</strong> {{ orderToDelete.total_money | number : '1.0-0' }} đ</p>
+                        <p><strong>Date:</strong> {{ orderToDelete.order_date | date : 'dd MMM, yyyy' }}</p>
+                    </div>
+                    <p class="warning-text">
+                        <i class="fas fa-info-circle"></i>
+                        This action cannot be undone. The order and all associated data will be permanently deleted.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()" [disabled]="isDeleting">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-danger" (click)="confirmDeleteOrder()" [disabled]="isDeleting">
+                <span *ngIf="isDeleting" class="spinner-small"></span>
+                <i *ngIf="!isDeleting" class="fas fa-trash"></i>
+                {{ isDeleting ? 'Deleting...' : 'Delete Order' }}
+            </button>
+        </div>
+    </div>
+</div>

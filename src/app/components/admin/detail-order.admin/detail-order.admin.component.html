@@ -261,3 +261,55 @@
         </div>
     </div>
 </div>
+
+<!-- Unsaved Changes Modal -->
+<div *ngIf="showUnsavedChangesModal" class="modal-overlay" (click)="cancelLeave()">
+    <div class="modal-content unsaved-changes-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Unsaved Changes</h2>
+            <button class="close-btn" (click)="cancelLeave()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="unsaved-warning">
+                <i class="fas fa-exclamation-triangle warning-icon"></i>
+                <div class="warning-content">
+                    <h3>You have unsaved changes</h3>
+                    <p class="warning-message">
+                        You've modified the order status but haven't saved your changes yet. 
+                        What would you like to do?
+                    </p>
+                    <div class="changes-info">
+                        <div class="change-detail">
+                            <span class="label">Current status:</span>
+                            <span class="status-badge" [class]="'status-' + currentOrderStatus">
+                                {{ currentOrderStatus }}
+                            </span>
+                        </div>
+                        <div class="change-detail">
+                            <span class="label">Original status:</span>
+                            <span class="status-badge" [class]="'status-' + originalOrderStatus">
+                                {{ originalOrderStatus }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="cancelLeave()">
+                <i class="fas fa-times"></i>
+                Stay on Page
+            </button>
+            <button type="button" class="btn btn-success" (click)="saveAndLeave()">
+                <i class="fas fa-save"></i>
+                Save & Leave
+            </button>
+            <button type="button" class="btn btn-danger" (click)="confirmLeaveWithoutSaving()">
+                <i class="fas fa-trash"></i>
+                Discard Changes
+            </button>
+        </div>
+    </div>
+</div>
