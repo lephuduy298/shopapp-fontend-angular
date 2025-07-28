@@ -175,3 +175,36 @@
     background: #b71c1c;
     box-shadow: 0 8px 24px 0 rgba(230,0,0,0.18);
 }
+
+// Disabled state cho nút đăng nhập
+.login-button:disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+// Styling cho thông báo lỗi
+.alert-danger {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    
+    i {
+        color: #dc2626;
+        font-size: 1.1rem;
+    }
+}
+
+// Animation cho loading spinner
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.1em;
+}

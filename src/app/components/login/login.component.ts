@@ -28,6 +28,10 @@ export class LoginComponent implements OnInit {
     rememberMe: boolean = true;
     selectedRole: Role | undefined;
     userResponse?: UserResponse;
+    
+    // Thêm thuộc tính để hiển thị thông báo lỗi
+    errorMessage: string = '';
+    isLoading: boolean = false;
 
     constructor(
         private userService: UserService,
@@ -60,6 +64,10 @@ export class LoginComponent implements OnInit {
     }
 
     login() {
+        // Reset error message và bắt đầu loading
+        this.errorMessage = '';
+        this.isLoading = true;
+
         const message = `phone: ${this.phoneNumber} 
         password: ${this.password} role_id: ${this.selectedRole}`;
         debugger;
@@ -99,6 +107,8 @@ export class LoginComponent implements OnInit {
                             this.userService.saveUserToMemory(this.userResponse);
                         }
 
+                        this.isLoading = false;
+
                         if (this.userResponse?.role.name == 'admin') {
                             this.router.navigate(['/admin']);
                         } else if (this.userResponse?.role.name == 'user') {
@@ -106,7 +116,15 @@ export class LoginComponent implements OnInit {
                         }
                     },
                     error: (error: any) => {
-                        console.log(`Cannot login: ${error.error.message}`);
+                        this.isLoading = false;
+                        console.log(`Cannot get user details: ${error.error.message}`);
+                        
+                        // Hiển thị message từ backend hoặc fallback message
+                        if (error.error && error.error.message) {
+                            this.errorMessage = error.error.message;
+                        } else {
+                            this.errorMessage = 'Không thể tải thông tin người dùng. Vui lòng thử lại.';
+                        }
                     },
                 });
             },
@@ -114,10 +132,23 @@ export class LoginComponent implements OnInit {
                 debugger;
             },
             error: (error: any) => {
-                // Xử lý lỗi nếu có
+                // Xử lý lỗi đăng nhập
+                this.isLoading = false;
                 debugger;
                 console.log(`Cannot login: ${error.error.message}`);
+                
+                // Hiển thị message từ backend hoặc fallback message
+                if (error.error && error.error.message) {
+                    this.errorMessage = error.error.message;
+                } else {
+                    this.errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+                }
             },
         });
+    }
+
+    // Method để xóa thông báo lỗi khi người dùng bắt đầu nhập lại
+    clearErrorMessage() {
+        this.errorMessage = '';
     }
 }
