@@ -117,18 +117,6 @@ export class UserProfileComponent implements OnInit {
 
                     // Chờ 2 giây trước khi chuyển hướng để người dùng có thể đọc thông báo
                     setTimeout(() => {
-                        // Hiển thị toast thông báo đăng xuất
-                        this.toastr.info(
-                            'Vui lòng đăng nhập lại với thông tin mới',
-                            'Đăng xuất tự động',
-                            {
-                                timeOut: 3000,
-                                progressBar: true,
-                                closeButton: true,
-                                positionClass: 'toast-top-right',
-                            }
-                        );
-                        
                         this.userService.removeUserFromLocalStorage();
                         this.tokenService.removeToken();
                         this.router.navigate(['/login']);

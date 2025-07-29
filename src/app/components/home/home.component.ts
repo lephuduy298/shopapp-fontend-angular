@@ -12,6 +12,7 @@ import { Router, ActivatedRoute, Params } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
 import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
+import { BusyService } from '../../services/busy.service';
 
 @Component({
     selector: 'app-home',
@@ -49,7 +50,8 @@ export class HomeComponent implements OnInit {
         private router: Router,
         private route: ActivatedRoute,
         private cartService: CartService,
-        private toastr: ToastrService
+        private toastr: ToastrService,
+        private busyService: BusyService
     ) {}
 
     ngOnInit() {
@@ -174,12 +176,12 @@ export class HomeComponent implements OnInit {
         if (event) {
             event.preventDefault();
         }
-        
+
         // Kiểm tra bounds để ngăn chặn navigation không hợp lệ
         if (page < 1 || page > this.totalPages || page === this.currentPage) {
             return;
         }
-        
+
         debugger;
         this.currentPage = page;
         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
@@ -215,77 +217,61 @@ export class HomeComponent implements OnInit {
 
     addToCart(productId: number) {
         debugger;
-        
+
         // Tìm thông tin sản phẩm
-        const product = this.products.find(p => p.id === productId);
+        const product = this.products.find((p) => p.id === productId);
         const productName = product ? product.name : 'Sản phẩm';
-        
+
         try {
+            this.busyService.busy();
             this.cartService.addToCart(productId, 1);
-            
+
             // Hiển thị toast thành công
-            this.toastr.success(
-                `${productName} đã được thêm vào giỏ hàng thành công!`, 
-                'Thêm vào giỏ hàng',
-                {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
-            
+            this.toastr.success(`${productName} đã được thêm vào giỏ hàng thành công!`, 'Thêm vào giỏ hàng', {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
+            this.busyService.idle();
         } catch (error) {
             // Hiển thị toast lỗi nếu có vấn đề
-            this.toastr.error(
-                'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 
-                'Lỗi',
-                {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
+            this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
         }
     }
 
     buyNow(productId: number) {
         // Tìm thông tin sản phẩm
-        const product = this.products.find(p => p.id === productId);
+        const product = this.products.find((p) => p.id === productId);
         const productName = product ? product.name : 'Sản phẩm';
-        
+
         try {
             this.cartService.addToCart(productId, 1);
-            
+
             // Hiển thị toast thông báo
-            this.toastr.info(
-                `${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`, 
-                'Mua ngay',
-                {
-                    timeOut: 2000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
-            
+            this.toastr.info(`${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`, 'Mua ngay', {
+                timeOut: 2000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
+
             // Chuyển hướng sau 1 giây để user thấy được toast
             setTimeout(() => {
                 this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
             }, 1000);
-            
         } catch (error) {
-            this.toastr.error(
-                'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 
-                'Lỗi',
-                {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
+            this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
         }
     }
 }
