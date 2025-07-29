@@ -34,6 +34,9 @@ export class HomeComponent implements OnInit {
     // Thêm filter hãng và giá
     brands: string[] = [];
     selectedBrands: string[] = [];
+    selectedBrand: string = '';
+    minPrice?: number;
+    maxPrice?: number;
     priceRanges = [
         { label: 'Dưới 10 triệu', min: 0, max: 10000000 },
         { label: 'Từ 10 - 15 triệu', min: 10000000, max: 15000000 },
@@ -54,18 +57,66 @@ export class HomeComponent implements OnInit {
         private busyService: BusyService
     ) {}
 
+    // ngOnInit() {
+    //     this.route.queryParams.subscribe((params: Params) => {
+    //         this.keyword = params['keyword'] || '';
+    //         this.selectedCategoryId = params['category'] ? +params['category'] : 0;
+    //         this.currentPage = 1;
+    //         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+    //     });
+    //     this.getCategories();
+    //     // Lấy danh sách brands từ server
+    //     this.categoryService.getBrandCategories().subscribe({
+    //         next: (brands: any[]) => {
+    //             debugger;
+    //             this.brands = brands;
+    //         },
+    //         error: (err) => {
+    //             console.error('Error fetching brands:', err);
+    //         },
+    //     });
+    // }
+
     ngOnInit() {
         this.route.queryParams.subscribe((params: Params) => {
             this.keyword = params['keyword'] || '';
             this.selectedCategoryId = params['category'] ? +params['category'] : 0;
-            this.currentPage = 1;
-            this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+            this.selectedBrand = params['brand'] || '';
+            this.minPrice = params['minPrice'] ? +params['minPrice'] : undefined;
+            this.maxPrice = params['maxPrice'] ? +params['maxPrice'] : undefined;
+            this.currentPage = params['page'] ? +params['page'] : 1;
+
+            // Convert single brand to array for consistency
+            if (this.selectedBrand) {
+                this.selectedBrands = this.selectedBrand.split(',');
+            } else {
+                this.selectedBrands = [];
+            }
+
+            // Set price range if min/max are provided
+            if (this.minPrice || this.maxPrice) {
+                this.selectedPriceRange = {
+                    min: this.minPrice || 0,
+                    max: this.maxPrice || 1000000000
+                };
+            } else {
+                this.selectedPriceRange = null;
+            }
+            
+            // Check if any filters are applied
+            const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRange;
+            
+            if (hasFilters) {
+                this.getProductsWithFilter();
+            } else {
+                this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+            }
         });
+
         this.getCategories();
-        // Lấy danh sách brands từ server
+
         this.categoryService.getBrandCategories().subscribe({
             next: (brands: any[]) => {
-                debugger;
                 this.brands = brands;
             },
             error: (err) => {
@@ -74,11 +125,20 @@ export class HomeComponent implements OnInit {
         });
     }
 
+
     searchProducts() {
         debugger;
         this.currentPage = 1;
         this.itemsPerPage = 12;
-        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        
+        // Kiểm tra có filter nào được áp dụng không
+        const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRange;
+        
+        if (hasFilters) {
+            this.getProductsWithFilter();
+        } else {
+            this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        }
     }
 
     getCategories() {
@@ -107,67 +167,76 @@ export class HomeComponent implements OnInit {
         } else {
             this.selectedBrands = this.selectedBrands.filter((b) => b !== brand);
         }
-        // Gọi lại getProducts để filter theo hãng ngay khi chọn
+        
+        // Reset về trang 1 và cập nhật URL
         this.currentPage = 1;
-        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        this.updateUrlAndFetch();
     }
 
     getProducts(keyword: string, selectedCategoryId: number, page: number, limit: number) {
-        // Nếu có filter hãng hoặc giá thì lấy toàn bộ sản phẩm để filter ở frontend
-        const needFrontendFilter = this.selectedBrands.length > 0 || this.selectedPriceRange;
-        const fetchPage = needFrontendFilter ? 1 : page;
-        const fetchLimit = needFrontendFilter ? 10000 : limit;
-        this.productService.getProducts(keyword, selectedCategoryId, fetchPage, fetchLimit).subscribe({
+        // Luôn sử dụng pagination từ backend - không có filter
+        this.busyService.busy();
+        this.productService.getProducts(keyword, selectedCategoryId, page, limit).subscribe({
             next: (response: any) => {
                 debugger;
 
                 response.result.forEach((product: Product) => {
                     product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
                 });
-                let filtered = response.result;
-                // Nếu có filter thì filter toàn bộ và phân trang lại ở frontend
-                if (needFrontendFilter) {
-                    debugger;
-                    // Lọc theo hãng
-                    if (this.selectedBrands.length > 0) {
-                        debugger;
-                        filtered = filtered.filter((p: any) => {
-                            debugger;
-                            const brandSpec = p.product_specifications.find(
-                                (spec: any) =>
-                                    spec.spec_name?.toLowerCase() === 'hãng sản xuất' ||
-                                    spec.spec_value?.toLowerCase() === 'hãng sản xuất'
-                            );
-                            return brandSpec && this.selectedBrands.includes(brandSpec.spec_value);
-                        });
-                    }
-
-                    // Lọc theo giá
-                    if (this.selectedPriceRange) {
-                        filtered = filtered.filter(
-                            (p: any) => p.price >= this.selectedPriceRange.min && p.price <= this.selectedPriceRange.max
-                        );
-                    }
-                    const filteredTotal = filtered.length;
-                    this.totalPages = Math.max(1, Math.ceil(filteredTotal / this.itemsPerPage));
-                    const startIdx = (this.currentPage - 1) * this.itemsPerPage;
-                    const endIdx = startIdx + this.itemsPerPage;
-                    this.products = filtered.slice(startIdx, endIdx);
-                } else {
-                    // Không filter, phân trang như backend trả về
-                    this.products = filtered;
-                    this.totalPages = response.meta.totalPage;
-                }
+                
+                this.products = response.result;
+                this.totalPages = response.meta.totalPage;
                 this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                this.busyService.idle();
                 debugger;
             },
             complete: () => {
                 debugger;
             },
             error: (error: any) => {
-                // Xử lý lỗi nếu có
                 debugger;
                 console.log(`Cannot get all products: ${error.error.message}`);
+                this.busyService.idle();
+            },
+        });
+    }
+
+    getProductsWithFilter() {
+        // Gọi backend với filter parameters
+        const brandFilter = this.selectedBrands.length > 0 ? this.selectedBrands.join(',') : undefined;
+        const minPrice = this.selectedPriceRange?.min;
+        const maxPrice = this.selectedPriceRange?.max;
+
+        this.busyService.busy();
+        this.productService.getProductsWithFilter(
+            this.keyword,
+            this.selectedCategoryId,
+            this.currentPage,
+            this.itemsPerPage,
+            brandFilter,
+            minPrice,
+            maxPrice
+        ).subscribe({
+            next: (response: any) => {
+                debugger;
+
+                response.result.forEach((product: Product) => {
+                    product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
+                });
+                
+                this.products = response.result;
+                this.totalPages = response.meta.totalPage;
+                this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                this.busyService.idle();
+                debugger;
+            },
+            complete: () => {
+                debugger;
+            },
+            error: (error: any) => {
+                debugger;
+                console.log(`Cannot get filtered products: ${error.error.message}`);
+                this.busyService.idle();
             },
         });
     }
@@ -184,7 +253,9 @@ export class HomeComponent implements OnInit {
 
         debugger;
         this.currentPage = page;
-        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        
+        // Update URL with new page
+        this.updateUrlAndFetch();
     }
 
     generateVisiblePageArray(currentPage: number, totalPages: number): number[] {
@@ -212,7 +283,79 @@ export class HomeComponent implements OnInit {
     onPriceRangeChange(range: any) {
         this.selectedPriceRange = range;
         this.currentPage = 1;
-        this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
+        this.updateUrlAndFetch();
+    }
+
+    // Update URL with current filter params and fetch data
+    updateUrlAndFetch() {
+        const queryParams: any = {};
+
+        // Add keyword if exists
+        if (this.keyword) {
+            queryParams.keyword = this.keyword;
+        }
+
+        // Add category if selected
+        if (this.selectedCategoryId > 0) {
+            queryParams.category = this.selectedCategoryId;
+        }
+
+        // Add brand filter if exists
+        if (this.selectedBrands.length > 0) {
+            queryParams.brand = this.selectedBrands.join(',');
+        }
+
+        // Add price range if exists
+        if (this.selectedPriceRange) {
+            if (this.selectedPriceRange.min > 0) {
+                queryParams.minPrice = this.selectedPriceRange.min;
+            }
+            if (this.selectedPriceRange.max < 1000000000) {
+                queryParams.maxPrice = this.selectedPriceRange.max;
+            }
+        }
+
+        // Add page if not first page
+        if (this.currentPage > 1) {
+            queryParams.page = this.currentPage;
+        }
+
+        // Navigate with new query params
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: queryParams,
+            queryParamsHandling: 'replace'
+        });
+    }
+
+    // Clear all filters
+    clearFilters() {
+        this.selectedBrands = [];
+        this.selectedBrand = '';
+        this.selectedPriceRange = null;
+        this.minPrice = undefined;
+        this.maxPrice = undefined;
+        this.currentPage = 1;
+        
+        // Clear URL params but keep keyword and category
+        const queryParams: any = {};
+        if (this.keyword) {
+            queryParams.keyword = this.keyword;
+        }
+        if (this.selectedCategoryId > 0) {
+            queryParams.category = this.selectedCategoryId;
+        }
+
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: queryParams,
+            queryParamsHandling: 'replace'
+        });
+    }
+
+    // Check if any filters are applied
+    hasActiveFilters(): boolean {
+        return this.selectedBrands.length > 0 || this.selectedPriceRange !== null;
     }
 
     addToCart(productId: number) {

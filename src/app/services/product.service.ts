@@ -24,6 +24,41 @@ export class ProductService {
         return this.http.get<Product[]>(this.apiGetProducts, { params });
     }
 
+    getProductsWithFilter(
+        keyword: string,
+        selectedCategoryId: number,
+        page: number,
+        limit: number,
+        selectedBrand?: string,
+        minPrice?: number,
+        maxPrice?: number
+    ): Observable<any> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('limit', limit.toString())
+            .set('keyword', keyword.toString());
+
+        // Only add category_id if it's not 0 (all categories)
+        if (selectedCategoryId > 0) {
+            params = params.set('category_id', selectedCategoryId);
+        }
+
+        // Add optional filters
+        if (selectedBrand && selectedBrand !== '') {
+            params = params.set('brand', selectedBrand);
+        }
+
+        if (minPrice !== undefined && minPrice !== null) {
+            params = params.set('min_price', minPrice.toString());
+        }
+
+        if (maxPrice !== undefined && maxPrice !== null) {
+            params = params.set('max_price', maxPrice.toString());
+        }
+
+        return this.http.get<any>(this.apiGetProducts, { params });
+    }
+
     getDetailProduct(productId: number) {
         return this.http.get(`${environment.apiBaseUrl}/products/${productId}`);
     }
