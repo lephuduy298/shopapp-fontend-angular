@@ -975,6 +975,115 @@
         }
     }
 
+    // Product Specifications
+    .specifications-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .no-specs-message {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-style: italic;
+            border: 2px dashed #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+
+            p {
+                margin: 0;
+                font-size: 14px;
+            }
+        }
+
+        .specification-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8f9fa;
+
+            .spec-inputs {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex: 1;
+
+                .spec-name,
+                .spec-value {
+                    flex: 1;
+
+                    .spec-input {
+                        width: 100%;
+                        padding: 8px 12px;
+                        border: 1px solid #cbd5e0;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        transition: all 0.2s ease;
+
+                        &:focus {
+                            outline: none;
+                            border-color: #4299e1;
+                            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+                        }
+
+                        &::placeholder {
+                            color: #a0aec0;
+                        }
+                    }
+                }
+            }
+
+            .spec-remove-btn {
+                background: #e53e3e;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 12px;
+
+                &:hover {
+                    background: #c53030;
+                    transform: scale(1.05);
+                }
+            }
+        }
+
+        .add-spec-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            background: transparent;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+
+            &:hover {
+                border-color: #4299e1;
+                color: #4299e1;
+                background: rgba(66, 153, 225, 0.05);
+            }
+
+            i {
+                font-size: 12px;
+            }
+        }
+    }
+
     // Toggle Switch
     .toggle-container {
         display: flex;

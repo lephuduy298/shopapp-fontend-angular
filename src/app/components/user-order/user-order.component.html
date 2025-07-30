@@ -73,7 +73,7 @@
                             <div class="item-specs">
                                 <!-- <span class="item-size">Size: {{ detail.color || 'S' }}</span> -->
                                 <span class="item-qty">Qty: {{ detail.number_of_products }}</span>
-                                <span class="item-price">Price ${{ detail.price }}</span>
+                                <span class="item-price">Price {{ detail.price | vndCurrency }}</span>
                             </div>
                         </div>
                         <div class="item-status">
@@ -115,7 +115,7 @@
                     </div>
                     <div class="order-total">
                         <span class="total-label">Total Price:</span>
-                        <span class="total-amount">${{ order.total_money }}</span>
+                        <span class="total-amount">{{ order.total_money | vndCurrency }}</span>
                     </div>
                 </div>
             </div>

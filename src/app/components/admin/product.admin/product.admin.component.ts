@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ProductService } from '../../../services/product.service';
 import { CategoryService } from '../../../services/category.service';
 import { Product } from '../../models.ts/product';
+import { ProductSpecification } from '../../models.ts/product.specification';
 import { environment } from '../../../environments/environment';
 import { Category } from '../../models.ts/category';
 import { UpdateProductDTO } from '../../../dtos/product/update.product.dto';
@@ -51,6 +52,9 @@ export class ProductAdminComponent implements OnInit {
     showEditModal = false;
     showDeleteModal = false;
     productToDelete: Product | null = null;
+
+    // Product specifications
+    productSpecifications: ProductSpecification[] = [];
 
     loading = false;
     error = '';
@@ -170,6 +174,7 @@ export class ProductAdminComponent implements OnInit {
         this.otherImages = [null, null, null, null];
         this.otherImagesFile = [];
         this.productTags = [];
+        this.productSpecifications = [];
         this.showCreateModal = true;
     }
 
@@ -196,6 +201,11 @@ export class ProductAdminComponent implements OnInit {
                 }
             });
         }
+
+        // Load product specifications
+        this.productSpecifications = product.product_specifications || [];
+        console.log('Product specifications loaded:', this.productSpecifications);
+        console.log('Sample spec:', this.productSpecifications[0]);
 
         this.productTags = [];
         this.showEditModal = true;
@@ -226,6 +236,11 @@ export class ProductAdminComponent implements OnInit {
             return;
         }
 
+        // Validate specifications before submit
+        if (!this.validateAllSpecifications()) {
+            return;
+        }
+
         this.loading = true;
         this.error = '';
 
@@ -239,8 +254,39 @@ export class ProductAdminComponent implements OnInit {
         }
     }
 
+    // Validate all specifications before submit
+    private validateAllSpecifications(): boolean {
+        const invalidSpecs = this.productSpecifications.filter((spec) => {
+            if (!spec) return true;
+            const name = spec.spec_name?.trim() || '';
+            const value = spec.spec_value?.trim() || '';
+            return name === '' || value === '' || name.length < 2;
+        });
+
+        if (invalidSpecs.length > 0) {
+            this.toastr.error(
+                'Có thông số kỹ thuật không hợp lệ. Tên và giá trị không được để trống và tên phải có ít nhất 2 ký tự.',
+                'Lỗi validation'
+            );
+            return false;
+        }
+
+        // Check for duplicate spec names
+        const specNames = this.productSpecifications
+            .filter((spec) => this.isSpecificationValid(spec))
+            .map((spec) => spec.spec_name.trim().toLowerCase());
+
+        const duplicateNames = specNames.filter((name, index) => specNames.indexOf(name) !== index);
+        if (duplicateNames.length > 0) {
+            this.toastr.error('Có tên thông số kỹ thuật bị trùng lặp. Vui lòng kiểm tra lại.', 'Lỗi validation');
+            return false;
+        }
+
+        return true;
+    }
+
     private handleUpdateProduct(): void {
-        // For updates, only send what's changed
+        debugger;
         const formData = new FormData();
 
         // Add product JSON data
@@ -253,6 +299,43 @@ export class ProductAdminComponent implements OnInit {
         });
 
         formData.append('product', new Blob([JSON.stringify(updateProductDTO)], { type: 'application/json' }));
+
+        // Process and add specifications with improved handling
+        const processedSpecifications = this.productSpecifications
+            .filter((spec) => this.isSpecificationValid(spec))
+            .map((spec) => {
+                const processedSpec: any = {
+                    spec_name: spec.spec_name.trim(),
+                    spec_value: spec.spec_value.trim(),
+                };
+
+                // Only include ID if it's a valid existing ID (greater than 0)
+                if (spec.id && spec.id > 0) {
+                    processedSpec.id = spec.id;
+                }
+
+                return processedSpec;
+            });
+
+        // TRY METHOD 1: Individual form fields (thay vì JSON blob)
+        // if (processedSpecifications.length > 0) {
+        //     console.log('Using individual form fields for specifications...');
+        //     processedSpecifications.forEach((spec, index) => {
+        //         formData.append(`specifications[${index}].spec_name`, spec.spec_name);
+        //         formData.append(`specifications[${index}].spec_value`, spec.spec_value);
+        //         if (spec.id && spec.id > 0) {
+        //             formData.append(`specifications[${index}].id`, spec.id.toString());
+        //         }
+        //     });
+        // }
+
+        // TRY METHOD 2: Also send as JSON blob (backup)
+        formData.append('specifications', new Blob([JSON.stringify(processedSpecifications)], { type: 'application/json' }));
+
+        console.log('=== FORM DATA CONTENTS ===');
+        for (let pair of formData.entries()) {
+            console.log(`${pair[0]}: ${pair[1]}`);
+        }
 
         // Only add thumbnail if a new one is selected
         if (this.selectedMainImageFile) {
@@ -282,6 +365,20 @@ export class ProductAdminComponent implements OnInit {
         });
 
         formData.append('product', new Blob([JSON.stringify(updateProductDTO)], { type: 'application/json' }));
+
+        // Process and add specifications for create
+        const processedSpecifications = this.productSpecifications
+            .filter((spec) => this.isSpecificationValid(spec))
+            .map((spec) => ({
+                spec_name: spec.spec_name.trim(),
+                spec_value: spec.spec_value.trim(),
+                // Don't include ID for new products
+            }));
+
+        console.log('Sending specifications for create:', processedSpecifications);
+
+        // Send specifications array (even if empty)
+        formData.append('specifications', new Blob([JSON.stringify(processedSpecifications)], { type: 'application/json' }));
 
         // For create, always add thumbnail field (empty blob if no file selected)
         if (this.selectedMainImageFile) {
@@ -330,6 +427,22 @@ export class ProductAdminComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error updating product:', error);
+                // Log chi tiết error để debug
+                console.error('Full error object:', error);
+                console.error('Error status:', error.status);
+                console.error('Error message:', error.message);
+                console.error('Error details:', error.error);
+
+                // Nếu là JSON, parse và log
+                if (error.error && typeof error.error === 'string') {
+                    try {
+                        const parsedError = JSON.parse(error.error);
+                        console.error('Parsed error:', parsedError);
+                    } catch (e) {
+                        console.error('Raw error string:', error.error);
+                    }
+                }
+
                 this.handleError(error, 'Không thể cập nhật sản phẩm');
             },
         });
@@ -344,12 +457,17 @@ export class ProductAdminComponent implements OnInit {
             // Validation errors
             if (error.error && error.error.message) {
                 errorMessage = error.error.message;
+            } else if (error.error && typeof error.error === 'string') {
+                errorMessage = error.error;
             } else if (error.error && error.error.errors) {
                 // Handle validation errors array
                 const errorMessages = Object.values(error.error.errors).flat();
                 errorMessage = errorMessages.join(', ');
+            } else if (error.error && error.error.details) {
+                // Handle detailed validation errors
+                errorMessage = Array.isArray(error.error.details) ? error.error.details.join(', ') : error.error.details;
             } else {
-                errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin specifications.';
             }
         } else if (error.status === 401) {
             errorMessage = 'Bạn không có quyền thực hiện thao tác này.';
@@ -536,5 +654,47 @@ export class ProductAdminComponent implements OnInit {
     // Check if there are empty image slots
     hasEmptyImageSlot(): boolean {
         return this.otherImages.some((img) => img === null);
+    }
+
+    // Product Specifications methods
+    addSpecification(): void {
+        this.productSpecifications.push({
+            id: 0, // Temporary ID for new specs
+            spec_name: '',
+            spec_value: '',
+        });
+    }
+
+    removeSpecification(index: number): void {
+        this.productSpecifications.splice(index, 1);
+    }
+
+    updateSpecificationName(index: number, event: any): void {
+        const value = event.target.value;
+        if (this.productSpecifications[index]) {
+            this.productSpecifications[index].spec_name = value;
+        }
+    }
+
+    updateSpecificationValue(index: number, event: any): void {
+        const value = event.target.value;
+        if (this.productSpecifications[index]) {
+            this.productSpecifications[index].spec_value = value;
+        }
+    }
+
+    isSpecificationValid(spec: ProductSpecification): boolean {
+        if (!spec) return false;
+
+        const name = spec.spec_name?.trim() || '';
+        const value = spec.spec_value?.trim() || '';
+
+        // Kiểm tra cả tên và giá trị không được rỗng
+        if (name === '' || value === '') return false;
+
+        // Kiểm tra độ dài tối thiểu
+        if (name.length < 2 || value.length < 1) return false;
+
+        return true;
     }
 }

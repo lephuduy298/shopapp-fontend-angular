@@ -10,10 +10,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { offset } from '@popperjs/core';
+import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
 
 @Component({
     selector: 'app-user-order',
-    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RouterModule],
+    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RouterModule, VndCurrencyPipe],
     templateUrl: './user-order.component.html',
     styleUrl: './user-order.component.scss',
 })

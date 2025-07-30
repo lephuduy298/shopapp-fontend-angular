@@ -417,6 +417,68 @@
                             </div>
                         </div>
 
+                        <!-- Product Specifications -->
+                        <div class="form-group">
+                            <label class="form-label">Product Specifications</label>
+                            <div class="specifications-container">
+                                <!-- Debug info -->
+                                <!-- <div
+                                    *ngIf="productSpecifications.length > 0"
+                                    style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 4px"
+                                >
+                                    <small>Debug: Found {{ productSpecifications.length }} specifications</small>
+                                    <pre>{{ productSpecifications | json }}</pre>
+                                </div> -->
+
+                                <!-- Show message when no specifications exist -->
+                                <div class="no-specs-message" *ngIf="productSpecifications.length === 0">
+                                    <p>No specifications added yet. Click "Add Specification" to add the first one.</p>
+                                </div>
+
+                                <!-- Existing specifications -->
+                                <div class="specification-item" *ngFor="let spec of productSpecifications; let i = index">
+                                    <div class="spec-inputs">
+                                        <div class="spec-name">
+                                            <input
+                                                type="text"
+                                                class="form-input spec-input"
+                                                placeholder="Specification name (e.g., Color, Size, Weight)"
+                                                [value]="spec.spec_name || ''"
+                                                (input)="updateSpecificationName(i, $event)"
+                                                name="spec_name_{{ i }}"
+                                            />
+                                            <!-- Debug: {{ spec.spec_name }} -->
+                                        </div>
+                                        <div class="spec-value">
+                                            <input
+                                                type="text"
+                                                class="form-input spec-input"
+                                                placeholder="Specification value (e.g., Red, Large, 2kg)"
+                                                [value]="spec.spec_value || ''"
+                                                (input)="updateSpecificationValue(i, $event)"
+                                                name="spec_value_{{ i }}"
+                                            />
+                                            <!-- Debug: {{ spec.spec_value }} -->
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="spec-remove-btn"
+                                            (click)="removeSpecification(i)"
+                                            title="Remove specification"
+                                        >
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Add new specification button -->
+                                <button type="button" class="add-spec-btn" (click)="addSpecification()">
+                                    <i class="fas fa-plus"></i>
+                                    Add Specification
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Product Active Toggle -->
                         <div class="form-group">
                             <div class="toggle-container">
