@@ -14,10 +14,9 @@
             <div *ngFor="let range of priceRanges">
                 <label>
                     <input
-                        type="radio"
-                        name="priceRange"
-                        [checked]="selectedPriceRange === range"
-                        (change)="onPriceRangeChange(range)"
+                        type="checkbox"
+                        [checked]="isPriceRangeSelected(range)"
+                        (change)="onPriceRangeToggle($event, range)"
                     />
                     {{ range.label }}
                 </label>

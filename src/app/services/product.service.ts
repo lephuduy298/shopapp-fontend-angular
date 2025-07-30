@@ -30,8 +30,7 @@ export class ProductService {
         page: number,
         limit: number,
         selectedBrand?: string,
-        minPrice?: number,
-        maxPrice?: number
+        priceRanges?: string[]
     ): Observable<any> {
         let params = new HttpParams()
             .set('page', page.toString())
@@ -48,12 +47,27 @@ export class ProductService {
             params = params.set('brand', selectedBrand);
         }
 
-        if (minPrice !== undefined && minPrice !== null) {
-            params = params.set('min_price', minPrice.toString());
-        }
+        // Add multiple price ranges as JSON
+        if (priceRanges && priceRanges.length > 0) {
+            // Convert slugs to min/max objects for backend
+            const priceRangeObjects = priceRanges
+                .map((slug) => {
+                    // Map slugs to actual price ranges
+                    const rangeMap: { [key: string]: { min: number; max: number } } = {
+                        'duoi-10-trieu': { min: 0, max: 10000000 },
+                        'tu-10-15-trieu': { min: 10000000, max: 15000000 },
+                        'tu-15-20-trieu': { min: 15000000, max: 20000000 },
+                        'tu-20-25-trieu': { min: 20000000, max: 25000000 },
+                        'tu-25-30-trieu': { min: 25000000, max: 30000000 },
+                        'tren-30-trieu': { min: 30000000, max: 1000000000 },
+                    };
+                    return rangeMap[slug];
+                })
+                .filter((range) => range !== undefined);
 
-        if (maxPrice !== undefined && maxPrice !== null) {
-            params = params.set('max_price', maxPrice.toString());
+            if (priceRangeObjects.length > 0) {
+                params = params.set('price_ranges', JSON.stringify(priceRangeObjects));
+            }
         }
 
         return this.http.get<any>(this.apiGetProducts, { params });
@@ -75,13 +89,15 @@ export class ProductService {
     getAllProductsForAdmin(page: number, limit: number, keyword: string, categoryId: number = 0): Observable<any> {
         // Convert 0-based page to 1-based for backend
         const backendPage = page + 1;
-        console.log(`Calling API with: frontend page=${page}, backend page=${backendPage}, limit=${limit}, keyword="${keyword}", categoryId=${categoryId}`);
-        
+        console.log(
+            `Calling API with: frontend page=${page}, backend page=${backendPage}, limit=${limit}, keyword="${keyword}", categoryId=${categoryId}`
+        );
+
         let params = new HttpParams()
             .set('page', backendPage.toString())
             .set('limit', limit.toString())
             .set('keyword', keyword);
-            
+
         // Only add category_id if it's not 0 (all categories)
         if (categoryId > 0) {
             params = params.set('category_id', categoryId.toString());
@@ -115,52 +131,57 @@ export class ProductService {
     // Create product with files
     createProductWithFiles(productData: any, mainImageFile?: File, otherImageFiles?: File[]): Observable<Product> {
         const formData = new FormData();
-        
+
         // Add product data
-        Object.keys(productData).forEach(key => {
+        Object.keys(productData).forEach((key) => {
             if (productData[key] !== null && productData[key] !== undefined) {
                 formData.append(key, productData[key]);
             }
         });
-        
+
         // Add main image
         if (mainImageFile) {
             formData.append('mainImage', mainImageFile);
         }
-        
+
         // Add other images
         if (otherImageFiles && otherImageFiles.length > 0) {
             otherImageFiles.forEach((file, index) => {
                 formData.append('otherImages', file);
             });
         }
-        
+
         return this.http.post<Product>(this.apiGetProducts, formData);
     }
 
     // Update product with files
-    updateProductWithFiles(id: number, productData: any, mainImageFile?: File, otherImageFiles?: File[]): Observable<Product> {
+    updateProductWithFiles(
+        id: number,
+        productData: any,
+        mainImageFile?: File,
+        otherImageFiles?: File[]
+    ): Observable<Product> {
         const formData = new FormData();
-        
+
         // Add product data
-        Object.keys(productData).forEach(key => {
+        Object.keys(productData).forEach((key) => {
             if (productData[key] !== null && productData[key] !== undefined) {
                 formData.append(key, productData[key]);
             }
         });
-        
+
         // Add main image
         if (mainImageFile) {
             formData.append('mainImage', mainImageFile);
         }
-        
+
         // Add other images
         if (otherImageFiles && otherImageFiles.length > 0) {
             otherImageFiles.forEach((file, index) => {
                 formData.append('otherImages', file);
             });
         }
-        
+
         return this.http.put<Product>(`${this.apiGetProducts}/${id}`, formData);
     }
 }

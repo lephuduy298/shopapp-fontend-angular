@@ -34,18 +34,15 @@ export class HomeComponent implements OnInit {
     // Thêm filter hãng và giá
     brands: string[] = [];
     selectedBrands: string[] = [];
-    selectedBrand: string = '';
-    minPrice?: number;
-    maxPrice?: number;
     priceRanges = [
-        { label: 'Dưới 10 triệu', min: 0, max: 10000000 },
-        { label: 'Từ 10 - 15 triệu', min: 10000000, max: 15000000 },
-        { label: 'Từ 15 - 20 triệu', min: 15000000, max: 20000000 },
-        { label: 'Từ 20 - 25 triệu', min: 20000000, max: 25000000 },
-        { label: 'Từ 25 - 30 triệu', min: 25000000, max: 30000000 },
-        { label: 'Trên 30 triệu', min: 30000000, max: 1000000000 },
+        { label: 'Dưới 10 triệu', min: 0, max: 10000000, slug: 'duoi-10-trieu' },
+        { label: 'Từ 10 - 15 triệu', min: 10000000, max: 15000000, slug: 'tu-10-15-trieu' },
+        { label: 'Từ 15 - 20 triệu', min: 15000000, max: 20000000, slug: 'tu-15-20-trieu' },
+        { label: 'Từ 20 - 25 triệu', min: 20000000, max: 25000000, slug: 'tu-20-25-trieu' },
+        { label: 'Từ 25 - 30 triệu', min: 25000000, max: 30000000, slug: 'tu-25-30-trieu' },
+        { label: 'Trên 30 triệu', min: 30000000, max: 1000000000, slug: 'tren-30-trieu' },
     ];
-    selectedPriceRange: any = null;
+    selectedPriceRanges: any[] = [];
 
     constructor(
         private productService: ProductService,
@@ -57,55 +54,38 @@ export class HomeComponent implements OnInit {
         private busyService: BusyService
     ) {}
 
-    // ngOnInit() {
-    //     this.route.queryParams.subscribe((params: Params) => {
-    //         this.keyword = params['keyword'] || '';
-    //         this.selectedCategoryId = params['category'] ? +params['category'] : 0;
-    //         this.currentPage = 1;
-    //         this.getProducts(this.keyword, this.selectedCategoryId, this.currentPage, this.itemsPerPage);
-    //     });
-    //     this.getCategories();
-    //     // Lấy danh sách brands từ server
-    //     this.categoryService.getBrandCategories().subscribe({
-    //         next: (brands: any[]) => {
-    //             debugger;
-    //             this.brands = brands;
-    //         },
-    //         error: (err) => {
-    //             console.error('Error fetching brands:', err);
-    //         },
-    //     });
-    // }
-
     ngOnInit() {
         this.route.queryParams.subscribe((params: Params) => {
             this.keyword = params['keyword'] || '';
             this.selectedCategoryId = params['category'] ? +params['category'] : 0;
-            this.selectedBrand = params['brand'] || '';
-            this.minPrice = params['minPrice'] ? +params['minPrice'] : undefined;
-            this.maxPrice = params['maxPrice'] ? +params['maxPrice'] : undefined;
             this.currentPage = params['page'] ? +params['page'] : 1;
 
-            // Convert single brand to array for consistency
-            if (this.selectedBrand) {
-                this.selectedBrands = this.selectedBrand.split(',');
+            // Convert brand string to array for consistency
+            if (params['brand']) {
+                this.selectedBrands = params['brand'].split(',');
             } else {
                 this.selectedBrands = [];
             }
 
-            // Set price range if min/max are provided
-            if (this.minPrice || this.maxPrice) {
-                this.selectedPriceRange = {
-                    min: this.minPrice || 0,
-                    max: this.maxPrice || 1000000000
-                };
+            // Handle price ranges from URL parameter 'muc-gia'
+            if (params['muc-gia']) {
+                // Parse slug-based price ranges
+                const priceRangesSlugs = params['muc-gia'].split(',');
+                this.selectedPriceRanges = [];
+                
+                for (const slug of priceRangesSlugs) {
+                    const matchingRange = this.priceRanges.find(r => r.slug === slug);
+                    if (matchingRange) {
+                        this.selectedPriceRanges.push(matchingRange);
+                    }
+                }
             } else {
-                this.selectedPriceRange = null;
+                this.selectedPriceRanges = [];
             }
-            
+
             // Check if any filters are applied
-            const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRange;
-            
+            const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRanges.length > 0;
+
             if (hasFilters) {
                 this.getProductsWithFilter();
             } else {
@@ -125,15 +105,14 @@ export class HomeComponent implements OnInit {
         });
     }
 
-
     searchProducts() {
         debugger;
         this.currentPage = 1;
         this.itemsPerPage = 12;
-        
+
         // Kiểm tra có filter nào được áp dụng không
-        const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRange;
-        
+        const hasFilters = this.selectedBrands.length > 0 || this.selectedPriceRanges.length > 0;
+
         if (hasFilters) {
             this.getProductsWithFilter();
         } else {
@@ -167,7 +146,7 @@ export class HomeComponent implements OnInit {
         } else {
             this.selectedBrands = this.selectedBrands.filter((b) => b !== brand);
         }
-        
+
         // Reset về trang 1 và cập nhật URL
         this.currentPage = 1;
         this.updateUrlAndFetch();
@@ -183,7 +162,7 @@ export class HomeComponent implements OnInit {
                 response.result.forEach((product: Product) => {
                     product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
                 });
-                
+
                 this.products = response.result;
                 this.totalPages = response.meta.totalPage;
                 this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
@@ -204,41 +183,46 @@ export class HomeComponent implements OnInit {
     getProductsWithFilter() {
         // Gọi backend với filter parameters
         const brandFilter = this.selectedBrands.length > 0 ? this.selectedBrands.join(',') : undefined;
-        const minPrice = this.selectedPriceRange?.min;
-        const maxPrice = this.selectedPriceRange?.max;
+        
+        // Gửi danh sách price ranges slugs xuống backend
+        const priceRangesSlugs = this.selectedPriceRanges.length > 0 
+            ? this.selectedPriceRanges.map(range => range.slug) 
+            : undefined;
 
         this.busyService.busy();
-        this.productService.getProductsWithFilter(
-            this.keyword,
-            this.selectedCategoryId,
-            this.currentPage,
-            this.itemsPerPage,
-            brandFilter,
-            minPrice,
-            maxPrice
-        ).subscribe({
-            next: (response: any) => {
-                debugger;
+        this.productService
+            .getProductsWithFilter(
+                this.keyword,
+                this.selectedCategoryId,
+                this.currentPage,
+                this.itemsPerPage,
+                brandFilter,
+                priceRangesSlugs
+            )
+            .subscribe({
+                next: (response: any) => {
+                    debugger;
 
-                response.result.forEach((product: Product) => {
-                    product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
-                });
-                
-                this.products = response.result;
-                this.totalPages = response.meta.totalPage;
-                this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
-                this.busyService.idle();
-                debugger;
-            },
-            complete: () => {
-                debugger;
-            },
-            error: (error: any) => {
-                debugger;
-                console.log(`Cannot get filtered products: ${error.error.message}`);
-                this.busyService.idle();
-            },
-        });
+                    response.result.forEach((product: Product) => {
+                        product.url = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
+                    });
+
+                    // Không cần filter ở client nữa vì backend đã xử lý
+                    this.products = response.result;
+                    this.totalPages = response.meta.totalPage;
+                    this.visiblePages = this.generateVisiblePageArray(this.currentPage, this.totalPages);
+                    this.busyService.idle();
+                    debugger;
+                },
+                complete: () => {
+                    debugger;
+                },
+                error: (error: any) => {
+                    debugger;
+                    console.log(`Cannot get filtered products: ${error.error.message}`);
+                    this.busyService.idle();
+                },
+            });
     }
 
     onPageChange(page: number, event?: Event) {
@@ -253,7 +237,7 @@ export class HomeComponent implements OnInit {
 
         debugger;
         this.currentPage = page;
-        
+
         // Update URL with new page
         this.updateUrlAndFetch();
     }
@@ -277,13 +261,21 @@ export class HomeComponent implements OnInit {
         this.router.navigate(['/products', productId]);
     }
 
-    // Khi thay đổi filter hãng
-
-    // Khi thay đổi filter giá
-    onPriceRangeChange(range: any) {
-        this.selectedPriceRange = range;
+    onPriceRangeToggle(event: Event, range: any) {
+        const input = event.target as HTMLInputElement;
+        if (input.checked) {
+            if (!this.isPriceRangeSelected(range)) {
+                this.selectedPriceRanges.push(range);
+            }
+        } else {
+            this.selectedPriceRanges = this.selectedPriceRanges.filter((r) => !(r.min === range.min && r.max === range.max));
+        }
         this.currentPage = 1;
         this.updateUrlAndFetch();
+    }
+
+    isPriceRangeSelected(range: any): boolean {
+        return this.selectedPriceRanges.some((r) => r.min === range.min && r.max === range.max);
     }
 
     // Update URL with current filter params and fetch data
@@ -305,14 +297,12 @@ export class HomeComponent implements OnInit {
             queryParams.brand = this.selectedBrands.join(',');
         }
 
-        // Add price range if exists
-        if (this.selectedPriceRange) {
-            if (this.selectedPriceRange.min > 0) {
-                queryParams.minPrice = this.selectedPriceRange.min;
-            }
-            if (this.selectedPriceRange.max < 1000000000) {
-                queryParams.maxPrice = this.selectedPriceRange.max;
-            }
+        // Add price range if exists - sử dụng format muc-gia=slug1,slug2
+        if (this.selectedPriceRanges.length > 0) {
+            const priceRangesSlugs = this.selectedPriceRanges
+                .map(range => range.slug)
+                .join(',');
+            queryParams['muc-gia'] = priceRangesSlugs;
         }
 
         // Add page if not first page
@@ -324,19 +314,16 @@ export class HomeComponent implements OnInit {
         this.router.navigate([], {
             relativeTo: this.route,
             queryParams: queryParams,
-            queryParamsHandling: 'replace'
+            queryParamsHandling: 'replace',
         });
     }
 
     // Clear all filters
     clearFilters() {
         this.selectedBrands = [];
-        this.selectedBrand = '';
-        this.selectedPriceRange = null;
-        this.minPrice = undefined;
-        this.maxPrice = undefined;
+        this.selectedPriceRanges = [];
         this.currentPage = 1;
-        
+
         // Clear URL params but keep keyword and category
         const queryParams: any = {};
         if (this.keyword) {
@@ -349,13 +336,13 @@ export class HomeComponent implements OnInit {
         this.router.navigate([], {
             relativeTo: this.route,
             queryParams: queryParams,
-            queryParamsHandling: 'replace'
+            queryParamsHandling: 'replace',
         });
     }
 
     // Check if any filters are applied
     hasActiveFilters(): boolean {
-        return this.selectedBrands.length > 0 || this.selectedPriceRange !== null;
+        return this.selectedBrands.length > 0 || this.selectedPriceRanges.length > 0;
     }
 
     addToCart(productId: number) {
