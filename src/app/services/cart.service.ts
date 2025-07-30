@@ -95,4 +95,15 @@ export class CartService {
             this.saveCart();
         }
     }
+
+    restoreCart(): void {
+        if (isPlatformBrowser(this.platformId)) {
+            const storedCart = localStorage.getItem('cart');
+            if (storedCart) {
+                this.cart = new Map(JSON.parse(storedCart));
+                // Cập nhật lại _countItem theo số loại sản phẩm (số key trong cart)
+                this._countItem.set(this.cart.size);
+            }
+        }
+    }
 }

@@ -12,6 +12,7 @@ import { RoleService } from '../../services/role.service';
 import { Role } from '../models.ts/role';
 import { UserResponse } from '../../responses/user/user.response';
 import { ToastrService } from 'ngx-toastr';
+import { CartService } from '../../services/cart.service';
 
 @Component({
     selector: 'app-login',
@@ -39,7 +40,8 @@ export class LoginComponent implements OnInit {
         private router: Router,
         private tokenService: TokenService,
         private roleService: RoleService,
-        private toastr: ToastrService
+        private toastr: ToastrService,
+        private cartService: CartService
     ) {}
 
     //gọi ngonit để lấy roles
@@ -108,6 +110,8 @@ export class LoginComponent implements OnInit {
                         } else {
                             this.userService.saveUserToMemory(this.userResponse);
                         }
+
+                        this.cartService.restoreCart();
 
                         this.isLoading = false;
 

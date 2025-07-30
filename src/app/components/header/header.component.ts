@@ -109,6 +109,7 @@ export class HeaderComponent implements OnInit {
             // Thực hiện đăng xuất
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
+            this.cartService.clearCountItem();
             this.userResponse = this.userService.getUserFromLocalStorage();
 
             // Hiển thị toast thông báo đăng xuất thành công
