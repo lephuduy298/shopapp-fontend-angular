@@ -242,12 +242,19 @@
                                         <i class="fas fa-camera upload-icon"></i>
                                         <p class="upload-text">Click to upload image</p>
                                     </div>
-                                    <img
-                                        *ngIf="selectedMainImage"
-                                        [src]="selectedMainImage"
-                                        alt="Preview"
-                                        class="preview-image"
-                                    />
+                                    <div *ngIf="selectedMainImage" class="image-preview-container">
+                                        <img [src]="selectedMainImage" alt="Preview" class="preview-image" />
+                                        <div class="image-actions">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-danger"
+                                                (click)="removeMainImage(); $event.stopPropagation()"
+                                                title="Xóa ảnh"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input
                                     #fileInput
@@ -267,23 +274,28 @@
                         <div class="other-images-section">
                             <label class="image-label">Others Images</label>
                             <div class="other-images-grid">
-                                <div class="other-image-upload" *ngFor="let image of otherImages; let i = index">
+                                <div
+                                    class="other-image-upload other-image-item"
+                                    *ngFor="let image of otherImages; let i = index"
+                                >
                                     <div class="image-upload-small" (click)="selectOtherImage(i)">
                                         <img *ngIf="image" [src]="image" alt="Other image" class="small-preview" />
                                         <div *ngIf="!image" class="upload-placeholder">
                                             <i class="fas fa-plus"></i>
                                         </div>
+                                        <div *ngIf="image" class="image-actions">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-danger"
+                                                (click)="removeOtherImage(i); $event.stopPropagation()"
+                                                title="Xóa ảnh"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        class="remove-image-btn"
-                                        *ngIf="image"
-                                        (click)="removeOtherImage(i)"
-                                    >
-                                        <i class="fas fa-times"></i>
-                                    </button>
                                 </div>
-                                <div class="other-image-upload" (click)="addOtherImage()">
+                                <div class="other-image-upload" (click)="addOtherImage()" *ngIf="hasEmptyImageSlot()">
                                     <div class="image-upload-small">
                                         <div class="upload-placeholder">
                                             <i class="fas fa-plus"></i>
@@ -354,9 +366,10 @@
                                     id="category"
                                     class="form-select"
                                     formControlName="category_id"
+                                    (change)="onCategoryChangeInForm()"
                                     [class.error]="isFieldInvalid('category_id')"
                                 >
-                                    <!-- <option value="">Envelopes & Letter Paper</option> -->
+                                    <option value="">Chọn danh mục sản phẩm</option>
                                     <option *ngFor="let category of categories" [value]="category.id">
                                         {{ category.name }}
                                     </option>
@@ -432,7 +445,23 @@
 
                                 <!-- Show message when no specifications exist -->
                                 <div class="no-specs-message" *ngIf="productSpecifications.length === 0">
-                                    <p>No specifications added yet. Click "Add Specification" to add the first one.</p>
+                                    <p
+                                        *ngIf="showCreateModal && !productForm.get('category_id')?.value"
+                                        style="color: #6c757d; font-style: italic"
+                                    >
+                                        <i class="fas fa-info-circle"></i>
+                                        Vui lòng chọn danh mục sản phẩm để hiển thị thông số kỹ thuật mặc định.
+                                    </p>
+                                    <p
+                                        *ngIf="showCreateModal && productForm.get('category_id')?.value"
+                                        style="color: #6c757d; font-style: italic"
+                                    >
+                                        Không có thông số kỹ thuật mặc định cho danh mục này. Nhấn "Add Specification" để
+                                        thêm thông số tùy chỉnh.
+                                    </p>
+                                    <p *ngIf="showEditModal" style="color: #6c757d; font-style: italic">
+                                        Không có thông số kỹ thuật nào. Nhấn "Add Specification" để thêm thông số mới.
+                                    </p>
                                 </div>
 
                                 <!-- Existing specifications -->
@@ -472,10 +501,36 @@
                                 </div>
 
                                 <!-- Add new specification button -->
-                                <button type="button" class="add-spec-btn" (click)="addSpecification()">
-                                    <i class="fas fa-plus"></i>
-                                    Add Specification
-                                </button>
+                                <div class="spec-actions" style="display: flex; gap: 10px; align-items: center">
+                                    <span class="spec-info" style="color: #6c757d; font-size: 14px">
+                                        @if (getCurrentCategoryName()) {
+                                        {{ getCurrentCategoryName() }} specifications } @else { Select a category to load
+                                        default specifications }
+                                    </span>
+                                    <button type="button" class="add-spec-btn" (click)="addSpecification()">
+                                        <i class="fas fa-plus"></i>
+                                        Add Specification
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="reset-spec-btn"
+                                        style="
+                                            background: #6c757d;
+                                            color: white;
+                                            border: none;
+                                            padding: 8px 12px;
+                                            border-radius: 4px;
+                                            font-size: 14px;
+                                            cursor: pointer;
+                                        "
+                                        (click)="resetToDefaultSpecifications()"
+                                        *ngIf="showCreateModal && productForm.get('category_id')?.value"
+                                        title="Reset về thông số mặc định"
+                                    >
+                                        <i class="fas fa-refresh"></i>
+                                        Reset Default
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -545,5 +600,39 @@
     </div>
 </div>
 
+<!-- Delete Image Confirmation Modal -->
+<div class="modal" [style.display]="showDeleteImageModal ? 'block' : 'none'" *ngIf="showDeleteImageModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash text-danger me-2"></i>
+                    Xác nhận xóa ảnh
+                </h5>
+                <button type="button" class="btn-close" (click)="cancelDeleteImage()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 48px"></i>
+                </div>
+                <p class="text-center fs-5">
+                    {{ getDeleteImageMessage() }}
+                </p>
+                <p class="text-muted text-center">Ảnh sẽ được xóa khỏi danh sách hiện tại.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" (click)="cancelDeleteImage()">
+                    <i class="fas fa-times me-2"></i>
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger px-4" (click)="confirmDeleteImage()">
+                    <i class="fas fa-trash me-2"></i>
+                    Xóa ảnh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal backdrop -->
-<div class="modal-backdrop fade show" *ngIf="showDeleteModal"></div>
+<div class="modal-backdrop fade show" *ngIf="showDeleteModal || showDeleteImageModal"></div>

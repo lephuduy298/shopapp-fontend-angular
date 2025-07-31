@@ -184,4 +184,14 @@ export class ProductService {
 
         return this.http.put<Product>(`${this.apiGetProducts}/${id}`, formData);
     }
+
+    // Delete product image
+    deleteProductImage(imageId: number): Observable<any> {
+        return this.http.delete(`${this.apiGetProducts}/images/${imageId}`);
+    }
+
+    // Delete product thumbnail
+    deleteProductThumbnail(productId: number): Observable<any> {
+        return this.http.delete(`${this.apiGetProducts}/${productId}/thumbnail`);
+    }
 }

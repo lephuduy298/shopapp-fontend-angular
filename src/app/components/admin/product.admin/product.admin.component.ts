@@ -51,10 +51,55 @@ export class ProductAdminComponent implements OnInit {
     showCreateModal = false;
     showEditModal = false;
     showDeleteModal = false;
+    showDeleteImageModal = false;
     productToDelete: Product | null = null;
+
+    // Delete image confirmation
+    imageToDelete: {
+        type: 'main' | 'other';
+        index?: number;
+    } | null = null;
 
     // Product specifications
     productSpecifications: ProductSpecification[] = [];
+    
+    // Track original specifications for change detection
+    private originalSpecifications: ProductSpecification[] = [];
+
+    // Default specifications for each category
+    private defaultSpecifications: { [categoryName: string]: string[] } = {
+        camera: ['Loại máy ảnh', 'Loại cảm biến', 'Loại ống kính', 'Chế độ lấy nét', 'Kích thước ảnh', 'Màn trập'],
+        laptop: [
+            'Loại card đồ họa',
+            'Dung lượng RAM',
+            'Loại RAM',
+            'Ổ cứng',
+            'Kích thước màn hình',
+            'Công nghệ màn hình',
+            'Pin',
+            'Hệ điều hành',
+            'Độ phân giải màn hình',
+            'Loại CPU',
+            'Cổng giao tiếp',
+            'Hãng sản xuất',
+        ],
+        device: [
+            'Kích thước màn hình',
+            'Công nghệ màn hình',
+            'Camera trước',
+            'Camera sau',
+            'Chipset',
+            'Công nghệ NFC',
+            'Dung lượng RAM',
+            'Bộ nhớ trong',
+            'Pin',
+            'Hệ điều hành',
+            'Độ phân giải màn hình',
+            'Tính năng màn hình',
+            'Loại CPU',
+            'Hãng sản xuất',
+        ],
+    };
 
     loading = false;
     error = '';
@@ -168,13 +213,16 @@ export class ProductAdminComponent implements OnInit {
     openCreateModal(): void {
         this.currentProduct = null;
         this.productForm.reset();
-        this.productForm.patchValue({ active: true });
+        this.productForm.patchValue({
+            active: true,
+            category_id: '', // Ensure no category is selected initially
+        });
         this.selectedMainImage = null;
         this.selectedMainImageFile = null;
         this.otherImages = [null, null, null, null];
         this.otherImagesFile = [];
         this.productTags = [];
-        this.productSpecifications = [];
+        this.productSpecifications = []; // Start with empty specifications
         this.showCreateModal = true;
     }
 
@@ -204,8 +252,10 @@ export class ProductAdminComponent implements OnInit {
 
         // Load product specifications
         this.productSpecifications = product.product_specifications || [];
+        // Store original specifications for change detection
+        this.originalSpecifications = JSON.parse(JSON.stringify(this.productSpecifications));
         console.log('Product specifications loaded:', this.productSpecifications);
-        console.log('Sample spec:', this.productSpecifications[0]);
+        console.log('Original specifications stored:', this.originalSpecifications);
 
         this.productTags = [];
         this.showEditModal = true;
@@ -220,13 +270,17 @@ export class ProductAdminComponent implements OnInit {
         this.showCreateModal = false;
         this.showEditModal = false;
         this.showDeleteModal = false;
+        this.showDeleteImageModal = false;
         this.currentProduct = null;
         this.productToDelete = null;
+        this.imageToDelete = null;
         this.selectedMainImage = null;
         this.selectedMainImageFile = null;
         this.otherImages = [null, null, null, null];
         this.otherImagesFile = [];
         this.productTags = [];
+        this.productSpecifications = [];
+        this.originalSpecifications = [];
         this.error = '';
     }
 
@@ -285,6 +339,53 @@ export class ProductAdminComponent implements OnInit {
         return true;
     }
 
+    // Check if specifications have changed
+    private hasSpecificationsChanged(): boolean {
+        // Get current processed specifications
+        const currentSpecs = this.productSpecifications
+            .filter((spec) => this.isSpecificationValid(spec))
+            .map((spec) => ({
+                id: spec.id && spec.id > 0 ? spec.id : 0,
+                spec_name: spec.spec_name.trim(),
+                spec_value: spec.spec_value.trim(),
+            }));
+
+        // Get original processed specifications
+        const originalSpecs = this.originalSpecifications
+            .filter((spec) => this.isSpecificationValid(spec))
+            .map((spec) => ({
+                id: spec.id && spec.id > 0 ? spec.id : 0,
+                spec_name: spec.spec_name.trim(),
+                spec_value: spec.spec_value.trim(),
+            }));
+
+        // Check if lengths are different
+        if (currentSpecs.length !== originalSpecs.length) {
+            console.log('Specifications changed: different lengths');
+            return true;
+        }
+
+        // Check each specification for changes
+        for (let i = 0; i < currentSpecs.length; i++) {
+            const current = currentSpecs[i];
+            const original = originalSpecs[i];
+
+            if (
+                current.id !== original.id ||
+                current.spec_name !== original.spec_name ||
+                current.spec_value !== original.spec_value
+            ) {
+                console.log('Specifications changed: content difference at index', i);
+                console.log('Current:', current);
+                console.log('Original:', original);
+                return true;
+            }
+        }
+
+        console.log('No specifications changes detected');
+        return false;
+    }
+
     private handleUpdateProduct(): void {
         debugger;
         const formData = new FormData();
@@ -300,37 +401,33 @@ export class ProductAdminComponent implements OnInit {
 
         formData.append('product', new Blob([JSON.stringify(updateProductDTO)], { type: 'application/json' }));
 
-        // Process and add specifications with improved handling
-        const processedSpecifications = this.productSpecifications
-            .filter((spec) => this.isSpecificationValid(spec))
-            .map((spec) => {
-                const processedSpec: any = {
-                    spec_name: spec.spec_name.trim(),
-                    spec_value: spec.spec_value.trim(),
-                };
+        // Only process and send specifications if there are changes
+        const specificationsChanged = this.hasSpecificationsChanged();
+        console.log('Specifications changed:', specificationsChanged);
 
-                // Only include ID if it's a valid existing ID (greater than 0)
-                if (spec.id && spec.id > 0) {
-                    processedSpec.id = spec.id;
-                }
+        if (specificationsChanged) {
+            // Process and add specifications with improved handling
+            const processedSpecifications = this.productSpecifications
+                .filter((spec) => this.isSpecificationValid(spec))
+                .map((spec) => {
+                    const processedSpec: any = {
+                        spec_name: spec.spec_name.trim(),
+                        spec_value: spec.spec_value.trim(),
+                    };
 
-                return processedSpec;
-            });
+                    // Only include ID if it's a valid existing ID (greater than 0)
+                    if (spec.id && spec.id > 0) {
+                        processedSpec.id = spec.id;
+                    }
 
-        // TRY METHOD 1: Individual form fields (thay vì JSON blob)
-        // if (processedSpecifications.length > 0) {
-        //     console.log('Using individual form fields for specifications...');
-        //     processedSpecifications.forEach((spec, index) => {
-        //         formData.append(`specifications[${index}].spec_name`, spec.spec_name);
-        //         formData.append(`specifications[${index}].spec_value`, spec.spec_value);
-        //         if (spec.id && spec.id > 0) {
-        //             formData.append(`specifications[${index}].id`, spec.id.toString());
-        //         }
-        //     });
-        // }
+                    return processedSpec;
+                });
 
-        // TRY METHOD 2: Also send as JSON blob (backup)
-        formData.append('specifications', new Blob([JSON.stringify(processedSpecifications)], { type: 'application/json' }));
+            console.log('Sending updated specifications to backend:', processedSpecifications);
+            formData.append('specifications', new Blob([JSON.stringify(processedSpecifications)], { type: 'application/json' }));
+        } else {
+            console.log('No specification changes detected, skipping specifications update for better performance');
+        }
 
         console.log('=== FORM DATA CONTENTS ===');
         for (let pair of formData.entries()) {
@@ -517,6 +614,15 @@ export class ProductAdminComponent implements OnInit {
         return category ? category.name : 'N/A';
     }
 
+    // Get current selected category name for display
+    getCurrentCategoryName(): string {
+        const categoryId = this.productForm.get('category_id')?.value;
+        if (categoryId && categoryId !== '') {
+            return this.getCategoryName(parseInt(categoryId));
+        }
+        return '';
+    }
+
     isFieldInvalid(fieldName: string): boolean {
         const field = this.productForm.get(fieldName);
         return !!(field && field.invalid && field.touched);
@@ -628,10 +734,123 @@ export class ProductAdminComponent implements OnInit {
     }
 
     removeOtherImage(index: number): void {
+        // Check if we have a current product with existing images
+        if (this.currentProduct && this.currentProduct.product_images && this.currentProduct.product_images[index]) {
+            const imageToDelete = this.currentProduct.product_images[index];
+            const imageId = imageToDelete.id;
+
+            // Call API to delete the image from backend
+            this.productService.deleteProductImage(imageId).subscribe({
+                next: (response) => {
+                    console.log('Image deleted from backend successfully:', response);
+                    
+                    // Remove from UI after successful API call
+                    this.otherImages[index] = null;
+                    
+                    // Remove from current product's images array
+                    this.currentProduct!.product_images.splice(index, 1);
+                    
+                    // Also remove the corresponding file if exists
+                    if (this.otherImagesFile[index]) {
+                        this.otherImagesFile.splice(index, 1);
+                    }
+
+                    this.toastr.success('Ảnh đã được xóa thành công.', 'Thành công');
+                },
+                error: (error) => {
+                    console.error('Error deleting image from backend:', error);
+                    this.toastr.error('Có lỗi xảy ra khi xóa ảnh. Vui lòng thử lại.', 'Lỗi');
+                }
+            });
+        } else {
+            // If it's a new image (not yet saved to backend), just remove from UI
+            console.log('Removing new image from UI only');
+            
+            // Remove from UI
+            this.otherImages[index] = null;
+            
+            // Also remove the corresponding file if exists
+            if (this.otherImagesFile[index]) {
+                this.otherImagesFile.splice(index, 1);
+            }
+
+            this.toastr.success('Ảnh đã được xóa khỏi danh sách.', 'Thành công');
+        }
+    }
+
+    removeMainImage(): void {
+        // Show custom confirmation modal
+        this.imageToDelete = { type: 'main' };
+        this.showDeleteImageModal = true;
+    }
+
+    // Confirm delete image from custom modal
+    confirmDeleteImage(): void {
+        if (!this.imageToDelete) return;
+
+        if (this.imageToDelete.type === 'main') {
+            this.performDeleteMainImage();
+        } else if (this.imageToDelete.type === 'other' && this.imageToDelete.index !== undefined) {
+            this.performDeleteOtherImage(this.imageToDelete.index);
+        }
+
+        // Close modal
+        this.showDeleteImageModal = false;
+        this.imageToDelete = null;
+    }
+
+    // Cancel delete image
+    cancelDeleteImage(): void {
+        this.showDeleteImageModal = false;
+        this.imageToDelete = null;
+    }
+
+    private performDeleteMainImage(): void {
+        // Only remove from UI, don't call API
+        console.log('Removing main image from UI only');
+
+        // Remove from UI
+        this.selectedMainImage = null;
+        this.selectedMainImageFile = null;
+
+        // Update current product if in edit mode
+        if (this.currentProduct) {
+            this.currentProduct.thumbnail = '';
+            this.currentProduct.url = '';
+        }
+
+        this.toastr.success('Ảnh chính đã được xóa khỏi danh sách.', 'Thành công');
+    }
+
+    private performDeleteOtherImage(index: number): void {
+        // Only remove from UI, don't call API
+        console.log('Removing other image at index:', index, 'from UI only');
+
+        // Remove from UI
         this.otherImages[index] = null;
-        // Also remove the corresponding file
+
+        // Remove from current product's images array if in edit mode
+        if (this.currentProduct && this.currentProduct.product_images && this.currentProduct.product_images[index]) {
+            // Mark as removed but don't actually delete from array to maintain indices
+            // This will be handled during save/update
+        }
+
+        // Also remove the corresponding file if exists
         if (this.otherImagesFile[index]) {
             this.otherImagesFile.splice(index, 1);
+        }
+
+        this.toastr.success('Ảnh đã được xóa khỏi danh sách.', 'Thành công');
+    }
+
+    // Get delete image confirmation message
+    getDeleteImageMessage(): string {
+        if (!this.imageToDelete) return '';
+
+        if (this.imageToDelete.type === 'main') {
+            return 'Bạn có chắc chắn muốn xóa ảnh chính này khỏi danh sách?';
+        } else {
+            return 'Bạn có chắc chắn muốn xóa ảnh này khỏi danh sách?';
         }
     }
 
@@ -663,6 +882,81 @@ export class ProductAdminComponent implements OnInit {
             spec_name: '',
             spec_value: '',
         });
+    }
+
+    // Create default specifications based on category
+    private createDefaultSpecifications(categoryId: number): void {
+        // Find category by ID
+        const category = this.categories.find((c) => c.id === categoryId);
+        if (!category) return;
+
+        // Get category name in lowercase for matching
+        const categoryName = category.name.toLowerCase();
+        console.log('Creating default specs for category:', categoryName);
+
+        // Find matching default specifications
+        let defaultSpecs: string[] = [];
+
+        // Check if category name contains any of our predefined categories
+        if (
+            categoryName.includes('camera') ||
+            categoryName.includes('máy ảnh') ||
+            categoryName.includes('cam') ||
+            categoryName.includes('photo')
+        ) {
+            defaultSpecs = this.defaultSpecifications['camera'];
+            console.log('Matched camera category');
+        } else if (
+            categoryName.includes('laptop') ||
+            categoryName.includes('máy tính') ||
+            categoryName.includes('computer') ||
+            categoryName.includes('pc')
+        ) {
+            defaultSpecs = this.defaultSpecifications['laptop'];
+            console.log('Matched laptop category');
+        } else if (
+            categoryName.includes('device') ||
+            categoryName.includes('điện thoại') ||
+            categoryName.includes('smartphone') ||
+            categoryName.includes('tablet') ||
+            categoryName.includes('phone') ||
+            categoryName.includes('mobile')
+        ) {
+            defaultSpecs = this.defaultSpecifications['device'];
+            console.log('Matched device category');
+        } else {
+            console.log('No matching category found, using empty specifications');
+        }
+
+        // Create specifications with empty values for user to fill
+        this.productSpecifications = defaultSpecs.map((specName) => ({
+            id: 0,
+            spec_name: specName,
+            spec_value: '', // Empty value for user to fill
+        }));
+
+        console.log(`Created ${this.productSpecifications.length} default specifications for category: ${category.name}`);
+    }
+
+    // Handle category change in create mode
+    onCategoryChangeInForm(): void {
+        const categoryId = this.productForm.get('category_id')?.value;
+
+        // Only create default specs if we're in create mode (not edit mode)
+        if (this.showCreateModal && categoryId && categoryId !== '') {
+            this.createDefaultSpecifications(parseInt(categoryId));
+        }
+    }
+
+    // Reset specifications to default for current category
+    resetToDefaultSpecifications(): void {
+        const categoryId = this.productForm.get('category_id')?.value;
+        if (categoryId && categoryId !== '') {
+            // if (confirm('Bạn có chắc chắn muốn reset về thông số mặc định? Tất cả thay đổi hiện tại sẽ bị mất.')) {
+            this.createDefaultSpecifications(parseInt(categoryId));
+            // this.toastr.info('Đã reset về thông số mặc định', 'Thông báo');
+            // }
+        }
     }
 
     removeSpecification(index: number): void {
