@@ -116,11 +116,11 @@ export class UserProfileComponent implements OnInit {
                     );
 
                     // Chờ 2 giây trước khi chuyển hướng để người dùng có thể đọc thông báo
-                    setTimeout(() => {
-                        this.userService.removeUserFromLocalStorage();
-                        this.tokenService.removeToken();
-                        this.router.navigate(['/login']);
-                    }, 2000);
+                    // setTimeout(() => {
+                    //     this.userService.removeUserFromLocalStorage();
+                    //     this.tokenService.removeToken();
+                    //     this.router.navigate(['/login']);
+                    // }, 2000);
 
                     this.isEditMode = false;
                 },

@@ -16,7 +16,6 @@ import { ToastlertComponent } from './components/toastlert/toastlert.component';
 export const routes: Routes = [
     ...adminRoutes,
     { path: '', component: HomeComponent },
-    { path: 'admin', component: AdminComponent, canActivate: [AdminGuardFn] },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'products/:id', component: DetailProductComponent },

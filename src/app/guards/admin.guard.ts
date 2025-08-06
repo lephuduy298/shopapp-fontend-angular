@@ -15,6 +15,7 @@ export class AdminGuard {
     constructor(private tokenService: TokenService, private router: Router, private userService: UserService) {}
 
     canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+        debugger;
         const isTokenExpired = this.tokenService.isTokenExpired();
         const isUserIdValid = this.tokenService.getUserId() > 0;
         this.userResponse = this.userService.getUserFromLocalStorage();

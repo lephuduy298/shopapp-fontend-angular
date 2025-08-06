@@ -73,8 +73,6 @@ export class UserService {
 
     getUserFromLocalStorage(): UserResponse | null {
         try {
-            debugger;
-
             if (isPlatformBrowser(this.platformId)) {
                 const userResponseJSON = localStorage.getItem('user');
 

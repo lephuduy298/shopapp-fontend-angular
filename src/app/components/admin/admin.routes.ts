@@ -6,11 +6,13 @@ import { ProductAdminComponent } from './product.admin/product.admin.component';
 import { CategoryAdminComponent } from './category.admin/category.admin.component';
 import { DetailOrderAdminComponent } from './detail-order.admin/detail-order.admin.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AdminGuardFn } from '../../guards/admin.guard';
 
 export const adminRoutes: Routes = [
     {
         path: 'admin',
         component: AdminComponent,
+        canActivate: [AdminGuardFn], // Thêm AdminGuard cho parent route
         children: [
             {
                 path: '',

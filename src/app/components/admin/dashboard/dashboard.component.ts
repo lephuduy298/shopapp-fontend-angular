@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../../../services/user.service';
-import { DashboardService, DashboardStats } from '../../../services/dashboard-simple.service';
+import { DashboardService, DashboardStats } from '../../../services/dashboard.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -19,22 +19,20 @@ export class DashboardComponent implements OnInit {
     isLoading: boolean = false;
     error: string | null = null;
 
-    constructor(
-        private router: Router, 
-        private userService: UserService,
-        private dashboardService: DashboardService
-    ) {}
+    constructor(private router: Router, private userService: UserService, private dashboardService: DashboardService) {}
 
     ngOnInit(): void {
         this.loadDashboardData();
     }
 
     loadDashboardData(): void {
+        debugger;
         this.isLoading = true;
         this.error = null;
 
         this.dashboardService.getDashboardStats().subscribe({
             next: (stats: DashboardStats) => {
+                debugger;
                 this.totalOrders = stats.totalOrders;
                 this.totalProducts = stats.totalProducts;
                 this.totalCategories = stats.totalCategories;
@@ -43,11 +41,12 @@ export class DashboardComponent implements OnInit {
                 console.log('Dashboard data loaded successfully:', stats);
             },
             error: (error: any) => {
+                debugger;
                 console.error('Lỗi khi tải dashboard:', error);
                 this.error = 'Không thể tải dữ liệu dashboard';
                 this.isLoading = false;
                 // Service đã tự động fallback, nên không cần xử lý thêm
-            }
+            },
         });
     }
 
