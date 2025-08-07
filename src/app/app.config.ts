@@ -27,10 +27,7 @@ export const appConfig: ApplicationConfig = {
             newestOnTop: true,
             enableHtml: true,
         }),
-        importProvidersFrom([
-            BrowserAnimationsModule, 
-            NgxSpinnerModule.forRoot({ type: 'ball-spin-clockwise' })
-        ]),
+        importProvidersFrom([BrowserAnimationsModule, NgxSpinnerModule.forRoot({ type: 'ball-spin-clockwise' })]),
     ],
     // providerHttp
 };

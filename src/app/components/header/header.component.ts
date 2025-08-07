@@ -28,6 +28,7 @@ export class HeaderComponent implements OnInit {
     selectedCategoryId: number = 0;
     isMenuOpen = false;
     countItem: number = 0;
+    isUserDataLoaded = false; // Thêm flag để track việc load user data
 
     constructor(
         private userService: UserService,
@@ -51,8 +52,27 @@ export class HeaderComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.userResponse = this.userService.getUserFromLocalStorage();
+        // Khởi tạo userResponse là null để tránh hiển thị avatar default ban đầu
+        this.userResponse = null;
+        this.loadUserData();
         this.getCategories();
+    }
+
+    private loadUserData(): void {
+        // Sử dụng setTimeout để đảm bảo DOM đã render xong
+        setTimeout(() => {
+            this.userResponse = this.userService.getUserFromLocalStorage();
+            this.isUserDataLoaded = true;
+        }, 0);
+    }
+
+    /**
+     * Public method để refresh user data từ bên ngoài
+     * Có thể gọi từ các component khác khi user login/logout
+     */
+    public refreshUserData(): void {
+        this.isUserDataLoaded = false;
+        this.loadUserData();
     }
 
     toggleMenu() {
@@ -110,7 +130,10 @@ export class HeaderComponent implements OnInit {
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
             this.cartService.clearCountItem();
-            this.userResponse = this.userService.getUserFromLocalStorage();
+
+            // Cập nhật userResponse và đảm bảo data đã được loaded
+            this.userResponse = null;
+            this.isUserDataLoaded = true;
 
             // Hiển thị toast thông báo đăng xuất thành công
             this.toastr.success(

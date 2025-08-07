@@ -48,7 +48,8 @@
         <!-- User & Cart -->
         <div class="header__actions">
             <div class="header__user">
-                <ng-container *ngIf="userResponse">
+                <!-- Chỉ hiển thị user avatar khi đã load xong data và có user -->
+                <ng-container *ngIf="isUserDataLoaded && userResponse">
                     <a class="header__user-avatar" [ngbPopover]="popoverContent" triggers="click" placement="bottom">
                         <span>{{ userResponse.fullname.charAt(0) }}</span>
                     </a>
@@ -60,11 +61,16 @@
                         </div>
                     </ng-template>
                 </ng-container>
-                <ng-container *ngIf="!userResponse">
+                <!-- Chỉ hiển thị login link khi đã load xong data và không có user -->
+                <ng-container *ngIf="isUserDataLoaded && !userResponse">
                     <a class="nav-link header__user-avatar" routerLink="/login">
                         <span><i class="fa-solid fa-user"></i></span>
                         <!-- <span>Đăng nhập</span> -->
                     </a>
+                </ng-container>
+                <!-- Loading state - có thể thêm spinner nếu cần -->
+                <ng-container *ngIf="!isUserDataLoaded">
+                    <!-- Hiển thị trạng thái loading hoặc để trống -->
                 </ng-container>
             </div>
             <a class="header__cart" routerLink="/orders">
