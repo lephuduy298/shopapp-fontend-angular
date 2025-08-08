@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UserResponse } from '../../responses/user/user.response';
 import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
@@ -7,11 +7,13 @@ import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { TokenService } from '../../services/token.service';
 import { NavigationEnd, RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Category } from '../models.ts/category';
 import { CategoryService } from '../../services/category.service';
 import { CartService } from '../../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-header',
@@ -19,7 +21,7 @@ import { ToastrService } from 'ngx-toastr';
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
     userResponse?: UserResponse | null;
     isPopoverOpen = false;
     activeNavItem: number = 0;
@@ -29,6 +31,8 @@ export class HeaderComponent implements OnInit {
     isMenuOpen = false;
     countItem: number = 0;
     isUserDataLoaded = false; // Thêm flag để track việc load user data
+    
+    private destroy$ = new Subject<void>();
 
     constructor(
         private userService: UserService,
@@ -37,7 +41,8 @@ export class HeaderComponent implements OnInit {
         private router: Router,
         private categoryService: CategoryService,
         public cartService: CartService,
-        private toastr: ToastrService
+        private toastr: ToastrService,
+        private authService: AuthService
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
@@ -54,16 +59,40 @@ export class HeaderComponent implements OnInit {
     ngOnInit(): void {
         // Khởi tạo userResponse là null để tránh hiển thị avatar default ban đầu
         this.userResponse = null;
-        this.loadUserData();
         this.getCategories();
+        
+        // Lắng nghe khi token sẵn sàng thì mới load user data
+        this.authService.tokenReady$.pipe(takeUntil(this.destroy$)).subscribe((tokenReady: boolean) => {
+            if (tokenReady && this.authService.getAccessToken()) {
+                this.loadUserData();
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     private loadUserData(): void {
-        // Sử dụng setTimeout để đảm bảo DOM đã render xong
-        setTimeout(() => {
-            this.userResponse = this.userService.getUserFromLocalStorage();
+        const token = this.authService.getAccessToken();
+        if (!token) {
+            this.userResponse = null;
             this.isUserDataLoaded = true;
-        }, 0);
+            return;
+        }
+
+        this.userService.getUserDetail(token).subscribe({
+            next: (response: any) => {
+                this.userResponse = response;
+                this.isUserDataLoaded = true;
+            },
+            error: (error: any) => {
+                this.userResponse = null;
+                this.isUserDataLoaded = true;
+                console.error('Error loading user data:', error);
+            },
+        });
     }
 
     /**
@@ -73,6 +102,10 @@ export class HeaderComponent implements OnInit {
     public refreshUserData(): void {
         this.isUserDataLoaded = false;
         this.loadUserData();
+    }
+
+    navigateToLogin(): void {
+        this.router.navigate(['/login']);
     }
 
     toggleMenu() {
@@ -129,6 +162,7 @@ export class HeaderComponent implements OnInit {
             // Thực hiện đăng xuất
             this.userService.removeUserFromLocalStorage();
             this.tokenService.removeToken();
+            this.authService.clearUser(); // Clear auth service state
             this.cartService.clearCountItem();
 
             // Cập nhật userResponse và đảm bảo data đã được loaded

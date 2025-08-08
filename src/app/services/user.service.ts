@@ -34,17 +34,20 @@ export class UserService {
     }
 
     login(loginDTO: LoginDTO): Observable<any> {
-        return this.http.post(this.apiLogin, loginDTO, this.apiConfig);
+        const options = {
+            ...this.apiConfig,
+            withCredentials: true,
+        };
+        return this.http.post(this.apiLogin, loginDTO, options);
     }
 
     getUserDetail(token: string) {
-        debugger;
-        return this.http.post(this.apiGetUserDetail, {
-            headers: new HttpHeaders({
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            }),
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
         });
+
+        return this.http.post(this.apiGetUserDetail, {}, { headers });
     }
 
     saveUserToLocalStorage(userResponse?: UserResponse) {

@@ -3,6 +3,7 @@ import { TokenService } from '../services/token.service';
 import { Router } from '@angular/router';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
+import { AuthService } from '../services/auth.service';
 
 @Injectable({
     providedIn: 'root',

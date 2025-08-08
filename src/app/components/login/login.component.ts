@@ -13,6 +13,7 @@ import { Role } from '../models.ts/role';
 import { UserResponse } from '../../responses/user/user.response';
 import { ToastrService } from 'ngx-toastr';
 import { CartService } from '../../services/cart.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -41,7 +42,8 @@ export class LoginComponent implements OnInit {
         private tokenService: TokenService,
         private roleService: RoleService,
         private toastr: ToastrService,
-        private cartService: CartService
+        private cartService: CartService,
+        private authService: AuthService
     ) {}
 
     //gọi ngonit để lấy roles
@@ -89,27 +91,24 @@ export class LoginComponent implements OnInit {
                 // this.router.navigate(['/login']);
                 console.log(response);
                 // const { token } = response;
-                const token = response.token;
+                this.authService.setAccessToken(response.token);
 
-                if (this.rememberMe) {
-                    this.tokenService.setToken(token); // setToken nên lưu vào localStorage
-                } else {
-                    this.tokenService.setTokenToMemory(token); // bạn tự định nghĩa phương thức này
-                }
+                // Token sẽ được xử lý thông qua cookie
+                // Không cần lưu token vào localStorage nữa
 
-                this.userService.getUserDetail(token).subscribe({
+                this.userService.getUserDetail(this.authService.getAccessToken() || '').subscribe({
                     next: (responseUser: any) => {
+                        debugger;
                         this.userResponse = {
                             ...responseUser,
                             date_of_birth: new Date(responseUser.date_of_birth),
                         };
 
-                        if (this.rememberMe) {
-                            this.userService.saveUserToLocalStorage(this.userResponse);
-                            this.userService.saveUserToMemory(this.userResponse);
-                        } else {
-                            this.userService.saveUserToMemory(this.userResponse);
-                        }
+                        this.authService.setCurrentUser(this.userResponse!);
+                        debugger;
+
+                        // Chỉ lưu user vào memory, không cần localStorage nữa
+                        this.userService.saveUserToMemory(this.userResponse);
 
                         this.cartService.restoreCart();
 
@@ -128,6 +127,7 @@ export class LoginComponent implements OnInit {
 
                         // Điều hướng sau khi hiển thị toast
                         setTimeout(() => {
+                            debugger;
                             if (this.userResponse?.role.name == 'admin') {
                                 this.router.navigate(['/admin']);
                             } else if (this.userResponse?.role.name == 'user') {

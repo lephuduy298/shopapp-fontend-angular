@@ -18,6 +18,7 @@ import { UpdateUserDTO } from '../../dtos/user/update.dto';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-user-profile',
@@ -37,7 +38,8 @@ export class UserProfileComponent implements OnInit {
         private tokenService: TokenService,
         private userService: UserService,
         private router: Router,
-        private toastr: ToastrService
+        private toastr: ToastrService,
+        private authService: AuthService
     ) {
         this.userProfileForm = this.formBuilder.group(
             {
@@ -53,7 +55,8 @@ export class UserProfileComponent implements OnInit {
         );
     }
     ngOnInit() {
-        this.token = this.tokenService.getToken();
+        debugger;
+        this.token = this.authService.getAccessToken() || '';
         this.userService.getUserDetail(this.token).subscribe({
             next: (response: any) => {
                 debugger;

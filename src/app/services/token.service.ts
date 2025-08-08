@@ -2,6 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { parse } from 'path';
+import { AuthService } from './auth.service';
 
 @Injectable({
     providedIn: 'root',
@@ -11,23 +12,23 @@ export class TokenService {
     private jwtHelperService = new JwtHelperService();
     private memoryToken: string | null = null;
 
-    constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+    constructor(@Inject(PLATFORM_ID) private platformId: Object, private authService: AuthService) {}
 
     private isBrowser(): boolean {
         return isPlatformBrowser(this.platformId);
     }
 
-    getToken(): any {
-        if (this.isBrowser()) {
-            return localStorage.getItem(this.TOKEN_KEY) ?? '';
-        }
-    }
+    // getToken(): any {
+    //     if (this.isBrowser()) {
+    //         return localStorage.getItem(this.TOKEN_KEY) ?? '';
+    //     }
+    // }
 
-    setToken(token: string): void {
-        if (this.isBrowser()) {
-            localStorage.setItem(this.TOKEN_KEY, token);
-        }
-    }
+    // setToken(token: string): void {
+    //     if (this.isBrowser()) {
+    //         localStorage.setItem(this.TOKEN_KEY, token);
+    //     }
+    // }
 
     setTokenToMemory(token: string) {
         this.memoryToken = token;
@@ -40,7 +41,7 @@ export class TokenService {
     }
 
     getUserId(): number {
-        let userObject = this.jwtHelperService.decodeToken(this.getToken() ?? '');
+        let userObject = this.jwtHelperService.decodeToken(this.authService.getAccessToken() ?? '');
         if (userObject && 'userId' in userObject) {
             return parseInt(userObject['userId']);
         }
@@ -48,9 +49,12 @@ export class TokenService {
     }
 
     isTokenExpired(): any {
-        if (this.getToken() == null) {
-            return false;
+        if (this.isBrowser()) {
+            const token = this.authService.getAccessToken();
+            if (token) {
+                return this.jwtHelperService.isTokenExpired(token);
+            }
         }
-        return this.jwtHelperService.isTokenExpired(this.getToken()!);
+        return false;
     }
 }

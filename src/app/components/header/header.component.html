@@ -4,12 +4,12 @@
         <a class="header__logo" href="#">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="40" height="40">
                 <g>
-                  <rect x="6" y="12" width="36" height="24" rx="4" fill="#2d2e32"/>
-                  <rect x="10" y="16" width="28" height="16" rx="2" fill="#fff"/>
-                  <path d="M14 36a2 2 0 1 0 4 0" stroke="#2d2e32" stroke-width="2" fill="none"/>
-                  <path d="M30 36a2 2 0 1 0 4 0" stroke="#2d2e32" stroke-width="2" fill="none"/>
-                  <rect x="18" y="20" width="12" height="4" rx="1" fill="#4f8cff"/>
-                  <rect x="20" y="26" width="8" height="2" rx="1" fill="#4f8cff"/>
+                    <rect x="6" y="12" width="36" height="24" rx="4" fill="#2d2e32" />
+                    <rect x="10" y="16" width="28" height="16" rx="2" fill="#fff" />
+                    <path d="M14 36a2 2 0 1 0 4 0" stroke="#2d2e32" stroke-width="2" fill="none" />
+                    <path d="M30 36a2 2 0 1 0 4 0" stroke="#2d2e32" stroke-width="2" fill="none" />
+                    <rect x="18" y="20" width="12" height="4" rx="1" fill="#4f8cff" />
+                    <rect x="20" y="26" width="8" height="2" rx="1" fill="#4f8cff" />
                 </g>
             </svg>
             <span class="header__logo-text">
@@ -48,30 +48,28 @@
         <!-- User & Cart -->
         <div class="header__actions">
             <div class="header__user">
-                <!-- Chỉ hiển thị user avatar khi đã load xong data và có user -->
-                <ng-container *ngIf="isUserDataLoaded && userResponse">
-                    <a class="header__user-avatar" [ngbPopover]="popoverContent" triggers="click" placement="bottom">
-                        <span>{{ userResponse.fullname.charAt(0) }}</span>
-                    </a>
-                    <ng-template #popoverContent>
-                        <div class="popover-list">
-                            <a class="popover-item" (click)="handleItemClick(0)">Tài khoản của tôi</a>
-                            <a class="popover-item" (click)="handleItemClick(1)">Đơn mua</a>
-                            <a class="popover-item" (click)="handleItemClick(2)">Đăng xuất</a>
-                        </div>
-                    </ng-template>
-                </ng-container>
-                <!-- Chỉ hiển thị login link khi đã load xong data và không có user -->
-                <ng-container *ngIf="isUserDataLoaded && !userResponse">
-                    <a class="nav-link header__user-avatar" routerLink="/login">
-                        <span><i class="fa-solid fa-user"></i></span>
-                        <!-- <span>Đăng nhập</span> -->
-                    </a>
-                </ng-container>
-                <!-- Loading state - có thể thêm spinner nếu cần -->
-                <ng-container *ngIf="!isUserDataLoaded">
-                    <!-- Hiển thị trạng thái loading hoặc để trống -->
-                </ng-container>
+                <!-- Luôn hiển thị avatar, thay đổi nội dung dựa trên trạng thái -->
+                <div class="header__user-avatar" 
+                     [ngbPopover]="userResponse ? popoverContent : null" 
+                     triggers="click"
+                     placement="bottom"
+                     (click)="!userResponse && navigateToLogin()">
+                    
+                    <!-- Hiển thị chữ cái đầu tên user nếu có user -->
+                    <span *ngIf="userResponse">{{ userResponse.fullname.charAt(0) }}</span>
+                    
+                    <!-- Hiển thị icon user nếu chưa có user hoặc đang loading -->
+                    <span *ngIf="!userResponse"><i class="fa-solid fa-user"></i></span>
+                </div>
+
+                <!-- Popover content chỉ hiển thị khi có user -->
+                <ng-template #popoverContent>
+                    <div class="popover-list">
+                        <a class="popover-item" (click)="handleItemClick(0)">Tài khoản của tôi</a>
+                        <a class="popover-item" (click)="handleItemClick(1)">Đơn mua</a>
+                        <a class="popover-item" (click)="handleItemClick(2)">Đăng xuất</a>
+                    </div>
+                </ng-template>
             </div>
             <a class="header__cart" routerLink="/orders">
                 <span class="header__cart-icon"><i class="fa-solid fa-cart-shopping"></i></span>

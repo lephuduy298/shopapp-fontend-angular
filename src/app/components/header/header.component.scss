@@ -32,12 +32,12 @@ header {
 // .nav-extra{
 //     background-color: rgb(109, 92, 145);
 
-// }
+// // }
 
-.popover-list {
-    // padding: 10px;
-    // background-color: rgb(109, 92, 145);
-}
+// .popover-list {
+//     // padding: 10px;
+//     // background-color: rgb(109, 92, 145);
+// }
 .popover-body {
     padding: 0px;
 }
@@ -262,7 +262,14 @@ a {
     font-weight: 600;
     cursor: pointer;
     margin-right: 0px;
+    margin-left: -14px;
+    transition: all 0.2s ease;
     //   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+
+    &:hover {
+        background: #333;
+        transform: translateY(-1px);
+    }
 }
 .header__user-icon {
     display: inline-block;
