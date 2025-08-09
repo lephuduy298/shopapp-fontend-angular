@@ -91,12 +91,12 @@ export class LoginComponent implements OnInit {
                 // this.router.navigate(['/login']);
                 console.log(response);
                 // const { token } = response;
-                this.authService.setAccessToken(response.token);
+                const token = response.token;
 
-                // Token sẽ được xử lý thông qua cookie
-                // Không cần lưu token vào localStorage nữa
+                // Lưu token vào localStorage
+                this.tokenService.setToken(token);
 
-                this.userService.getUserDetail(this.authService.getAccessToken() || '').subscribe({
+                this.userService.getUserDetail(token).subscribe({
                     next: (responseUser: any) => {
                         debugger;
                         this.userResponse = {
@@ -104,10 +104,7 @@ export class LoginComponent implements OnInit {
                             date_of_birth: new Date(responseUser.date_of_birth),
                         };
 
-                        this.authService.setCurrentUser(this.userResponse!);
-                        debugger;
-
-                        // Chỉ lưu user vào memory, không cần localStorage nữa
+                        // Lưu user vào memory
                         this.userService.saveUserToMemory(this.userResponse);
 
                         this.cartService.restoreCart();

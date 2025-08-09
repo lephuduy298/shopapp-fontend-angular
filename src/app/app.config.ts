@@ -6,6 +6,7 @@ import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { tokenInterceptor } from './interceptors/token.interceptor';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { provideToastr } from 'ngx-toastr';
 import { loadingInterceptor } from './interceptors/loading.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -16,7 +17,7 @@ export const appConfig: ApplicationConfig = {
         provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(routes),
         provideClientHydration(withEventReplay()),
-        provideHttpClient(withInterceptors([tokenInterceptor, loadingInterceptor])),
+        provideHttpClient(withInterceptors([tokenInterceptor, authInterceptor, loadingInterceptor])),
         provideAnimations(), // Required for ngx-toastr animations
         provideToastr({
             timeOut: 3000,

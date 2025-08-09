@@ -13,7 +13,6 @@ import { Category } from '../models.ts/category';
 import { CategoryService } from '../../services/category.service';
 import { CartService } from '../../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-header',
@@ -31,7 +30,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     isMenuOpen = false;
     countItem: number = 0;
     isUserDataLoaded = false; // Thêm flag để track việc load user data
-    
+
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -41,8 +40,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         private router: Router,
         private categoryService: CategoryService,
         public cartService: CartService,
-        private toastr: ToastrService,
-        private authService: AuthService
+        private toastr: ToastrService
     ) {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
             const url = event.urlAfterRedirects;
@@ -60,13 +58,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         // Khởi tạo userResponse là null để tránh hiển thị avatar default ban đầu
         this.userResponse = null;
         this.getCategories();
-        
-        // Lắng nghe khi token sẵn sàng thì mới load user data
-        this.authService.tokenReady$.pipe(takeUntil(this.destroy$)).subscribe((tokenReady: boolean) => {
-            if (tokenReady && this.authService.getAccessToken()) {
-                this.loadUserData();
-            }
-        });
+        this.loadUserData();
     }
 
     ngOnDestroy(): void {
@@ -75,7 +67,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     private loadUserData(): void {
-        const token = this.authService.getAccessToken();
+        const token = this.tokenService.getToken();
         if (!token) {
             this.userResponse = null;
             this.isUserDataLoaded = true;
@@ -159,32 +151,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
             // Lưu tên người dùng trước khi đăng xuất
             const userName = this.userResponse?.fullname || 'bạn';
 
-            // Thực hiện đăng xuất
-            this.userService.removeUserFromLocalStorage();
-            this.tokenService.removeToken();
-            this.authService.clearUser(); // Clear auth service state
-            this.cartService.clearCountItem();
-
-            // Cập nhật userResponse và đảm bảo data đã được loaded
-            this.userResponse = null;
-            this.isUserDataLoaded = true;
-
-            // Hiển thị toast thông báo đăng xuất thành công
-            this.toastr.success(
-                // `Hẹn gặp lại ${userName}!`,
-                '',
-                'Đăng xuất thành công',
-                {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
+            // Gọi API logout
+            this.userService.logout().subscribe({
+                next: (response) => {
+                    console.log('Logout successful:', response);
+                    
+                    // Thực hiện đăng xuất local
+                    this.performLocalLogout(userName);
+                },
+                error: (error) => {
+                    console.error('Logout API error:', error);
+                    
+                    // Vẫn thực hiện đăng xuất local ngay cả khi API lỗi
+                    this.performLocalLogout(userName);
                 }
-            );
-
-            // Điều hướng về trang chủ sau một chút delay
-            setTimeout(() => {
-                this.router.navigate(['/']);
-            }, 500);
+            });
         }
         this.isPopoverOpen = false;
     }
@@ -192,5 +173,32 @@ export class HeaderComponent implements OnInit, OnDestroy {
     setActiveNavItem(index: number) {
         this.activeNavItem = index;
         console.log(this.activeNavItem);
+    }
+
+    private performLocalLogout(userName: string): void {
+        // Thực hiện đăng xuất local
+        this.userService.removeUserFromLocalStorage();
+        this.tokenService.removeToken();
+        this.cartService.clearCountItem();
+
+        // Cập nhật userResponse và đảm bảo data đã được loaded
+        this.userResponse = null;
+        this.isUserDataLoaded = true;
+
+        // Hiển thị toast thông báo đăng xuất thành công
+        this.toastr.success(
+            '',
+            'Đăng xuất thành công',
+            {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+            }
+        );
+
+        // Điều hướng về trang chủ sau một chút delay
+        setTimeout(() => {
+            this.router.navigate(['/']);
+        }, 500);
     }
 }

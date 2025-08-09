@@ -68,7 +68,9 @@ export class CartService {
 
     saveCart(): void {
         debugger;
-        localStorage.setItem('cart', JSON.stringify(Array.from(this.cart.entries())));
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('cart', JSON.stringify(Array.from(this.cart.entries())));
+        }
     }
 
     getCart(): Map<number, number> {

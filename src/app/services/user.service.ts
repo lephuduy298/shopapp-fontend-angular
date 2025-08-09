@@ -17,6 +17,8 @@ import { signal } from '@angular/core';
 export class UserService {
     private apiRegister = `${environment.apiBaseUrl}/users/register`;
     private apiLogin = `${environment.apiBaseUrl}/users/login`;
+    private apiLogout = `${environment.apiBaseUrl}/users/logout`;
+    private apiRefresh = `${environment.apiBaseUrl}/users/refresh`;
     private apiGetUserDetail = `${environment.apiBaseUrl}/users/details`;
     private memoryUser: UserResponse | null = null;
 
@@ -39,6 +41,23 @@ export class UserService {
             withCredentials: true,
         };
         return this.http.post(this.apiLogin, loginDTO, options);
+    }
+
+    logout(): Observable<any> {
+        const options = {
+            ...this.apiConfig,
+            withCredentials: true,
+        };
+        return this.http.post(this.apiLogout, {}, options);
+    }
+
+    refreshAccessToken(): Observable<any> {
+        debugger;
+        const options = {
+            ...this.apiConfig,
+            withCredentials: true,
+        };
+        return this.http.get(this.apiRefresh, options);
     }
 
     getUserDetail(token: string) {

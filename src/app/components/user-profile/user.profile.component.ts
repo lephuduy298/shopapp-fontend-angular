@@ -56,7 +56,7 @@ export class UserProfileComponent implements OnInit {
     }
     ngOnInit() {
         debugger;
-        this.token = this.authService.getAccessToken() || '';
+        this.token = this.tokenService.getToken() || '';
         this.userService.getUserDetail(this.token).subscribe({
             next: (response: any) => {
                 debugger;
