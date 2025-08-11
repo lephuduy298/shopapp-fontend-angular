@@ -93,7 +93,9 @@
                         class="error-message"
                         *ngIf="
                             orderForm.get('phone_number')?.invalid &&
-                            (orderForm.get('phone_number')?.dirty || orderForm.get('phone_number')?.touched || isFormSubmitted)
+                            (orderForm.get('phone_number')?.dirty ||
+                                orderForm.get('phone_number')?.touched ||
+                                isFormSubmitted)
                         "
                     >
                         <span *ngIf="orderForm.get('phone_number')?.errors?.['required']">
@@ -136,7 +138,9 @@
                         class="error-message"
                         *ngIf="
                             orderForm.get('shipping_method')?.invalid &&
-                            (orderForm.get('shipping_method')?.dirty || orderForm.get('shipping_method')?.touched || isFormSubmitted)
+                            (orderForm.get('shipping_method')?.dirty ||
+                                orderForm.get('shipping_method')?.touched ||
+                                isFormSubmitted)
                         "
                     >
                         <span *ngIf="orderForm.get('shipping_method')?.errors?.['required']">
@@ -155,7 +159,9 @@
                         class="error-message"
                         *ngIf="
                             orderForm.get('payment_method')?.invalid &&
-                            (orderForm.get('payment_method')?.dirty || orderForm.get('payment_method')?.touched || isFormSubmitted)
+                            (orderForm.get('payment_method')?.dirty ||
+                                orderForm.get('payment_method')?.touched ||
+                                isFormSubmitted)
                         "
                     >
                         <span *ngIf="orderForm.get('payment_method')?.errors?.['required']">

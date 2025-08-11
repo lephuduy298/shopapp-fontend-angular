@@ -69,7 +69,6 @@ export class UserProfileComponent implements OnInit {
                     address: this.userResponse?.address ?? '',
                     date_of_birth: this.userResponse?.date_of_birth.toISOString().substring(0, 10),
                 });
-                this.userService.saveUserToLocalStorage(this.userResponse);
             },
             complete: () => {
                 debugger;

@@ -19,12 +19,26 @@ export class AdminComponent implements OnInit {
     isSidebarCollapsed: boolean = false;
     constructor(private userService: UserService, private tokenService: TokenService, private router: Router) {}
     ngOnInit() {
-        this.userResponse = this.userService.getUserFromLocalStorage();
+        // Lấy thông tin user từ API thay vì localStorage
+        const token = this.tokenService.getToken();
+        if (token) {
+            this.userService.getUserDetail(token).subscribe({
+                next: (user) => {
+                    this.userResponse = user;
+                },
+                error: (error) => {
+                    console.error('Error fetching user details:', error);
+                    this.router.navigate(['/login']);
+                }
+            });
+        } else {
+            this.router.navigate(['/login']);
+        }
     }
     logout() {
         this.userService.removeUserFromLocalStorage();
         this.tokenService.removeToken();
-        this.userResponse = this.userService.getUserFromLocalStorage();
+        this.userResponse = null;
         this.router.navigate(['/']);
     }
 

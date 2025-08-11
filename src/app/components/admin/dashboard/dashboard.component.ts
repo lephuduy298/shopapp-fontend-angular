@@ -55,8 +55,8 @@ export class DashboardComponent implements OnInit {
     }
 
     getAdminName(): string {
-        const user = this.userService.getUserFromLocalStorage();
-        return user?.fullname || 'Admin';
+        const userInfo = this.userService.getUserFromLocalStorage();
+        return userInfo?.userName || 'Admin';
     }
 
     navigateTo(section: string): void {

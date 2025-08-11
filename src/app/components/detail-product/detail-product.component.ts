@@ -127,19 +127,34 @@ export class DetailProductComponent implements OnInit {
         debugger;
         if (this.product) {
             try {
-                this.cartService.addToCart(this.productId, this.quantity);
-                
-                // Hiển thị toast thành công
-                this.toastr.success(
-                    `${this.product.name} (x${this.quantity}) đã được thêm vào giỏ hàng thành công!`,
-                    'Thêm vào giỏ hàng',
-                    {
-                        timeOut: 3000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right'
+                this.cartService.addToCart(this.productId, this.quantity).subscribe({
+                    next: () => {
+                        // Hiển thị toast thành công
+                        this.toastr.success(
+                            `${this.product?.name} (x${this.quantity}) đã được thêm vào giỏ hàng thành công!`,
+                            'Thêm vào giỏ hàng',
+                            {
+                                timeOut: 3000,
+                                progressBar: true,
+                                closeButton: true,
+                                positionClass: 'toast-top-right'
+                            }
+                        );
+                    },
+                    error: (error) => {
+                        console.error('Error adding to cart:', error);
+                        this.toastr.error(
+                            'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
+                            'Lỗi',
+                            {
+                                timeOut: 3000,
+                                progressBar: true,
+                                closeButton: true,
+                                positionClass: 'toast-top-right'
+                            }
+                        );
                     }
-                );
+                });
                 
                 console.log('Thêm sản phẩm thành công');
             } catch (error) {
@@ -173,38 +188,39 @@ export class DetailProductComponent implements OnInit {
 
     buyNow(productId: number) {
         if (this.product) {
-            try {
-                this.cartService.addToCart(productId, 1);
-                
-                // Hiển thị toast thông báo
-                this.toastr.info(
-                    `${this.product.name} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`,
-                    'Mua ngay',
-                    {
-                        timeOut: 2000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right'
-                    }
-                );
-                
-                // Chuyển hướng sau 1 giây để user thấy được toast
-                setTimeout(() => {
-                    this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
-                }, 1000);
-                
-            } catch (error) {
-                this.toastr.error(
-                    'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
-                    'Lỗi',
-                    {
-                        timeOut: 3000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right'
-                    }
-                );
-            }
+            this.cartService.addToCart(productId, 1).subscribe({
+                next: () => {
+                    // Hiển thị toast thông báo
+                    this.toastr.info(
+                        `${this.product?.name} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`,
+                        'Mua ngay',
+                        {
+                            timeOut: 2000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right'
+                        }
+                    );
+                    
+                    // Chuyển hướng đến trang order sau 2 giây
+                    setTimeout(() => {
+                        this.router.navigate(['/orders']);
+                    }, 2000);
+                },
+                error: (error) => {
+                    console.error('Error in buyNow:', error);
+                    this.toastr.error(
+                        'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
+                        'Lỗi',
+                        {
+                            timeOut: 3000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right'
+                        }
+                    );
+                }
+            });
         } else {
             this.toastr.warning(
                 'Không tìm thấy thông tin sản phẩm!',

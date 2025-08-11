@@ -5,7 +5,7 @@ import { ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateFn } from '@ang
 import { inject } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { UserResponse } from '../responses/user/user.response';
-import { Observable, of, switchMap, catchError } from 'rxjs';
+import { Observable, of, switchMap, catchError, map } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
@@ -14,17 +14,22 @@ import { ToastrService } from 'ngx-toastr';
 export class AdminGuard {
     userResponse?: UserResponse | null;
 
-    constructor(private tokenService: TokenService, private router: Router, private userService: UserService, private toastr: ToastrService) {}
+    constructor(
+        private tokenService: TokenService,
+        private router: Router,
+        private userService: UserService,
+        private toastr: ToastrService
+    ) {}
 
     canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
         const isTokenExpired = this.tokenService.isTokenExpired();
         const isUserIdValid = this.tokenService.getUserId() > 0;
-        
+
         // Nếu token còn hiệu lực
         if (!isTokenExpired && isUserIdValid) {
             return this.checkAdminRole();
         }
-        
+
         // Nếu token hết hạn, thử refresh
         console.log('🔒 Token expired in admin guard, attempting refresh...');
         return this.userService.refreshAccessToken().pipe(
@@ -32,7 +37,7 @@ export class AdminGuard {
                 // Refresh thành công
                 console.log('✅ Token refreshed successfully in admin guard');
                 this.tokenService.setToken(response.token);
-                
+
                 // Sau khi refresh token, cần lấy lại user data và kiểm tra role
                 return this.getUserAndCheckRole(response.token);
             }),
@@ -46,22 +51,39 @@ export class AdminGuard {
     }
 
     private checkAdminRole(): Observable<boolean> {
-        this.userResponse = this.userService.getUserFromLocalStorage();
-        
-        if (this.userResponse && this.userResponse.role.name === 'admin') {
-            console.log('✅ Admin access granted');
-            return of(true);
-        } else {
-            console.log('❌ Access denied: User is not admin');
-            // Hiển thị toast notification và redirect về trang chủ
-            this.toastr.error('Bạn không có quyền truy cập trang Admin!', 'Truy cập bị từ chối', {
-                timeOut: 5000,
-                progressBar: true,
-                closeButton: true,
-            });
-            this.router.navigate(['/']);
+        // Lấy token để gọi API getUserDetail thay vì dùng localStorage
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            console.log('❌ No token found, redirecting to login');
+            this.router.navigate(['/login']);
             return of(false);
         }
+
+        return this.userService.getUserDetail(token).pipe(
+            map((userResponse) => {
+                this.userResponse = userResponse;
+                
+                if (userResponse && userResponse.role && userResponse.role.name === 'admin') {
+                    console.log('✅ Admin access granted');
+                    return true;
+                } else {
+                    console.log('❌ Access denied: User is not admin');
+                    // Hiển thị toast notification và redirect về trang chủ
+                    this.toastr.error('Bạn không có quyền truy cập trang Admin!', 'Truy cập bị từ chối', {
+                        timeOut: 5000,
+                        progressBar: true,
+                        closeButton: true,
+                    });
+                    this.router.navigate(['/']);
+                    return false;
+                }
+            }),
+            catchError(() => {
+                console.log('❌ Error getting user details, redirecting to login');
+                this.router.navigate(['/login']);
+                return of(false);
+            })
+        );
     }
 
     private getUserAndCheckRole(token: string): Observable<boolean> {
@@ -69,8 +91,8 @@ export class AdminGuard {
         return this.userService.getUserDetail(token).pipe(
             switchMap((userResponse: any) => {
                 // Lưu user data vào memory/localStorage
-                this.userService.saveUserToMemory(userResponse);
-                
+                // this.userService.saveUserToMemory(userResponse);
+
                 // Kiểm tra role admin
                 if (userResponse && userResponse.role.name === 'admin') {
                     console.log('✅ Admin access granted after token refresh');
@@ -96,6 +118,9 @@ export class AdminGuard {
 }
 
 // Sử dụng functional guard như sau:
-export const AdminGuardFn: CanActivateFn = (next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> => {
+export const AdminGuardFn: CanActivateFn = (
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+): Observable<boolean> => {
     return inject(AdminGuard).canActivate(next, state);
 };

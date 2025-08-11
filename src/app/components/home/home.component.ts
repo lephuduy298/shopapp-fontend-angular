@@ -352,27 +352,30 @@ export class HomeComponent implements OnInit {
         const product = this.products.find((p) => p.id === productId);
         const productName = product ? product.name : 'Sản phẩm';
 
-        try {
-            this.busyService.busy();
-            this.cartService.addToCart(productId, 1);
-
-            // Hiển thị toast thành công
-            this.toastr.success(`${productName} đã được thêm vào giỏ hàng thành công!`, 'Thêm vào giỏ hàng', {
-                timeOut: 3000,
-                progressBar: true,
-                closeButton: true,
-                positionClass: 'toast-top-right',
-            });
-            this.busyService.idle();
-        } catch (error) {
-            // Hiển thị toast lỗi nếu có vấn đề
-            this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
-                timeOut: 3000,
-                progressBar: true,
-                closeButton: true,
-                positionClass: 'toast-top-right',
-            });
-        }
+        this.busyService.busy();
+        this.cartService.addToCart(productId, 1).subscribe({
+            next: () => {
+                // Hiển thị toast thành công
+                this.toastr.success(`${productName} đã được thêm vào giỏ hàng thành công!`, 'Thêm vào giỏ hàng', {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right',
+                });
+                this.busyService.idle();
+            },
+            error: (error) => {
+                // Hiển thị toast lỗi nếu có vấn đề
+                console.error('Error adding to cart:', error);
+                this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right',
+                });
+                this.busyService.idle();
+            }
+        });
     }
 
     buyNow(productId: number) {
@@ -380,28 +383,30 @@ export class HomeComponent implements OnInit {
         const product = this.products.find((p) => p.id === productId);
         const productName = product ? product.name : 'Sản phẩm';
 
-        try {
-            this.cartService.addToCart(productId, 1);
+        this.cartService.addToCart(productId, 1).subscribe({
+            next: () => {
+                // Hiển thị toast thông báo
+                this.toastr.info(`${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`, 'Mua ngay', {
+                    timeOut: 2000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right',
+                });
 
-            // Hiển thị toast thông báo
-            this.toastr.info(`${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`, 'Mua ngay', {
-                timeOut: 2000,
-                progressBar: true,
-                closeButton: true,
-                positionClass: 'toast-top-right',
-            });
-
-            // Chuyển hướng sau 1 giây để user thấy được toast
-            setTimeout(() => {
-                this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
-            }, 1000);
-        } catch (error) {
-            this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
-                timeOut: 3000,
-                progressBar: true,
-                closeButton: true,
-                positionClass: 'toast-top-right',
-            });
-        }
+                // Chuyển hướng sau 1 giây để user thấy được toast
+                setTimeout(() => {
+                    this.router.navigate(['/orders'], { state: { buyNow: true, productId: productId } });
+                }, 1000);
+            },
+            error: (error) => {
+                console.error('Error in buyNow:', error);
+                this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right',
+                });
+            }
+        });
     }
 }

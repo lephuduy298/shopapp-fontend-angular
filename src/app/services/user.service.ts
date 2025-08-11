@@ -60,13 +60,13 @@ export class UserService {
         return this.http.get(this.apiRefresh, options);
     }
 
-    getUserDetail(token: string) {
+    getUserDetail(token: string): Observable<UserResponse> {
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
         });
 
-        return this.http.post(this.apiGetUserDetail, {}, { headers });
+        return this.http.post<UserResponse>(this.apiGetUserDetail, {}, { headers });
     }
 
     saveUserToLocalStorage(userResponse?: UserResponse) {
@@ -75,51 +75,56 @@ export class UserService {
             if (userResponse == null || !userResponse) {
                 return;
             }
-            //convert object to Json string
-            const userResponseJSON = JSON.stringify(userResponse);
+            
+            // Chỉ lưu userId và userName vào localStorage
+            const userInfo = {
+                userId: userResponse.id,
+                userName: userResponse.fullname
+            };
+            
+            const userInfoJSON = JSON.stringify(userInfo);
+            localStorage.setItem('user', userInfoJSON);
 
-            localStorage.setItem('user', userResponseJSON);
-
-            console.log('User response saved to local storage.');
+            console.log('User info (userId and userName) saved to local storage.');
         } catch (error) {
-            console.log('Error response saved to local storage.');
+            console.log('Error saving user info to local storage.');
         }
     }
 
-    saveUserToMemory(userResponse?: UserResponse) {
-        if (userResponse == null || !userResponse) {
-            return;
-        }
-        this.memoryUser = userResponse;
-    }
+    // saveUserToMemory(userResponse?: UserResponse) {
+    //     if (userResponse == null || !userResponse) {
+    //         return;
+    //     }
+    //     this.memoryUser = userResponse;
+    // }
 
-    getUserFromLocalStorage(): UserResponse | null {
+    getUserFromLocalStorage(): { userId: number; userName: string } | null {
         try {
             if (isPlatformBrowser(this.platformId)) {
-                const userResponseJSON = localStorage.getItem('user');
+                const userInfoJSON = localStorage.getItem('user');
 
-                if (userResponseJSON == null || !userResponseJSON) {
+                if (userInfoJSON == null || !userInfoJSON) {
                     return null;
                 }
 
                 //convert Json string to object
-                const userResponse = JSON.parse(userResponseJSON);
+                const userInfo = JSON.parse(userInfoJSON);
 
-                console.log('User response retrieved from local storage.');
-                return userResponse;
+                console.log('User info retrieved from local storage.');
+                return userInfo;
             } else {
                 return null;
             }
         } catch (error) {
-            console.error('Error retrieving user response from local storage:', error);
+            console.error('Error retrieving user info from local storage:', error);
             return null;
         }
     }
 
     updateUserDetail(token: string, updateUserDTO: UpdateUserDTO) {
         debugger;
-        let userResponse = this.getUserFromLocalStorage();
-        return this.http.put(`${this.apiGetUserDetail}/${userResponse?.id}`, updateUserDTO, {
+        let userInfo = this.getUserFromLocalStorage();
+        return this.http.put(`${this.apiGetUserDetail}/${userInfo?.userId}`, updateUserDTO, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
@@ -138,5 +143,17 @@ export class UserService {
             console.error('Error removing user data from local storage:', error);
             // Handle the error as needed
         }
+    }
+
+    // Phương thức tiện ích để lấy userId từ localStorage
+    getUserIdFromLocalStorage(): number | null {
+        const userInfo = this.getUserFromLocalStorage();
+        return userInfo?.userId || null;
+    }
+
+    // Phương thức tiện ích để lấy userName từ localStorage
+    getUserNameFromLocalStorage(): string | null {
+        const userInfo = this.getUserFromLocalStorage();
+        return userInfo?.userName || null;
     }
 }

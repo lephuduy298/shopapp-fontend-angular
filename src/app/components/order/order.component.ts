@@ -3,6 +3,7 @@ import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Observable, forkJoin } from 'rxjs';
 import { OrderDTO } from '../../dtos/order/order.dto';
 import { Product } from '../models.ts/product';
 import { ProductService } from '../../services/product.service';
@@ -27,7 +28,7 @@ import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
 })
 export class OrderComponent implements OnInit {
     userResponse?: UserResponse | null;
-    cartItems: { product: Product; quantity: number; selected: boolean }[] = [];
+    cartItems: { product: Product; quantity: number; selected: boolean; cartItemId?: number }[] = [];
     allSelected: boolean = true;
     couponCode: string = '';
     totalPrice: number = 0;
@@ -78,49 +79,68 @@ export class OrderComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.userResponse = this.userService.getUserFromLocalStorage();
-        if (this.userResponse) {
-            this.orderForm.patchValue({
-                fullname: this.userResponse.fullname || '',
-                phone_number: this.userResponse.phone_number || '',
-                address: this.userResponse.address || '',
-            });
-        }
-        this.orderData.user_id = this.tokenService.getUserId();
-        const cart = this.cartService.getCart();
-        const productIds = Array.from(cart.keys());
-        if (productIds.length === 0) return;
+        debugger;
+        this.userService.getUserDetail(localStorage.getItem('access_token') || '').subscribe({
+            next: (user: UserResponse) => {
+                debugger;
+                this.userResponse = user;
+                this.orderForm.patchValue({
+                    fullname: user.fullname || '',
+                    phone_number: user.phone_number || '',
+                    address: user.address || '',
+                });
+            },
+            error: (error) => {
+                console.error('Error fetching user details:', error);
+            },
+        });
 
         // Detect if coming from 'Buy Now' (set a flag in router state)
         const isBuyNow = history.state.buyNow === true;
         const buyNowProductId = isBuyNow ? history.state.productId : null;
 
         debugger;
-        this.productService.getProductsByIds(productIds).subscribe({
-            next: (response: any) => {
+        // Lấy userId từ localStorage
+        const userId = this.userService.getUserIdFromLocalStorage();
+        if (!userId) {
+            this.router.navigate(['/login']);
+            return;
+        }
+        this.orderData.user_id = userId;
+
+        // Lấy cart từ server và sử dụng luôn cart.items
+        this.cartService.getCartByUserId(userId).subscribe({
+            next: (cart) => {
                 debugger;
-                this.cartItems = productIds.map((productId, idx) => {
-                    debugger;
-                    const product = response.find((p: any) => p.id === productId);
-                    if (product) {
-                        debugger;
-                        if (!product.thumbnail.startsWith('http'))
-                            product.thumbnail = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
-                    }
-                    return {
-                        product: product!,
-                        quantity: cart.get(productId)!,
-                        selected: isBuyNow ? productId === buyNowProductId : true,
-                    };
-                });
-                debugger;
-                this.allSelected = isBuyNow ? false : true;
-            },
-            complete: () => {
+                if (cart && cart.items && cart.items.length > 0) {
+                    // Sắp xếp cart items theo id giảm dần (mới nhất trước) và map
+                    this.cartItems = cart.items
+                        .sort((a: any, b: any) => b.id - a.id) // Sắp xếp theo cart item id giảm dần
+                        .map((cartItem: any) => {
+                            debugger;
+                            const product = cartItem.product;
+                            if (product && !product.thumbnail.startsWith('http')) {
+                                product.thumbnail = `${environment.apiBaseUrl}/products/images/${product.thumbnail}`;
+                            }
+                            return {
+                                product: product,
+                                quantity: cartItem.quantity,
+                                selected: isBuyNow ? product.id === buyNowProductId : true,
+                                cartItemId: cartItem.id, // Lưu cart item ID để có thể update/delete
+                            };
+                        });
+                    this.allSelected = isBuyNow ? false : true;
+                } else {
+                    this.cartItems = [];
+                    this.allSelected = true;
+                }
                 this.calculatePrice();
             },
             error: (error: any) => {
-                console.error('Error fetching detail:', error);
+                console.error('Error fetching cart:', error);
+                this.cartItems = [];
+                this.allSelected = true;
+                this.calculatePrice();
             },
         });
     }
@@ -148,70 +168,115 @@ export class OrderComponent implements OnInit {
     }
 
     removeCartItem(index: number): void {
-        const removed = this.cartItems.splice(index, 1)[0];
-        this.cartService.removeFromCart(removed.product.id);
-        this.calculatePrice();
-        
-        // Hiển thị toast thông báo xóa thành công
-        this.toastr.info(
-            `${removed.product.name} đã được xóa khỏi giỏ hàng`,
-            'Xóa sản phẩm',
-            {
-                timeOut: 2000,
-                progressBar: true,
-                closeButton: true,
-                positionClass: 'toast-top-right'
-            }
-        );
+        const removed = this.cartItems[index];
+        if (removed.cartItemId) {
+            this.cartService.removeFromCart(removed.cartItemId).subscribe({
+                next: () => {
+                    this.cartItems.splice(index, 1);
+                    this.calculatePrice();
+
+                    // Hiển thị toast thông báo xóa thành công
+                    this.toastr.info(`${removed.product.name} đã được xóa khỏi giỏ hàng`, 'Xóa sản phẩm', {
+                        timeOut: 2000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    });
+                },
+                error: (error) => {
+                    console.error('Error removing item from cart:', error);
+                    this.toastr.error('Có lỗi khi xóa sản phẩm khỏi giỏ hàng', 'Lỗi', {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    });
+                },
+            });
+        }
     }
 
     increaseQty(index: number): void {
-        this.cartItems[index].quantity++;
-        this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
-        this.calculatePrice();
-        
-        // Hiển thị toast thông báo cập nhật số lượng
-        this.toastr.success(
-            `Đã tăng số lượng ${this.cartItems[index].product.name} lên ${this.cartItems[index].quantity}`,
-            'Cập nhật giỏ hàng',
-            {
-                timeOut: 1500,
-                progressBar: true,
-                closeButton: false,
-                positionClass: 'toast-top-right'
-            }
-        );
+        const item = this.cartItems[index];
+        const newQuantity = item.quantity + 1;
+
+        if (item.cartItemId) {
+            this.cartService.updateCart(item.cartItemId, newQuantity).subscribe({
+                next: () => {
+                    // Cập nhật UI ngay lập tức
+                    this.cartItems[index].quantity = newQuantity;
+                    this.calculatePrice();
+
+                    // Hiển thị toast thông báo cập nhật số lượng
+                    this.toastr.success(
+                        `Đã tăng số lượng ${this.cartItems[index].product.name} lên ${this.cartItems[index].quantity}`,
+                        'Cập nhật giỏ hàng',
+                        {
+                            timeOut: 1500,
+                            progressBar: true,
+                            closeButton: false,
+                            positionClass: 'toast-top-right',
+                        }
+                    );
+                },
+                error: (error) => {
+                    console.error('Error updating cart item:', error);
+                    this.toastr.error('Có lỗi khi cập nhật số lượng sản phẩm', 'Lỗi', {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    });
+                },
+            });
+        }
     }
 
     decreaseQty(index: number): void {
-        if (this.cartItems[index].quantity > 1) {
-            this.cartItems[index].quantity--;
-            this.cartService.updateCart(this.cartItems[index].product.id, this.cartItems[index].quantity);
-            this.calculatePrice();
-            
-            // Hiển thị toast thông báo cập nhật số lượng
-            this.toastr.success(
-                `Đã giảm số lượng ${this.cartItems[index].product.name} xuống ${this.cartItems[index].quantity}`,
-                'Cập nhật giỏ hàng',
-                {
-                    timeOut: 1500,
-                    progressBar: true,
-                    closeButton: false,
-                    positionClass: 'toast-top-right'
-                }
-            );
+        debugger;
+        const item = this.cartItems[index];
+        if (item.quantity > 1) {
+            const newQuantity = item.quantity - 1;
+
+            if (item.cartItemId) {
+                debugger;
+                this.cartService.updateCart(item.cartItemId, newQuantity).subscribe({
+                    next: () => {
+                        // Cập nhật UI ngay lập tức
+                        this.cartItems[index].quantity = newQuantity;
+                        this.calculatePrice();
+
+                        // Hiển thị toast thông báo cập nhật số lượng
+                        this.toastr.success(
+                            `Đã giảm số lượng ${this.cartItems[index].product.name} xuống ${this.cartItems[index].quantity}`,
+                            'Cập nhật giỏ hàng',
+                            {
+                                timeOut: 1500,
+                                progressBar: true,
+                                closeButton: false,
+                                positionClass: 'toast-top-right',
+                            }
+                        );
+                    },
+                    error: (error) => {
+                        console.error('Error updating cart item:', error);
+                        this.toastr.error('Có lỗi khi cập nhật số lượng sản phẩm', 'Lỗi', {
+                            timeOut: 3000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right',
+                        });
+                    },
+                });
+            }
         } else {
             // Thông báo cảnh báo khi số lượng không thể giảm thêm
-            this.toastr.warning(
-                `${this.cartItems[index].product.name} đã ở số lượng tối thiểu`,
-                'Không thể giảm thêm',
-                {
-                    timeOut: 2000,
-                    progressBar: true,
-                    closeButton: false,
-                    positionClass: 'toast-top-right'
-                }
-            );
+            this.toastr.warning(`${this.cartItems[index].product.name} đã ở số lượng tối thiểu`, 'Không thể giảm thêm', {
+                timeOut: 2000,
+                progressBar: true,
+                closeButton: false,
+                positionClass: 'toast-top-right',
+            });
         }
     }
 
@@ -226,7 +291,7 @@ export class OrderComponent implements OnInit {
             if (this.orderForm.valid) {
                 this.isOrderConfirmed = true;
                 this.orderForm.disable();
-                
+
                 // Hiển thị toast thông báo xác nhận đơn hàng
                 this.toastr.info(
                     'Thông tin đặt hàng đã được xác nhận. Nhấn "Đặt hàng" lần nữa để hoàn tất.',
@@ -235,25 +300,21 @@ export class OrderComponent implements OnInit {
                         timeOut: 3000,
                         progressBar: true,
                         closeButton: true,
-                        positionClass: 'toast-top-right'
+                        positionClass: 'toast-top-right',
                     }
                 );
             } else {
                 // Đánh dấu tất cả các trường là touched để hiển thị lỗi
                 this.orderForm.markAllAsTouched();
                 console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
-                
+
                 // Hiển thị toast cảnh báo về form không hợp lệ
-                this.toastr.warning(
-                    'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc.',
-                    'Thông tin chưa đầy đủ',
-                    {
-                        timeOut: 3000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right'
-                    }
-                );
+                this.toastr.warning('Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc.', 'Thông tin chưa đầy đủ', {
+                    timeOut: 3000,
+                    progressBar: true,
+                    closeButton: true,
+                    positionClass: 'toast-top-right',
+                });
             }
         } else if (!this.isOrderPlaced) {
             // Lần hai: đặt hàng thật sự
@@ -268,6 +329,7 @@ export class OrderComponent implements OnInit {
                     quantity: cartItem.quantity,
                     status: 'pending',
                 }));
+            debugger;
             this.calculatePrice();
             this.orderData.total_money = this.totalPrice;
             this.isOrderPlaced = true;
@@ -281,11 +343,43 @@ export class OrderComponent implements OnInit {
                             timeOut: 5000,
                             progressBar: true,
                             closeButton: true,
-                            positionClass: 'toast-top-right'
+                            positionClass: 'toast-top-right',
                         }
                     );
 
-                    this.cartService.clearCart();
+                    // Xóa sản phẩm trong giỏ hàng sau khi đặt hàng thành công
+                    const selectedItems = this.cartItems.filter((item) => item.selected);
+                    const allItemsSelected = selectedItems.length === this.cartItems.length;
+
+                    if (allItemsSelected) {
+                        // Nếu chọn hết tất cả sản phẩm, xóa toàn bộ cart
+                        this.cartService.clearCart().subscribe({
+                            next: () => {
+                                console.log('Entire cart cleared successfully');
+                            },
+                            error: (error) => {
+                                console.error('Error clearing entire cart:', error);
+                            },
+                        });
+                    } else {
+                        // Nếu chỉ chọn một số sản phẩm, xóa từng item đã chọn
+                        const removeOrderedCartItem = selectedItems
+                            .filter((item) => item.cartItemId !== undefined) // Lọc bỏ các item không có cartItemId
+                            .map((item) => this.cartService.removeFromCart(item.cartItemId!));
+
+                        // Thực hiện xóa tất cả song song
+                        if (removeOrderedCartItem.length > 0) {
+                            forkJoin(removeOrderedCartItem).subscribe({
+                                next: () => {
+                                    console.log('All selected items removed successfully');
+                                },
+                                error: (error: any) => {
+                                    console.error('Error removing some items:', error);
+                                },
+                            });
+                        }
+                    }
+
                     // Điều hướng sang trang chi tiết đơn hàng vừa đặt
                     if (response && response.id) {
                         this.router.navigate(['/orders', response.id]);
@@ -298,21 +392,17 @@ export class OrderComponent implements OnInit {
                 },
                 error: (error: any) => {
                     console.log(`Lỗi khi đặt hàng: ${error}`);
-                    
+
                     // Hiển thị toast lỗi với thông báo từ backend
                     const errorMessage = error.error?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
-                    this.toastr.error(
-                        errorMessage,
-                        'Đặt hàng thất bại',
-                        {
-                            timeOut: 5000,
-                            progressBar: true,
-                            closeButton: true,
-                            positionClass: 'toast-top-right',
-                            enableHtml: true
-                        }
-                    );
-                    
+                    this.toastr.error(errorMessage, 'Đặt hàng thất bại', {
+                        timeOut: 5000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                        enableHtml: true,
+                    });
+
                     // Cho phép người dùng thử đặt hàng lại
                     this.isOrderPlaced = false;
                 },

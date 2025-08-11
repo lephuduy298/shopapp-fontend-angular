@@ -105,9 +105,10 @@ export class LoginComponent implements OnInit {
                         };
 
                         // Lưu user vào memory
-                        this.userService.saveUserToMemory(this.userResponse);
 
                         this.cartService.restoreCart();
+
+                        this.userService.saveUserToLocalStorage(this.userResponse);
 
                         this.isLoading = false;
 

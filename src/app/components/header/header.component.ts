@@ -59,6 +59,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userResponse = null;
         this.getCategories();
         this.loadUserData();
+        this.loadCartData();
     }
 
     ngOnDestroy(): void {
@@ -87,6 +88,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
         });
     }
 
+    private loadCartData(): void {
+        // Lấy userId từ localStorage
+        const userId = this.userService.getUserIdFromLocalStorage();
+        if (userId) {
+            console.log('Loading cart for user:', userId);
+            this.cartService.loadCartFromServer(userId);
+        } else {
+            console.log('No user found, clearing cart');
+            this.cartService.clearCountItem();
+        }
+    }
+
     /**
      * Public method để refresh user data từ bên ngoài
      * Có thể gọi từ các component khác khi user login/logout
@@ -94,6 +107,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public refreshUserData(): void {
         this.isUserDataLoaded = false;
         this.loadUserData();
+        this.loadCartData();
     }
 
     navigateToLogin(): void {

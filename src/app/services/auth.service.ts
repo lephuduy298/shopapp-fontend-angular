@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { UserResponse } from '../responses/user/user.response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
@@ -7,6 +8,7 @@ import { environment } from '../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private apiRefresh = `${environment.apiBaseUrl}/users/refresh`;
+    private apiUserDetails = `${environment.apiBaseUrl}/users/details`;
 
     constructor(private http: HttpClient) {}
     private accessToken: string | null = null;
@@ -36,6 +38,20 @@ export class AuthService {
 
     getCurrentUser(): UserResponse | null {
         return this.currentUserSubject.getValue();
+    }
+
+    // Get user details from API
+    getCurrentUserFromApi(): Observable<UserResponse> {
+        return this.http.post<UserResponse>(this.apiUserDetails, {});
+    }
+
+    // Update current user from API and return it
+    refreshCurrentUser(): Observable<UserResponse> {
+        return this.getCurrentUserFromApi().pipe(
+            tap(user => {
+                this.setCurrentUser(user);
+            })
+        );
     }
 
     clearUser() {

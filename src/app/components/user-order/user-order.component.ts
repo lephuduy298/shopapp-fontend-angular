@@ -39,8 +39,8 @@ export class UserOrderComponent implements OnInit {
 
     getOrdersByUser(): void {
         this.isLoading = true;
-        const user = this.userService.getUserFromLocalStorage();
-        const userId: number = user && typeof user.id === 'number' ? user.id : 0; // Ensure userId is always a number
+        const userInfo = this.userService.getUserFromLocalStorage();
+        const userId: number = userInfo && typeof userInfo.userId === 'number' ? userInfo.userId : 0; // Ensure userId is always a number
         this.orderService.getOrdersByUser(userId, this.page, this.limit).subscribe({
             next: (response: any) => {
                 debugger;
