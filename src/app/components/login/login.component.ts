@@ -96,7 +96,7 @@ export class LoginComponent implements OnInit {
                 // Lưu token vào localStorage
                 this.tokenService.setToken(token);
 
-                this.userService.getUserDetail(token).subscribe({
+                this.userService.getUserDetail().subscribe({
                     next: (responseUser: any) => {
                         debugger;
                         this.userResponse = {

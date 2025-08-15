@@ -150,7 +150,7 @@ export class UserOrderComponent implements OnInit {
 
         const totalItems = order.order_details.length;
         const orderStatus = order.status || 'pending';
-        
+
         // Hiển thị tổng quan về đơn hàng dựa trên trạng thái chung
         return `${this.getStatusText(orderStatus)} (${totalItems} items)`;
     }

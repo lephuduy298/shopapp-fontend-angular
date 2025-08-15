@@ -6,6 +6,7 @@ import { ProductAdminComponent } from './product.admin/product.admin.component';
 import { CategoryAdminComponent } from './category.admin/category.admin.component';
 import { DetailOrderAdminComponent } from './detail-order.admin/detail-order.admin.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AccountAdminComponent } from './account.admin/account.admin.component';
 import { AdminGuardFn } from '../../guards/admin.guard';
 
 export const adminRoutes: Routes = [
@@ -38,6 +39,10 @@ export const adminRoutes: Routes = [
             {
                 path: 'categories',
                 component: CategoryAdminComponent,
+            },
+            {
+                path: 'accounts',
+                component: AccountAdminComponent,
             },
         ],
     },

@@ -22,7 +22,7 @@ export class AdminComponent implements OnInit {
         // Lấy thông tin user từ API thay vì localStorage
         const token = this.tokenService.getToken();
         if (token) {
-            this.userService.getUserDetail(token).subscribe({
+            this.userService.getUserDetail().subscribe({
                 next: (user) => {
                     this.userResponse = user;
                 },
@@ -52,6 +52,8 @@ export class AdminComponent implements OnInit {
             this.router.navigate(['/admin/categories']);
         } else if (componentName == 'products') {
             this.router.navigate(['/admin/products']);
+        } else if (componentName == 'accounts') {
+            this.router.navigate(['/admin/accounts']);
         }
     }
 

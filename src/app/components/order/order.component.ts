@@ -80,7 +80,7 @@ export class OrderComponent implements OnInit {
 
     ngOnInit(): void {
         debugger;
-        this.userService.getUserDetail(localStorage.getItem('access_token') || '').subscribe({
+        this.userService.getUserDetail().subscribe({
             next: (user: UserResponse) => {
                 debugger;
                 this.userResponse = user;

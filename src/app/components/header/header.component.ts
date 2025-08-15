@@ -75,7 +75,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.userService.getUserDetail(token).subscribe({
+        this.userService.getUserDetail().subscribe({
             next: (response: any) => {
                 this.userResponse = response;
                 this.isUserDataLoaded = true;

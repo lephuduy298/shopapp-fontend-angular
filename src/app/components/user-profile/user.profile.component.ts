@@ -45,19 +45,26 @@ export class UserProfileComponent implements OnInit {
             {
                 fullname: ['', [Validators.required]],
                 address: ['', [Validators.minLength(3)]],
-                password: ['', [Validators.minLength(3)]],
+                current_password: ['', []],
+                // Pattern: tối thiểu 6 ký tự, ít nhất 1 chữ và 1 số
+                password: [
+                    '',
+                    [
+                        Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/),
+                    ],
+                ],
                 retype_password: [''],
                 date_of_birth: [Date.now()],
             },
             {
-                validators: this.passwordMatchValidator(), // Custom validator function for password match
+                validators: this.passwordGroupValidator(),
             }
         );
     }
     ngOnInit() {
         debugger;
         this.token = this.tokenService.getToken() || '';
-        this.userService.getUserDetail(this.token).subscribe({
+        this.userService.getUserDetail().subscribe({
             next: (response: any) => {
                 debugger;
                 this.userResponse = {
@@ -80,15 +87,29 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    passwordMatchValidator(): ValidatorFn {
+    passwordGroupValidator(): ValidatorFn {
         return (formGroup: AbstractControl): ValidationErrors | null => {
-            const password = formGroup.get('password')?.value;
-            const retypedPassword = formGroup.get('retype_password')?.value;
-            if (password !== retypedPassword) {
-                return { passwordMismatch: true };
+            const password = formGroup.get('password')?.value || '';
+            const retypedPassword = formGroup.get('retype_password')?.value || '';
+            const currentPassword = formGroup.get('current_password')?.value || '';
+
+            const errors: any = {};
+
+            if (password || retypedPassword) {
+                if (!currentPassword) {
+                    errors.currentPasswordRequired = true;
+                }
+                if (password !== retypedPassword) {
+                    errors.passwordMismatch = true;
+                }
+                // Kiểm tra độ mạnh theo pattern (chữ + số, >=6)
+                const strongPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+                if (password && !strongPattern.test(password)) {
+                    errors.passwordWeak = true;
+                }
             }
 
-            return null;
+            return Object.keys(errors).length ? errors : null;
         };
     }
 
@@ -98,12 +119,15 @@ export class UserProfileComponent implements OnInit {
             const updateUserDTO: UpdateUserDTO = {
                 fullname: this.userProfileForm.get('fullname')?.value,
                 address: this.userProfileForm.get('address')?.value,
+                current_password: this.userProfileForm.get('current_password')?.value,
                 password: this.userProfileForm.get('password')?.value,
                 retype_password: this.userProfileForm.get('retype_password')?.value,
                 date_of_birth: this.userProfileForm.get('date_of_birth')?.value,
             };
 
-            this.userService.updateUserDetail(this.token, updateUserDTO).subscribe({
+            const user = JSON.parse(localStorage.getItem('user')!); // chuyển chuỗi về object
+
+            this.userService.updateUser(user?.userId, updateUserDTO).subscribe({
                 next: (response: any) => {
                     // Hiển thị toast thông báo cập nhật thành công
                     this.toastr.success(
@@ -116,6 +140,7 @@ export class UserProfileComponent implements OnInit {
                             positionClass: 'toast-top-right',
                         }
                     );
+                    window.location.reload();
 
                     // Chờ 2 giây trước khi chuyển hướng để người dùng có thể đọc thông báo
                     // setTimeout(() => {
@@ -151,6 +176,15 @@ export class UserProfileComponent implements OnInit {
                     positionClass: 'toast-top-right',
                 });
             } else {
+                if (this.userProfileForm.hasError('currentPasswordRequired')) {
+                    this.toastr.warning('Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu', 'Thiếu mật khẩu hiện tại', {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    });
+                    return;
+                }
                 // Hiển thị toast cảnh báo về form không hợp lệ
                 this.toastr.warning('Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc', 'Thông tin chưa hợp lệ', {
                     timeOut: 3000,
@@ -204,6 +238,7 @@ export class UserProfileComponent implements OnInit {
                     fullname: this.userResponse.fullname ?? '',
                     address: this.userResponse.address ?? '',
                     date_of_birth: this.userResponse.date_of_birth.toISOString().substring(0, 10),
+                    current_password: '',
                     password: '',
                     retype_password: '',
                 });

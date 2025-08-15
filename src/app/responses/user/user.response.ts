@@ -7,6 +7,8 @@ export interface UserResponse {
     address: string;
     is_active: boolean;
     date_of_birth: Date;
+    created_at: Date;
+    updated_at: Date;
     facebook_account_id: number;
     google_account_id: number;
     role: Role;

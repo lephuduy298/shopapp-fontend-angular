@@ -70,6 +70,33 @@
             </div>
             <ng-container *ngIf="isEditMode">
                 <div class="profile-info-row">
+                    <div class="profile-info-label">Mật khẩu hiện tại</div>
+                    <div class="profile-info-value">
+                        <input
+                            type="password"
+                            class="form-control"
+                            formControlName="current_password"
+                            placeholder="Mật khẩu hiện tại"
+                            [class.is-invalid]="
+                                (userProfileForm.hasError('currentPasswordRequired') &&
+                                    userProfileForm.get('current_password')?.touched) ||
+                                (userProfileForm.get('current_password')?.touched &&
+                                    userProfileForm.get('password')?.value &&
+                                    !userProfileForm.get('current_password')?.value)
+                            "
+                        />
+                        <div
+                            *ngIf="
+                                userProfileForm.hasError('currentPasswordRequired') &&
+                                userProfileForm.get('current_password')?.touched
+                            "
+                            class="invalid-feedback"
+                        >
+                            Vui lòng nhập mật khẩu hiện tại.
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-info-row">
                     <div class="profile-info-label">Mật khẩu</div>
                     <div class="profile-info-value">
                         <input
@@ -78,14 +105,18 @@
                             formControlName="password"
                             placeholder="Mật khẩu"
                             [class.is-invalid]="
-                                userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched
+                                (userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched) ||
+                                userProfileForm.hasError('passwordWeak')
                             "
                         />
                         <div
-                            *ngIf="userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched"
+                            *ngIf="
+                                (userProfileForm.get('password')!.invalid && userProfileForm.get('password')!.touched) ||
+                                userProfileForm.hasError('passwordWeak')
+                            "
                             class="invalid-feedback"
                         >
-                            Mật khẩu ít nhất 3 ký tự.
+                            Mật khẩu phải tối thiểu 6 ký tự, bao gồm ít nhất 1 chữ cái và 1 chữ số.
                         </div>
                     </div>
                 </div>

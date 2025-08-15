@@ -10,6 +10,7 @@ import { Inject } from '@angular/core';
 import { PLATFORM_ID } from '@angular/core';
 import { UpdateUserDTO } from '../dtos/user/update.dto';
 import { signal } from '@angular/core';
+import { ResultPagination } from '../responses/user/result-pagination.response';
 
 @Injectable({
     providedIn: 'root',
@@ -60,13 +61,8 @@ export class UserService {
         return this.http.get(this.apiRefresh, options);
     }
 
-    getUserDetail(token: string): Observable<UserResponse> {
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        });
-
-        return this.http.post<UserResponse>(this.apiGetUserDetail, {}, { headers });
+    getUserDetail(): Observable<UserResponse> {
+        return this.http.post<UserResponse>(this.apiGetUserDetail, {}, this.apiConfig);
     }
 
     saveUserToLocalStorage(userResponse?: UserResponse) {
@@ -75,13 +71,13 @@ export class UserService {
             if (userResponse == null || !userResponse) {
                 return;
             }
-            
+
             // Chỉ lưu userId và userName vào localStorage
             const userInfo = {
                 userId: userResponse.id,
-                userName: userResponse.fullname
+                userName: userResponse.fullname,
             };
-            
+
             const userInfoJSON = JSON.stringify(userInfo);
             localStorage.setItem('user', userInfoJSON);
 
@@ -121,15 +117,66 @@ export class UserService {
         }
     }
 
-    updateUserDetail(token: string, updateUserDTO: UpdateUserDTO) {
+    updateUserDetail(updateUserDTO: UpdateUserDTO) {
         debugger;
         let userInfo = this.getUserFromLocalStorage();
-        return this.http.put(`${this.apiGetUserDetail}/${userInfo?.userId}`, updateUserDTO, {
-            headers: new HttpHeaders({
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            }),
-        });
+        return this.http.put(`${this.apiGetUserDetail}/${userInfo?.userId}`, updateUserDTO, this.apiConfig);
+    }
+
+    // Lấy thông tin user theo ID
+    getUserById(id: number): Observable<UserResponse> {
+        return this.http.get<UserResponse>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig);
+    }
+
+    // Lấy danh sách tất cả users với filter và pagination
+    getAllUsers(
+        keyword?: string,
+        roleId?: number,
+        page?: number,
+        limit?: number,
+        is_active?: number
+    ): Observable<ResultPagination> {
+        let params: any = {};
+
+        if (keyword && keyword.trim()) {
+            params.keyword = keyword.trim();
+        }
+
+        if (roleId) {
+            params.role_id = roleId.toString();
+        }
+
+        if (page !== undefined && page >= 0) {
+            params.page = page.toString();
+        }
+
+        if (is_active !== undefined && is_active !== null) {
+            params.is_active = is_active.toString(); // '1' | '0'
+        }
+
+        if (limit !== undefined && limit > 0) {
+            params.limit = limit.toString();
+        }
+
+        const queryString =
+            Object.keys(params).length > 0
+                ? '?' +
+                  Object.keys(params)
+                      .map((key) => `${key}=${encodeURIComponent(params[key])}`)
+                      .join('&')
+                : '';
+
+        return this.http.get<ResultPagination>(`${environment.apiBaseUrl}/users${queryString}`, this.apiConfig);
+    }
+
+    // Cập nhật thông tin user theo ID
+    updateUser(id: number, updateUserDTO: UpdateUserDTO): Observable<UserResponse> {
+        return this.http.put<UserResponse>(`${environment.apiBaseUrl}/users/${id}`, updateUserDTO, this.apiConfig);
+    }
+
+    // Xóa user theo ID
+    deleteUser(id: number): Observable<void> {
+        return this.http.delete<void>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig);
     }
 
     removeUserFromLocalStorage(): void {
@@ -156,4 +203,14 @@ export class UserService {
         const userInfo = this.getUserFromLocalStorage();
         return userInfo?.userName || null;
     }
+
+    // Block user by ID (backend @DeleteMapping("/block/{id}"))
+    blockAndActiveUser(id: number): Observable<void> {
+        return this.http.delete<void>(`${environment.apiBaseUrl}/users/block/${id}`, this.apiConfig);
+    }
+
+    // Backward compatible alias
+    // blockUser(id: number): Observable<void> {
+    //     return this.blockAndActiveUser(id);
+    // }
 }

@@ -23,46 +23,20 @@
 
         <!-- Filter Tabs -->
         <div class="filter-tabs">
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'all'"
-                (click)="setActiveFilter('all')"
-            >
-                All
-            </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'pending'"
-                (click)="setActiveFilter('pending')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'all'" (click)="setActiveFilter('all')">All</button>
+            <button class="tab-btn" [class.active]="activeFilter === 'pending'" (click)="setActiveFilter('pending')">
                 Pending
             </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'processing'"
-                (click)="setActiveFilter('processing')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'processing'" (click)="setActiveFilter('processing')">
                 Processing
             </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'shipped'"
-                (click)="setActiveFilter('shipped')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'shipped'" (click)="setActiveFilter('shipped')">
                 Shipped
             </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'delivered'"
-                (click)="setActiveFilter('delivered')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'delivered'" (click)="setActiveFilter('delivered')">
                 Delivered
             </button>
-            <button 
-                class="tab-btn" 
-                [class.active]="activeFilter === 'cancelled'"
-                (click)="setActiveFilter('cancelled')"
-            >
+            <button class="tab-btn" [class.active]="activeFilter === 'cancelled'" (click)="setActiveFilter('cancelled')">
                 Cancelled
             </button>
         </div>
@@ -139,7 +113,7 @@
                         </div>
                     </td>
                 </tr>
-                
+
                 <!-- No orders found message -->
                 <tr *ngIf="filteredOrders.length === 0" class="no-orders-row">
                     <td colspan="9" class="no-orders-cell">
@@ -147,14 +121,14 @@
                             <i class="fas fa-search no-orders-icon"></i>
                             <h3>No orders found</h3>
                             <p *ngIf="activeFilter !== 'all'">
-                                No orders match the current filter: <strong>{{ activeFilter }}</strong>
+                                No orders match the current filter:
+                                <strong>{{ activeFilter }}</strong>
                             </p>
                             <p *ngIf="activeFilter === 'all' && keyword">
-                                No orders match your search: <strong>{{ keyword }}</strong>
+                                No orders match your search:
+                                <strong>{{ keyword }}</strong>
                             </p>
-                            <p *ngIf="activeFilter === 'all' && !keyword">
-                                There are no orders to display.
-                            </p>
+                            <p *ngIf="activeFilter === 'all' && !keyword">There are no orders to display.</p>
                         </div>
                     </td>
                 </tr>
@@ -166,7 +140,7 @@
     <div class="pagination-container">
         <div class="pagination-info">
             <ng-container *ngIf="filteredOrders.length > 0">
-                Showing page {{ currentPage }} of {{ totalPages }} 
+                Showing page {{ currentPage }} of {{ totalPages }}
                 <span *ngIf="activeFilter === 'all'">({{ totalItems }} total orders)</span>
                 <span *ngIf="activeFilter !== 'all'">({{ totalItems }} {{ activeFilter }} orders)</span>
             </ng-container>
@@ -216,10 +190,22 @@
                 <div class="warning-content">
                     <h3>Are you sure you want to delete this order?</h3>
                     <div class="order-info" *ngIf="orderToDelete">
-                        <p><strong>Order ID:</strong> #{{ orderToDelete.id }}</p>
-                        <p><strong>Customer:</strong> {{ orderToDelete.fullname }}</p>
-                        <p><strong>Total:</strong> {{ orderToDelete.total_money | number : '1.0-0' }} đ</p>
-                        <p><strong>Date:</strong> {{ orderToDelete.order_date | date : 'dd MMM, yyyy' }}</p>
+                        <p>
+                            <strong>Order ID:</strong>
+                            #{{ orderToDelete.id }}
+                        </p>
+                        <p>
+                            <strong>Customer:</strong>
+                            {{ orderToDelete.fullname }}
+                        </p>
+                        <p>
+                            <strong>Total:</strong>
+                            {{ orderToDelete.total_money | number : '1.0-0' }} đ
+                        </p>
+                        <p>
+                            <strong>Date:</strong>
+                            {{ orderToDelete.order_date | date : 'dd MMM, yyyy' }}
+                        </p>
                     </div>
                     <p class="warning-text">
                         <i class="fas fa-info-circle"></i>

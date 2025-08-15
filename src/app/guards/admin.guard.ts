@@ -39,7 +39,7 @@ export class AdminGuard {
                 this.tokenService.setToken(response.token);
 
                 // Sau khi refresh token, cần lấy lại user data và kiểm tra role
-                return this.getUserAndCheckRole(response.token);
+                return this.getUserAndCheckRole();
             }),
             catchError((error) => {
                 // Refresh thất bại, redirect login
@@ -59,7 +59,7 @@ export class AdminGuard {
             return of(false);
         }
 
-        return this.userService.getUserDetail(token).pipe(
+        return this.userService.getUserDetail().pipe(
             map((userResponse) => {
                 this.userResponse = userResponse;
                 
@@ -86,9 +86,9 @@ export class AdminGuard {
         );
     }
 
-    private getUserAndCheckRole(token: string): Observable<boolean> {
+    private getUserAndCheckRole(): Observable<boolean> {
         // Gọi API để lấy user detail mới với token đã refresh
-        return this.userService.getUserDetail(token).pipe(
+        return this.userService.getUserDetail().pipe(
             switchMap((userResponse: any) => {
                 // Lưu user data vào memory/localStorage
                 // this.userService.saveUserToMemory(userResponse);

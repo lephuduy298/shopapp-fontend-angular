@@ -1,0 +1,504 @@
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-primary">Account Management</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Accounts</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Filters & Controls -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <!-- Search -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Search</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Search by name, phone, or address..."
+                        [(ngModel)]="searchTerm"
+                        (input)="onSearch()"
+                    />
+                </div>
+
+                <!-- Role Filter -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Role</label>
+                    <select class="form-select" [(ngModel)]="selectedRole" (change)="onRoleFilterChange()">
+                        <option value="">All</option>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()">
+                        <option value="">All</option>
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Role Filter -->
+                <!-- <div class="col-md-3 mb-3">
+                    <label class="form-label">Role</label>
+                    <select class="form-select" [(ngModel)]="selectedRole" (change)="onRoleFilterChange()">
+                        <option *ngFor="let role of roleOptions" [value]="role.value">
+                            {{ role.label }}
+                        </option>
+                    </select>
+                </div> -->
+
+                <!-- Items per page -->
+                <!-- <div class="col-md-3 mb-3">
+                    <label class="form-label">Items per page</label>
+                    <select class="form-select" [(ngModel)]="itemsPerPage" (change)="onFiltersChange()">
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                        <option value="48">48</option>
+                    </select>
+                </div> -->
+
+                <!-- Refresh Button -->
+                <!-- <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" (click)="loadUsers()" [disabled]="loading">
+                        <i class="fas fa-refresh" [class.fa-spin]="loading"></i>
+                        Refresh
+                    </button>
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <span
+                    class="badge me-2"
+                    [class.bg-primary]="activeFilter === 'all'"
+                    [class.bg-success]="activeFilter === 'user'"
+                    [class.bg-danger]="activeFilter === 'admin'"
+                >
+                    {{ activeFilter === 'all' ? 'All' : activeFilter === 'user' ? 'User' : 'Admin' }} Accounts
+                </span>
+                <span class="badge bg-info" *ngIf="activeFilter === 'user'">Editable</span>
+                <span class="badge bg-warning" *ngIf="activeFilter === 'admin'">View Only</span>
+                <span class="badge bg-secondary" *ngIf="activeFilter === 'all'">Mixed Permissions</span>
+            </div>
+            <span class="text-muted">Displaying {{ paginatedUsers.length }} of {{ totalItems }} records</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">
+                                <i class="fas fa-birthday-cake me-1"></i>
+                                Date of Birth
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Address
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-calendar-plus me-1"></i>
+                                Created At
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-calendar-check me-1"></i>
+                                Updated At
+                            </th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let user of paginatedUsers; trackBy: trackByUserId">
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary text-white me-2">
+                                        {{ user.fullname.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <span>{{ user.fullname }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user.phone_number }}</td>
+                            <td>
+                                <span [class]="getRoleClass(user.role.name)">
+                                    <i class="fas fa-user me-1"></i>
+                                    {{ getRoleDisplayName(user.role.name) }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" [class.bg-success]="user.is_active" [class.bg-danger]="!user.is_active">
+                                    <i class="fas me-1" [ngClass]="user.is_active ? 'fa-check' : 'fa-times'"></i>
+                                    {{ user.is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>
+                                <i class="fas fa-birthday-cake text-muted me-1"></i>
+                                <span [title]="user.date_of_birth">{{ formatDate(user.date_of_birth) }}</span>
+                            </td>
+                            <td>
+                                <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                <span [title]="user.address">{{ user.address || '—' }}</span>
+                            </td>
+                            <td>
+                                <i class="fas fa-calendar-plus text-muted me-1"></i>
+                                <span [title]="user.created_at">{{ formatDateTime(user.created_at) }}</span>
+                            </td>
+                            <td>
+                                <i class="fas fa-calendar-check text-muted me-1"></i>
+                                <span [title]="user.updated_at">{{ formatDateTime(user.updated_at) }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <!-- Edit button - only for user accounts -->
+                                    <button
+                                        *ngIf="canEditUser(user)"
+                                        class="btn btn-sm btn-outline-warning"
+                                        (click)="editUser(user)"
+                                        title="Edit User"
+                                    >
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <!-- View button - for admin accounts -->
+                                    <button
+                                        *ngIf="!canEditUser(user)"
+                                        class="btn btn-sm btn-outline-info"
+                                        (click)="viewAdminDetails(user)"
+                                        title="View Details"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <!-- Status toggle - only for user accounts -->
+                                    <button
+                                        *ngIf="canEditUser(user)"
+                                        class="btn btn-sm"
+                                        [class.btn-outline-danger]="user.is_active"
+                                        [class.btn-outline-success]="!user.is_active"
+                                        (click)="toggleUserStatus(user)"
+                                        [title]="user.is_active ? 'Deactivate User' : 'Activate User'"
+                                    >
+                                        <i
+                                            class="fas"
+                                            [class.fa-ban]="user.is_active"
+                                            [class.fa-check]="!user.is_active"
+                                        ></i>
+                                    </button>
+                                    <button
+                                        *ngIf="canEditUser(user)"
+                                        class="btn btn-sm btn-outline-danger"
+                                        (click)="openConfirm('delete', user)"
+                                        title="Delete User"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty state -->
+                        <tr *ngIf="paginatedUsers.length === 0 && !loading">
+                            <td colspan="10" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-users fa-3x mb-3"></i>
+                                    <p>No {{ activeFilter === 'all' ? '' : activeFilter }} accounts found</p>
+                                    <small *ngIf="searchTerm">Try adjusting your search term</small>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Loading state -->
+                        <!-- <tr *ngIf="loading">
+                            <td colspan="10" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                    <p>Loading users...</p>
+                                </div>
+                            </td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <ng-container *ngIf="users.length > 0">
+                    Showing page {{ currentPage }} of {{ totalPages }}
+                    <span *ngIf="selectedRole === ''">({{ totalItems }} total accounts)</span>
+                    <span *ngIf="selectedRole !== ''">
+                        ({{ totalItems }} {{ getRoleDisplayName(selectedRole) }} accounts)
+                    </span>
+                </ng-container>
+                <ng-container *ngIf="users.length === 0">
+                    <span *ngIf="selectedRole === ''">No accounts found</span>
+                    <span *ngIf="selectedRole !== ''">No {{ getRoleDisplayName(selectedRole) }} accounts found</span>
+                </ng-container>
+            </div>
+            <nav class="pagination-nav">
+                <ul class="pagination">
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                        <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </li>
+                    <ng-container *ngFor="let page of visiblePages">
+                        <li class="page-item" [class.active]="page === currentPage">
+                            <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+                        </li>
+                    </ng-container>
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                        <button
+                            class="page-link"
+                            (click)="onPageChange(currentPage + 1)"
+                            [disabled]="currentPage === totalPages"
+                        >
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div
+    class="modal"
+    [class.show]="editingUser"
+    [style.display]="editingUser ? 'block' : 'none'"
+    tabindex="-1"
+    *ngIf="editingUser"
+>
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Edit User: {{ editingUser.fullname }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" (click)="cancelEdit()"></button>
+            </div>
+            <div class="modal-body" *ngIf="editForm">
+                <form [formGroup]="editForm" (ngSubmit)="saveUser()">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" formControlName="fullname" />
+                        <div class="text-danger small" *ngIf="getFieldError('fullname')">
+                            {{ getFieldError('fullname') }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-control" formControlName="address" />
+                        <div class="text-danger small" *ngIf="getFieldError('address')">{{ getFieldError('address') }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            [value]="editForm.get('date_of_birth')?.value | date : 'yyyy-MM-dd'"
+                            (change)="onDateChange($event)"
+                        />
+                        <div class="text-danger small" *ngIf="getFieldError('date_of_birth')">
+                            {{ getFieldError('date_of_birth') }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            New Password
+                            <span class="text-muted" style="font-weight: normal">(leave blank to keep current)</span>
+                        </label>
+                        <input type="password" class="form-control" formControlName="password" />
+                        <div class="text-danger small" *ngIf="getFieldError('password')">
+                            {{ getFieldError('password') }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" formControlName="retype_password" />
+                        <div
+                            class="text-danger small"
+                            *ngIf="
+                                getFieldError('retype_password') &&
+                                (editForm.get('retype_password')?.touched || editForm.get('retype_password')?.dirty)
+                            "
+                        >
+                            {{ getFieldError('retype_password') }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" (click)="cancelEdit()">Cancel</button>
+                <button type="button" class="btn btn-primary" [disabled]="editForm.invalid" (click)="saveUser()">
+                    <i class="fas fa-save me-1"></i>
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade" [class.show]="editingUser" *ngIf="editingUser" (click)="cancelEdit()"></div>
+
+<!-- View Admin Detail Modal -->
+<div
+    class="modal"
+    [class.show]="viewingAdmin"
+    [style.display]="viewingAdmin ? 'block' : 'none'"
+    tabindex="-1"
+    *ngIf="viewingAdmin"
+>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-shield me-2"></i>
+                    Admin Details: {{ viewingAdmin.fullname }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" (click)="closeViewAdmin()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <div class="form-control bg-light">{{ viewingAdmin.fullname }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Phone Number</label>
+                        <div class="form-control bg-light">{{ viewingAdmin.phone_number }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Role</label>
+                        <div class="form-control bg-light">{{ getRoleDisplayName(viewingAdmin.role.name) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status</label>
+                        <div class="form-control bg-light">
+                            <span class="badge" [class.bg-success]="viewingAdmin.is_active" [class.bg-danger]="!viewingAdmin.is_active">
+                                {{ viewingAdmin.is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        <div class="form-control bg-light">{{ formatDate(viewingAdmin.date_of_birth) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Address</label>
+                        <div class="form-control bg-light">{{ viewingAdmin.address || '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Created At</label>
+                        <div class="form-control bg-light">{{ formatDateTime(viewingAdmin.created_at) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Updated At</label>
+                        <div class="form-control bg-light">{{ formatDateTime(viewingAdmin.updated_at) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" (click)="closeViewAdmin()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Admin backdrop -->
+<div
+    class="modal-backdrop fade"
+    [class.show]="viewingAdmin"
+    *ngIf="viewingAdmin"
+    (click)="closeViewAdmin()"
+></div>
+
+<!-- Confirm Action Modal -->
+<div
+    class="modal"
+    [class.show]="confirmModalVisible"
+    [style.display]="confirmModalVisible ? 'block' : 'none'"
+    tabindex="-1"
+    *ngIf="confirmModalVisible"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div
+                class="modal-header"
+                [ngClass]="{
+                    'bg-danger text-white': confirmAction === 'delete' || confirmAction === 'block',
+                    'bg-success text-white': confirmAction === 'activate'
+                }"
+            >
+                <h5 class="modal-title">{{ confirmTitle }}</h5>
+                <button type="button" class="btn-close" (click)="closeConfirm()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">{{ confirmMessage }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeConfirm()">Cancel</button>
+                <button
+                    type="button"
+                    class="btn"
+                    [ngClass]="{
+                        'btn-danger': confirmAction === 'delete' || confirmAction === 'block',
+                        'btn-success': confirmAction === 'activate',
+                        'btn-primary':
+                            confirmAction !== 'delete' && confirmAction !== 'block' && confirmAction !== 'activate'
+                    }"
+                    [disabled]="confirmProcessing"
+                    (click)="confirmProceed()"
+                >
+                    <span *ngIf="!confirmProcessing">Confirm</span>
+                    <span *ngIf="confirmProcessing">
+                        <i class="fas fa-spinner fa-spin me-1"></i>
+                        Processing...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm backdrop -->
+<div
+    class="modal-backdrop fade"
+    [class.show]="confirmModalVisible"
+    *ngIf="confirmModalVisible"
+    (click)="closeConfirm()"
+></div>

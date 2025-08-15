@@ -86,6 +86,17 @@
                             <span class="nav-text">Categories</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a
+                            class="nav-link"
+                            (click)="showAdminComponent('accounts')"
+                            [class.active]="adminComponent === 'accounts'"
+                            [title]="isSidebarCollapsed ? 'Accounts' : ''"
+                        >
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Accounts</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
