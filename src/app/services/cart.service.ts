@@ -6,6 +6,7 @@ import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { CartResponse, CartItemResponse } from '../responses/cart/cart.response';
+import { ApiResponse } from '../responses/common/api-response';
 import { AddToCartDto, UpdateCartItemDto } from '../dtos/cart/cart.dto';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
@@ -43,7 +44,8 @@ export class CartService {
     // Load cart từ server
     loadCartFromServer(userId: number): void {
         this.http
-            .get<CartResponse>(`${this.apiUrl}/${userId}`)
+            .get<ApiResponse<CartResponse>>(`${this.apiUrl}/${userId}`)
+            .pipe(map((resp) => resp.data))
             .pipe(
                 catchError(() => {
                     // Nếu không có cart, trả về null - backend sẽ tự tạo khi add item đầu tiên
@@ -67,7 +69,9 @@ export class CartService {
 
     // Tạo cart mới trên server
     private createCartOnServer(userId: number): Observable<CartResponse> {
-        return this.http.post<CartResponse>(`${this.apiUrl}/${userId}`, {});
+        return this.http
+            .post<ApiResponse<CartResponse>>(`${this.apiUrl}/${userId}`, {})
+            .pipe(map((resp) => resp.data));
     }
 
     // Cập nhật local cart từ server response
@@ -135,9 +139,10 @@ export class CartService {
         console.log('addItemToCart called with:', { userId, productId, quantity });
         debugger;
         return this.http
-            .post<CartItemResponse>(`${this.apiUrl}/items/${userId}`, null, {
+            .post<ApiResponse<CartItemResponse>>(`${this.apiUrl}/items/${userId}`, null, {
                 params: { productId: productId.toString(), quantity: quantity.toString() },
             })
+            .pipe(map((resp) => resp.data))
             .pipe(
                 tap((cartItem) => {
                     console.log('Cart item response:', cartItem);
@@ -207,7 +212,8 @@ export class CartService {
             return of(void 0);
         }
 
-        return this.http.delete<void>(`${this.apiUrl}/${this.currentCartId}`).pipe(
+        return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${this.currentCartId}`).pipe(
+            map((resp) => resp.data),
             tap(() => {
                 this.clearLocalCart();
             })
@@ -220,9 +226,10 @@ export class CartService {
         }
 
         return this.http
-            .put<CartItemResponse>(`${this.apiUrl}/items/${cartItemId}`, null, {
+            .put<ApiResponse<CartItemResponse>>(`${this.apiUrl}/items/${cartItemId}`, null, {
                 params: { quantity: quantity.toString() },
             })
+            .pipe(map((resp) => resp.data))
             .pipe(
                 tap((updatedItem) => {
                     console.log('Cart item updated:', updatedItem);
@@ -240,7 +247,8 @@ export class CartService {
     }
 
     removeFromCart(cartItemId: number): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/items/${cartItemId}`).pipe(
+        return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/items/${cartItemId}`).pipe(
+            map((resp) => resp.data),
             tap(() => {
                 console.log('Cart item removed:', cartItemId);
                 // Tìm và xóa item khỏi local cart
@@ -264,12 +272,15 @@ export class CartService {
             return of([]);
         }
 
-        return this.http.get<CartItemResponse[]>(`${this.apiUrl}/items/${cartId}`);
+        return this.http
+            .get<ApiResponse<CartItemResponse[]>>(`${this.apiUrl}/items/${cartId}`)
+            .pipe(map((resp) => resp.data));
     }
 
     // Method để lấy cart theo userId
     getCartByUserId(userId: number): Observable<CartResponse | null> {
-        return this.http.get<CartResponse>(`${this.apiUrl}/${userId}`).pipe(
+        return this.http.get<ApiResponse<CartResponse>>(`${this.apiUrl}/${userId}`).pipe(
+            map((resp) => resp.data),
             tap((cart) => {
                 if (cart) {
                     this.cartSubject.next(cart);

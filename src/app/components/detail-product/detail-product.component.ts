@@ -52,10 +52,12 @@ export class DetailProductComponent implements OnInit {
                     if (response.product_images && response.product_images.length > 0) {
                         response.product_images.forEach((product_image: ProductImage) => {
                             if (!product_image.image_url.startsWith('http')) {
+                                debugger;
                                 product_image.image_url = `${environment.apiBaseUrl}/products/images/${product_image.image_url}`;
                             }
                         });
                     }
+                    response.thumbnail = `${environment.apiBaseUrl}/products/images/${response.thumbnail}`;
                     debugger;
                     this.product = response;
                     // Bắt đầu với ảnh đầu tiên
@@ -137,51 +139,39 @@ export class DetailProductComponent implements OnInit {
                                 timeOut: 3000,
                                 progressBar: true,
                                 closeButton: true,
-                                positionClass: 'toast-top-right'
+                                positionClass: 'toast-top-right',
                             }
                         );
                     },
                     error: (error) => {
                         console.error('Error adding to cart:', error);
-                        this.toastr.error(
-                            'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
-                            'Lỗi',
-                            {
-                                timeOut: 3000,
-                                progressBar: true,
-                                closeButton: true,
-                                positionClass: 'toast-top-right'
-                            }
-                        );
-                    }
+                        this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                            timeOut: 3000,
+                            progressBar: true,
+                            closeButton: true,
+                            positionClass: 'toast-top-right',
+                        });
+                    },
                 });
-                
+
                 console.log('Thêm sản phẩm thành công');
             } catch (error) {
                 // Hiển thị toast lỗi
-                this.toastr.error(
-                    'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
-                    'Lỗi',
-                    {
-                        timeOut: 3000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right'
-                    }
-                );
-                console.log('Không thể thêm sản phẩm vào giỏ hàng');
-            }
-        } else {
-            this.toastr.warning(
-                'Không tìm thấy thông tin sản phẩm!',
-                'Cảnh báo',
-                {
+                this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
                     timeOut: 3000,
                     progressBar: true,
                     closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
+                    positionClass: 'toast-top-right',
+                });
+                console.log('Không thể thêm sản phẩm vào giỏ hàng');
+            }
+        } else {
+            this.toastr.warning('Không tìm thấy thông tin sản phẩm!', 'Cảnh báo', {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
             console.log('Không thể thêm sản phẩm vào giỏ hàng');
         }
     }
@@ -198,10 +188,10 @@ export class DetailProductComponent implements OnInit {
                             timeOut: 2000,
                             progressBar: true,
                             closeButton: true,
-                            positionClass: 'toast-top-right'
+                            positionClass: 'toast-top-right',
                         }
                     );
-                    
+
                     // Chuyển hướng đến trang order sau 2 giây
                     setTimeout(() => {
                         this.router.navigate(['/orders']);
@@ -209,29 +199,21 @@ export class DetailProductComponent implements OnInit {
                 },
                 error: (error) => {
                     console.error('Error in buyNow:', error);
-                    this.toastr.error(
-                        'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!',
-                        'Lỗi',
-                        {
-                            timeOut: 3000,
-                            progressBar: true,
-                            closeButton: true,
-                            positionClass: 'toast-top-right'
-                        }
-                    );
-                }
+                    this.toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!', 'Lỗi', {
+                        timeOut: 3000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    });
+                },
             });
         } else {
-            this.toastr.warning(
-                'Không tìm thấy thông tin sản phẩm!',
-                'Cảnh báo',
-                {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right'
-                }
-            );
+            this.toastr.warning('Không tìm thấy thông tin sản phẩm!', 'Cảnh báo', {
+                timeOut: 3000,
+                progressBar: true,
+                closeButton: true,
+                positionClass: 'toast-top-right',
+            });
         }
     }
 }

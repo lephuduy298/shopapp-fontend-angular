@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, forkJoin, catchError, map } from 'rxjs';
+import { ApiResponse } from '../responses/common/api-response';
 import { environment } from '../environments/environment';
 import { OrderService } from './order.service';
 import { ProductService } from './product.service';
@@ -29,7 +30,8 @@ export class DashboardService {
     getDashboardStats(): Observable<DashboardStats> {
         // Phương pháp 1: Thử lấy từ API dashboard chuyên dụng trước
         debugger;
-        return this.http.get<DashboardStats>(`${this.apiDashboard}/stats`).pipe(
+        return this.http.get<ApiResponse<DashboardStats>>(`${this.apiDashboard}/stats`).pipe(
+            map((resp) => resp.data),
             catchError((error) => {
                 console.log('Dashboard API không khả dụng, fallback to individual APIs:', error);
                 // return this.getDashboardStatsFromIndividualAPIs();
@@ -110,8 +112,8 @@ export class DashboardService {
      * Lấy tổng số users - cần backend tạo endpoint mới
      */
     private getTotalUsers(): Observable<number> {
-        return this.http.get<{ total: number }>(`${environment.apiBaseUrl}/users/count`).pipe(
-            map((response) => response.total || 0),
+        return this.http.get<ApiResponse<{ total: number }>>(`${environment.apiBaseUrl}/users/count`).pipe(
+            map((response) => response.data.total || 0),
             catchError(() => {
                 console.log('API /users/count chưa có, backend cần tạo endpoint này');
                 return of(0);

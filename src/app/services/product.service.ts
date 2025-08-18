@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { Product } from '../components/models.ts/product';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiResponse } from '../responses/common/api-response';
 
 @Injectable({
     providedIn: 'root',
@@ -21,7 +23,9 @@ export class ProductService {
 
         debugger;
 
-        return this.http.get<Product[]>(this.apiGetProducts, { params });
+        return this.http
+            .get<ApiResponse<Product[]>>(this.apiGetProducts, { params })
+            .pipe(map((resp) => resp.data));
     }
 
     getProductsWithFilter(
@@ -70,11 +74,13 @@ export class ProductService {
             }
         }
 
-        return this.http.get<any>(this.apiGetProducts, { params });
+    return this.http.get<ApiResponse<any>>(this.apiGetProducts, { params }).pipe(map((resp) => resp.data));
     }
 
     getDetailProduct(productId: number) {
-        return this.http.get(`${environment.apiBaseUrl}/products/${productId}`);
+        return this.http
+            .get<ApiResponse<any>>(`${environment.apiBaseUrl}/products/${productId}`)
+            .pipe(map((resp) => resp.data));
     }
 
     getProductsByIds(productIds: number[]): Observable<Product[]> {
@@ -82,7 +88,9 @@ export class ProductService {
         const apiConfig = `${environment.apiBaseUrl}/products/by-ids`;
         const params = new HttpParams().set('ids', productIds.join(','));
 
-        return this.http.get<Product[]>(apiConfig, { params });
+        return this.http
+            .get<ApiResponse<Product[]>>(apiConfig, { params })
+            .pipe(map((resp) => resp.data));
     }
 
     // Admin methods for CRUD operations
@@ -103,29 +111,41 @@ export class ProductService {
             params = params.set('category_id', categoryId.toString());
         }
 
-        return this.http.get<any>(`${this.apiGetProducts}`, { params });
+        return this.http
+            .get<ApiResponse<any>>(`${this.apiGetProducts}`, { params })
+            .pipe(map((resp) => resp.data));
     }
 
     getProductById(id: number): Observable<Product> {
-        return this.http.get<Product>(`${this.apiGetProducts}/${id}`);
+        return this.http
+            .get<ApiResponse<Product>>(`${this.apiGetProducts}/${id}`)
+            .pipe(map((resp) => resp.data));
     }
 
     createProduct(product: Omit<Product, 'id'> | FormData): Observable<Product> {
-        return this.http.post<Product>(this.apiGetProducts, product);
+        return this.http
+            .post<ApiResponse<Product>>(this.apiGetProducts, product)
+            .pipe(map((resp) => resp.data));
     }
 
     updateProduct(id: number, product: Partial<Product> | FormData): Observable<Product> {
-        return this.http.put<Product>(`${this.apiGetProducts}/${id}`, product);
+        return this.http
+            .put<ApiResponse<Product>>(`${this.apiGetProducts}/${id}`, product)
+            .pipe(map((resp) => resp.data));
     }
 
     deleteProduct(id: number): Observable<any> {
-        return this.http.delete(`${this.apiGetProducts}/${id}`, { responseType: 'text' });
+        return this.http
+            .delete<ApiResponse<any>>(`${this.apiGetProducts}/${id}`)
+            .pipe(map((resp) => resp.data));
     }
 
     uploadProductImage(productId: number, file: File): Observable<any> {
         const formData = new FormData();
         formData.append('file', file);
-        return this.http.post(`${this.apiGetProducts}/${productId}/upload-image`, formData);
+        return this.http
+            .post<ApiResponse<any>>(`${this.apiGetProducts}/${productId}/upload-image`, formData)
+            .pipe(map((resp) => resp.data));
     }
 
     // Create product with files
@@ -151,7 +171,9 @@ export class ProductService {
             });
         }
 
-        return this.http.post<Product>(this.apiGetProducts, formData);
+        return this.http
+            .post<ApiResponse<Product>>(this.apiGetProducts, formData)
+            .pipe(map((resp) => resp.data));
     }
 
     // Update product with files
@@ -182,16 +204,22 @@ export class ProductService {
             });
         }
 
-        return this.http.put<Product>(`${this.apiGetProducts}/${id}`, formData);
+        return this.http
+            .put<ApiResponse<Product>>(`${this.apiGetProducts}/${id}`, formData)
+            .pipe(map((resp) => resp.data));
     }
 
     // Delete product image
     deleteProductImage(imageId: number): Observable<any> {
-        return this.http.delete(`${this.apiGetProducts}/images/${imageId}`);
+        return this.http
+            .delete<ApiResponse<any>>(`${this.apiGetProducts}/images/${imageId}`)
+            .pipe(map((resp) => resp.data));
     }
 
     // Delete product thumbnail
     deleteProductThumbnail(productId: number): Observable<any> {
-        return this.http.delete(`${this.apiGetProducts}/${productId}/thumbnail`);
+        return this.http
+            .delete<ApiResponse<any>>(`${this.apiGetProducts}/${productId}/thumbnail`)
+            .pipe(map((resp) => resp.data));
     }
 }

@@ -72,9 +72,9 @@ export class HomeComponent implements OnInit {
                 // Parse slug-based price ranges
                 const priceRangesSlugs = params['muc-gia'].split(',');
                 this.selectedPriceRanges = [];
-                
+
                 for (const slug of priceRangesSlugs) {
-                    const matchingRange = this.priceRanges.find(r => r.slug === slug);
+                    const matchingRange = this.priceRanges.find((r) => r.slug === slug);
                     if (matchingRange) {
                         this.selectedPriceRanges.push(matchingRange);
                     }
@@ -154,6 +154,7 @@ export class HomeComponent implements OnInit {
 
     getProducts(keyword: string, selectedCategoryId: number, page: number, limit: number) {
         // Luôn sử dụng pagination từ backend - không có filter
+        debugger;
         this.busyService.busy();
         this.productService.getProducts(keyword, selectedCategoryId, page, limit).subscribe({
             next: (response: any) => {
@@ -183,11 +184,10 @@ export class HomeComponent implements OnInit {
     getProductsWithFilter() {
         // Gọi backend với filter parameters
         const brandFilter = this.selectedBrands.length > 0 ? this.selectedBrands.join(',') : undefined;
-        
+
         // Gửi danh sách price ranges slugs xuống backend
-        const priceRangesSlugs = this.selectedPriceRanges.length > 0 
-            ? this.selectedPriceRanges.map(range => range.slug) 
-            : undefined;
+        const priceRangesSlugs =
+            this.selectedPriceRanges.length > 0 ? this.selectedPriceRanges.map((range) => range.slug) : undefined;
 
         this.busyService.busy();
         this.productService
@@ -299,9 +299,7 @@ export class HomeComponent implements OnInit {
 
         // Add price range if exists - sử dụng format muc-gia=slug1,slug2
         if (this.selectedPriceRanges.length > 0) {
-            const priceRangesSlugs = this.selectedPriceRanges
-                .map(range => range.slug)
-                .join(',');
+            const priceRangesSlugs = this.selectedPriceRanges.map((range) => range.slug).join(',');
             queryParams['muc-gia'] = priceRangesSlugs;
         }
 
@@ -374,7 +372,7 @@ export class HomeComponent implements OnInit {
                     positionClass: 'toast-top-right',
                 });
                 this.busyService.idle();
-            }
+            },
         });
     }
 
@@ -386,12 +384,16 @@ export class HomeComponent implements OnInit {
         this.cartService.addToCart(productId, 1).subscribe({
             next: () => {
                 // Hiển thị toast thông báo
-                this.toastr.info(`${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`, 'Mua ngay', {
-                    timeOut: 2000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right',
-                });
+                this.toastr.info(
+                    `${productName} đã được thêm vào giỏ hàng. Chuyển hướng đến trang đặt hàng...`,
+                    'Mua ngay',
+                    {
+                        timeOut: 2000,
+                        progressBar: true,
+                        closeButton: true,
+                        positionClass: 'toast-top-right',
+                    }
+                );
 
                 // Chuyển hướng sau 1 giây để user thấy được toast
                 setTimeout(() => {
@@ -406,7 +408,7 @@ export class HomeComponent implements OnInit {
                     closeButton: true,
                     positionClass: 'toast-top-right',
                 });
-            }
+            },
         });
     }
 }

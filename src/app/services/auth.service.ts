@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { UserResponse } from '../responses/user/user.response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
+import { ApiResponse } from '../responses/common/api-response';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -42,7 +43,9 @@ export class AuthService {
 
     // Get user details from API
     getCurrentUserFromApi(): Observable<UserResponse> {
-        return this.http.post<UserResponse>(this.apiUserDetails, {});
+        return this.http
+            .post<ApiResponse<UserResponse>>(this.apiUserDetails, {})
+            .pipe(map((resp) => resp.data));
     }
 
     // Update current user from API and return it
@@ -64,6 +67,8 @@ export class AuthService {
         debugger;
         // Implement your logic to refresh the access token here
         // For example, you might call an API endpoint to get a new token
-        return this.http.get(this.apiRefresh, { withCredentials: true });
+        return this.http
+            .get<ApiResponse<any>>(this.apiRefresh, { withCredentials: true })
+            .pipe(map((resp) => resp.data));
     }
 }

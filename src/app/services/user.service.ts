@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RegisterDTO } from '../dtos/user/register.dto';
 import { LoginDTO } from '../dtos/user/login.dto';
 import { environment } from '../environments/environment';
@@ -11,6 +12,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { UpdateUserDTO } from '../dtos/user/update.dto';
 import { signal } from '@angular/core';
 import { ResultPagination } from '../responses/user/result-pagination.response';
+import { ApiResponse } from '../responses/common/api-response';
 
 @Injectable({
     providedIn: 'root',
@@ -33,7 +35,9 @@ export class UserService {
     }
 
     register(registerDTO: RegisterDTO): Observable<any> {
-        return this.http.post(this.apiRegister, registerDTO, this.apiConfig);
+        return this.http
+            .post<ApiResponse<any>>(this.apiRegister, registerDTO, this.apiConfig)
+            .pipe(map((resp) => resp.data));
     }
 
     login(loginDTO: LoginDTO): Observable<any> {
@@ -41,7 +45,7 @@ export class UserService {
             ...this.apiConfig,
             withCredentials: true,
         };
-        return this.http.post(this.apiLogin, loginDTO, options);
+        return this.http.post<ApiResponse<any>>(this.apiLogin, loginDTO, options).pipe(map((resp) => resp.data));
     }
 
     logout(): Observable<any> {
@@ -49,7 +53,9 @@ export class UserService {
             ...this.apiConfig,
             withCredentials: true,
         };
-        return this.http.post(this.apiLogout, {}, options);
+        return this.http
+            .post<ApiResponse<any>>(this.apiLogout, {}, options)
+            .pipe(map((resp) => resp.data));
     }
 
     refreshAccessToken(): Observable<any> {
@@ -58,11 +64,13 @@ export class UserService {
             ...this.apiConfig,
             withCredentials: true,
         };
-        return this.http.get(this.apiRefresh, options);
+        return this.http.get<ApiResponse<any>>(this.apiRefresh, options).pipe(map((resp) => resp.data));
     }
 
     getUserDetail(): Observable<UserResponse> {
-        return this.http.post<UserResponse>(this.apiGetUserDetail, {}, this.apiConfig);
+        return this.http
+            .post<ApiResponse<UserResponse>>(this.apiGetUserDetail, {}, this.apiConfig)
+            .pipe(map((resp) => resp.data));
     }
 
     saveUserToLocalStorage(userResponse?: UserResponse) {
@@ -125,7 +133,9 @@ export class UserService {
 
     // Lấy thông tin user theo ID
     getUserById(id: number): Observable<UserResponse> {
-        return this.http.get<UserResponse>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig);
+        return this.http
+            .get<ApiResponse<UserResponse>>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig)
+            .pipe(map((resp) => resp.data));
     }
 
     // Lấy danh sách tất cả users với filter và pagination
@@ -166,17 +176,30 @@ export class UserService {
                       .join('&')
                 : '';
 
-        return this.http.get<ResultPagination>(`${environment.apiBaseUrl}/users${queryString}`, this.apiConfig);
+        return this.http
+            .get<ApiResponse<ResultPagination>>(
+                `${environment.apiBaseUrl}/users${queryString}`,
+                this.apiConfig
+            )
+            .pipe(map((resp) => resp.data));
     }
 
     // Cập nhật thông tin user theo ID
     updateUser(id: number, updateUserDTO: UpdateUserDTO): Observable<UserResponse> {
-        return this.http.put<UserResponse>(`${environment.apiBaseUrl}/users/${id}`, updateUserDTO, this.apiConfig);
+        return this.http
+            .put<ApiResponse<UserResponse>>(
+                `${environment.apiBaseUrl}/users/${id}`,
+                updateUserDTO,
+                this.apiConfig
+            )
+            .pipe(map((resp) => resp.data));
     }
 
     // Xóa user theo ID
     deleteUser(id: number): Observable<void> {
-        return this.http.delete<void>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig);
+        return this.http
+            .delete<ApiResponse<void>>(`${environment.apiBaseUrl}/users/${id}`, this.apiConfig)
+            .pipe(map((resp) => resp.data));
     }
 
     removeUserFromLocalStorage(): void {
@@ -206,7 +229,9 @@ export class UserService {
 
     // Block user by ID (backend @DeleteMapping("/block/{id}"))
     blockAndActiveUser(id: number): Observable<void> {
-        return this.http.delete<void>(`${environment.apiBaseUrl}/users/block/${id}`, this.apiConfig);
+        return this.http
+            .delete<ApiResponse<void>>(`${environment.apiBaseUrl}/users/block/${id}`, this.apiConfig)
+            .pipe(map((resp) => resp.data));
     }
 
     // Backward compatible alias
