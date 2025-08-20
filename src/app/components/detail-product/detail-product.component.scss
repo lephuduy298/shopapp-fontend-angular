@@ -259,6 +259,160 @@
     font-weight: 400;
 }
 
+/* Comments styling */
+.product-comments {
+    margin-top: 20px;
+}
+.product-comments h3 {
+    margin-bottom: 12px;
+    color: #1976d2;
+}
+.comment-card {
+    background: #ffffff; /* keep white background */
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.comment-card + .comment-card {
+    margin-top: 10px;
+}
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex: 0 0 48px;
+    margin-right: 12px;
+}
+.comment-body {
+    flex: 1 1 auto;
+}
+.comment-card {
+    position: relative;
+}
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.comment-author {
+    font-weight: 600;
+    color: #222;
+}
+.comment-date {
+    font-size: 0.9rem;
+    color: #777;
+}
+.comment-content {
+    color: #333;
+    line-height: 1.45;
+}
+
+/* Position menu to the right of the comment card */
+.comment-body > .ms-auto {
+    position: absolute !important;
+    top: 28%;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ensure content doesn't overlap the menu */
+.comment-content {
+    padding-right: 64px; /* space for the menu */
+}
+
+/* Simple modal overlay + card for delete confirmation */
+.modal-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    padding: 20px;
+}
+.modal-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 18px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    color: #222;
+}
+.modal-card h5 {
+    margin: 0 0 8px 0;
+    color: #d32f2f;
+}
+.modal-card p {
+    margin: 0;
+    color: #444;
+}
+.modal-card .btn + .btn {
+    margin-left: 8px;
+}
+
+/* Slightly emphasize disabled state for primary buttons when disabled */
+.btn[disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* three-dot menu for comment actions */
+.btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 25px;
+    line-height: 1;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: #666;
+}
+.comment-menu {
+    position: relative;
+}
+.menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 26px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    min-width: 140px;
+    z-index: 1300;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+}
+.menu-item {
+    font-size: 1rem;
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: #333;
+}
+.menu-item:hover {
+    background: #f5f5f5;
+}
+
+.fa-solid {
+    margin-right: 8px;
+}
+
 // Số lượng sản phẩm
 .product-quantity {
     display: flex;

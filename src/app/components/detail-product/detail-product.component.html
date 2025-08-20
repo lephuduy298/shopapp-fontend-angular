@@ -111,5 +111,101 @@
             </div>
         </div>
     </div>
+    <div class="product-comments mt-4">
+        <h3>Bình luận</h3>
+        <div *ngIf="comments && comments.length > 0; else noComments">
+            <div *ngFor="let c of comments" class="comment-card mb-3 d-flex align-items-start">
+                <div class="avatar" [title]="c.user?.fullname || 'User ' + (c.user?.id || '')">
+                    <ng-container *ngIf="c.user">
+                        <span *ngIf="c.user.fullname; else idInitial">{{ c.user.fullname.charAt(0) | uppercase }}</span>
+                        <ng-template #idInitial>
+                            <span>{{ (c.user.id != null ? c.user.id + '' : 'U').charAt(0) | uppercase }}</span>
+                        </ng-template>
+                    </ng-container>
+                </div>
+                <div class="comment-body">
+                    <div class="comment-header d-flex align-items-center">
+                        <div class="comment-author">{{ c.user?.fullname || 'User ' + (c.user.id || '') }}</div>
+                        <div class="comment-date ms-2">{{ getRelativeTime(c.updated_at) }}</div>
+                    </div>
+                    <div class="comment-content" style="color: #333">
+                        <div *ngIf="editingCommentId !== c.id">
+                            {{ c.content }}
+                        </div>
+                        <div *ngIf="editingCommentId === c.id">
+                            <textarea [(ngModel)]="newCommentContentEdit" rows="3" class="form-control"></textarea>
+                            <div class="mt-2">
+                                <button
+                                    class="btn btn-sm btn-primary me-2"
+                                    (click)="saveEdit(c.id)"
+                                    [disabled]="
+                                        !newCommentContentEdit ||
+                                        newCommentContentEdit.trim().length === 0 ||
+                                        newCommentContentEdit === c.content
+                                    "
+                                >
+                                    Lưu
+                                </button>
+                                <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">Hủy</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ms-auto d-flex align-items-center gap-2 position-relative">
+                        <div *ngIf="canEdit(c) || canDelete(c)" class="comment-menu">
+                            <button class="btn btn-sm btn-icon" (click)="toggleMenu(c.id!, $event)">⋮</button>
+                            <div class="menu-dropdown" *ngIf="openMenuId === c.id">
+                                <button
+                                    *ngIf="canEdit(c) && editingCommentId !== c.id"
+                                    class="menu-item"
+                                    (click)="startEdit(c); closeMenu()"
+                                >
+                                    <i class="fa-solid fa-pen"></i>
+                                    Chỉnh sửa
+                                </button>
+                                <button
+                                    *ngIf="canDelete(c)"
+                                    class="menu-item text-danger"
+                                    (click)="requestDelete(c.id!); closeMenu()"
+                                >
+                                    <i class="fa-solid fa-trash"></i>
+                                    Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ng-template #noComments>
+            <p class="text-muted">Chưa có bình luận nào. Hãy là người đầu tiên viết bình luận.</p>
+        </ng-template>
+
+        <div class="add-comment mt-3">
+            <textarea
+                [(ngModel)]="newCommentContent"
+                rows="3"
+                class="form-control"
+                placeholder="Viết bình luận..."
+            ></textarea>
+            <button
+                class="btn btn-primary mt-2"
+                (click)="submitComment()"
+                [disabled]="!newCommentContent || newCommentContent.trim().length === 0"
+            >
+                Gửi bình luận
+            </button>
+        </div>
+        <!-- Simple delete confirmation modal -->
+        <div class="modal-overlay" *ngIf="showDeleteModal">
+            <div class="modal-card">
+                <h5>Xác nhận xóa</h5>
+                <p>Bình luận này sẽ bị xóa vĩnh viễn. Bạn có chắc muốn tiếp tục?</p>
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button class="btn btn-secondary" (click)="cancelDelete()">Hủy</button>
+                    <button class="btn btn-danger" (click)="performDelete()">Xóa vĩnh viễn</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <app-footer></app-footer>
 </div>
