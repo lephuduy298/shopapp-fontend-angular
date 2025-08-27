@@ -5,6 +5,7 @@ export class UpdateUserDTO {
     password: string;
     retype_password: string;
     date_of_birth: Date;
+    phone_number: string;
 
     constructor(data: any) {
         this.fullname = data.fullname;
@@ -13,5 +14,6 @@ export class UpdateUserDTO {
         this.password = data.password;
         this.retype_password = data.retype_password;
         this.date_of_birth = data.date_of_birth;
+        this.phone_number = data.phone_number;
     }
 }

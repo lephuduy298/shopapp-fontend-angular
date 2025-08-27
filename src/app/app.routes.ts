@@ -12,11 +12,14 @@ import { AdminGuardFn } from './guards/admin.guard';
 import { adminRoutes } from './components/admin/admin.routes';
 import { UserOrderComponent } from './components/user-order/user-order.component';
 import { ToastlertComponent } from './components/toastlert/toastlert.component';
+import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 
 export const routes: Routes = [
     ...adminRoutes,
     { path: '', component: HomeComponent },
     { path: 'login', component: LoginComponent },
+    { path: 'auth/google/callback', component: AuthCallbackComponent },
+    { path: 'auth/facebook/callback', component: AuthCallbackComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'products/:id', component: DetailProductComponent },
     { path: 'orders', component: OrderComponent, canActivate: [AuthGuardFn] },

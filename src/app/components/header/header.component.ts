@@ -68,6 +68,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     private loadUserData(): void {
+        debugger;
         const token = this.tokenService.getToken();
         if (!token) {
             this.userResponse = null;
@@ -77,6 +78,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
         this.userService.getUserDetail().subscribe({
             next: (response: any) => {
+                debugger;
                 this.userResponse = response;
                 this.isUserDataLoaded = true;
             },
@@ -169,16 +171,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
             this.userService.logout().subscribe({
                 next: (response) => {
                     console.log('Logout successful:', response);
-                    
+
                     // Thực hiện đăng xuất local
                     this.performLocalLogout(userName);
                 },
                 error: (error) => {
                     console.error('Logout API error:', error);
-                    
+
                     // Vẫn thực hiện đăng xuất local ngay cả khi API lỗi
                     this.performLocalLogout(userName);
-                }
+                },
             });
         }
         this.isPopoverOpen = false;
@@ -200,15 +202,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isUserDataLoaded = true;
 
         // Hiển thị toast thông báo đăng xuất thành công
-        this.toastr.success(
-            '',
-            'Đăng xuất thành công',
-            {
-                timeOut: 3000,
-                progressBar: true,
-                closeButton: true,
-            }
-        );
+        this.toastr.success('', 'Đăng xuất thành công', {
+            timeOut: 3000,
+            progressBar: true,
+            closeButton: true,
+        });
 
         // Điều hướng về trang chủ sau một chút delay
         setTimeout(() => {

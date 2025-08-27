@@ -259,6 +259,7 @@ export class AccountAdminComponent implements OnInit {
         // Chỉ gửi password nếu người dùng nhập
         const updatePayload: UpdateUserDTO = {
             fullname: formValue.fullname,
+            phone_number: formValue.phone_number || '',
             address: formValue.address,
             current_password: formValue.current_password || '',
             password: formValue.password || '',

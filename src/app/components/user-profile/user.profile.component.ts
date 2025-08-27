@@ -32,6 +32,7 @@ export class UserProfileComponent implements OnInit {
     token: string = '';
     userResponse?: UserResponse;
     isEditMode: boolean = false;
+    canEditPhone: boolean = false;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -44,15 +45,14 @@ export class UserProfileComponent implements OnInit {
         this.userProfileForm = this.formBuilder.group(
             {
                 fullname: ['', [Validators.required]],
+                phone_number: [
+                    { value: '', disabled: !this.canEditPhone },
+                    [Validators.pattern(/^(0|\+84)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-4|6-9])[0-9]{7}$/)],
+                ],
                 address: ['', [Validators.minLength(3)]],
                 current_password: ['', []],
                 // Pattern: tối thiểu 6 ký tự, ít nhất 1 chữ và 1 số
-                password: [
-                    '',
-                    [
-                        Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/),
-                    ],
-                ],
+                password: ['', [Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/)]],
                 retype_password: [''],
                 date_of_birth: [Date.now()],
             },
@@ -76,6 +76,15 @@ export class UserProfileComponent implements OnInit {
                     address: this.userResponse?.address ?? '',
                     date_of_birth: this.userResponse?.date_of_birth.toISOString().substring(0, 10),
                 });
+                // Kiểm tra nếu chưa có số điện thoại thì cho phép chỉnh sửa
+                this.canEditPhone = !this.userResponse?.phone_number.trim();
+                // Enable/disable control sau khi xác định quyền chỉnh sửa
+                const phoneControl = this.userProfileForm.get('phone_number');
+                if (this.canEditPhone) {
+                    phoneControl?.enable();
+                } else {
+                    phoneControl?.disable();
+                }
             },
             complete: () => {
                 debugger;
@@ -123,6 +132,8 @@ export class UserProfileComponent implements OnInit {
                 password: this.userProfileForm.get('password')?.value,
                 retype_password: this.userProfileForm.get('retype_password')?.value,
                 date_of_birth: this.userProfileForm.get('date_of_birth')?.value,
+                // Nếu được phép chỉnh sửa số điện thoại thì lấy giá trị từ form
+                phone_number: this.canEditPhone ? this.userProfileForm.get('phone_number')?.value : undefined,
             };
 
             const user = JSON.parse(localStorage.getItem('user')!); // chuyển chuỗi về object

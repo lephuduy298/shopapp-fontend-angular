@@ -53,9 +53,7 @@ export class UserService {
             ...this.apiConfig,
             withCredentials: true,
         };
-        return this.http
-            .post<ApiResponse<any>>(this.apiLogout, {}, options)
-            .pipe(map((resp) => resp.data));
+        return this.http.post<ApiResponse<any>>(this.apiLogout, {}, options).pipe(map((resp) => resp.data));
     }
 
     refreshAccessToken(): Observable<any> {
@@ -68,6 +66,7 @@ export class UserService {
     }
 
     getUserDetail(): Observable<UserResponse> {
+        debugger;
         return this.http
             .post<ApiResponse<UserResponse>>(this.apiGetUserDetail, {}, this.apiConfig)
             .pipe(map((resp) => resp.data));
@@ -177,21 +176,14 @@ export class UserService {
                 : '';
 
         return this.http
-            .get<ApiResponse<ResultPagination>>(
-                `${environment.apiBaseUrl}/users${queryString}`,
-                this.apiConfig
-            )
+            .get<ApiResponse<ResultPagination>>(`${environment.apiBaseUrl}/users${queryString}`, this.apiConfig)
             .pipe(map((resp) => resp.data));
     }
 
     // Cập nhật thông tin user theo ID
     updateUser(id: number, updateUserDTO: UpdateUserDTO): Observable<UserResponse> {
         return this.http
-            .put<ApiResponse<UserResponse>>(
-                `${environment.apiBaseUrl}/users/${id}`,
-                updateUserDTO,
-                this.apiConfig
-            )
+            .put<ApiResponse<UserResponse>>(`${environment.apiBaseUrl}/users/${id}`, updateUserDTO, this.apiConfig)
             .pipe(map((resp) => resp.data));
     }
 

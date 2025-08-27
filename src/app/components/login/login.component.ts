@@ -173,4 +173,30 @@ export class LoginComponent implements OnInit {
     clearErrorMessage() {
         this.errorMessage = '';
     }
+
+    // Đăng nhập với Google
+    loginWithGoogle() {
+        debugger;
+        this.authService.authenticate('google').subscribe({
+            next: (url: string) => {
+                debugger;
+                window.location.href = url;
+                // Sau khi xác thực thành công ở Google, các xử lý user/cart/toast sẽ thực hiện ở auth-callback.component.ts
+            },
+            error: (error) => {
+                console.error('Google login failed:', error);
+            },
+        });
+    }
+
+    loginWithFacebook() {
+        this.authService.authenticate('facebook').subscribe({
+            next: (response) => {
+                console.log('Facebook login successful:', response);
+            },
+            error: (error) => {
+                console.error('Facebook login failed:', error);
+            },
+        });
+    }
 }

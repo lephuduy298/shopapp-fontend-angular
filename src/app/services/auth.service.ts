@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { UserResponse } from '../responses/user/user.response';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { ApiResponse } from '../responses/common/api-response';
 
@@ -10,6 +10,7 @@ import { ApiResponse } from '../responses/common/api-response';
 export class AuthService {
     private apiRefresh = `${environment.apiBaseUrl}/users/refresh`;
     private apiUserDetails = `${environment.apiBaseUrl}/users/details`;
+    private apiLoginWithSocial = `${environment.apiBaseUrl}/users/auth`;
 
     constructor(private http: HttpClient) {}
     private accessToken: string | null = null;
@@ -43,15 +44,13 @@ export class AuthService {
 
     // Get user details from API
     getCurrentUserFromApi(): Observable<UserResponse> {
-        return this.http
-            .post<ApiResponse<UserResponse>>(this.apiUserDetails, {})
-            .pipe(map((resp) => resp.data));
+        return this.http.post<ApiResponse<UserResponse>>(this.apiUserDetails, {}).pipe(map((resp) => resp.data));
     }
 
     // Update current user from API and return it
     refreshCurrentUser(): Observable<UserResponse> {
         return this.getCurrentUserFromApi().pipe(
-            tap(user => {
+            tap((user) => {
                 this.setCurrentUser(user);
             })
         );
@@ -67,8 +66,23 @@ export class AuthService {
         debugger;
         // Implement your logic to refresh the access token here
         // For example, you might call an API endpoint to get a new token
-        return this.http
-            .get<ApiResponse<any>>(this.apiRefresh, { withCredentials: true })
-            .pipe(map((resp) => resp.data));
+        return this.http.get<ApiResponse<any>>(this.apiRefresh, { withCredentials: true });
+    }
+
+    authenticate(login_type: 'google' | 'facebook'): Observable<any> {
+        return this.http.get(`${this.apiLoginWithSocial}/social-login`, {
+            params: { login_type },
+            withCredentials: true,
+            responseType: 'text' as 'json', // trick để Angular chấp nhận
+        });
+    }
+
+    exchangeCodeForToken(code: string, loginType: 'google' | 'facebook'): Observable<any> {
+        debugger;
+        const params = new HttpParams().set('code', code).set('login_type', loginType);
+        return this.http.get<any>(`${this.apiLoginWithSocial}/social/callback`, {
+            params,
+            withCredentials: true,
+        });
     }
 }

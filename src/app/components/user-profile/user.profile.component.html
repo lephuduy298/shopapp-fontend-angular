@@ -30,8 +30,37 @@
                 </div>
             </div>
             <div class="profile-info-row">
+                <div class="profile-info-label">Email</div>
+                <div class="profile-info-value">
+                    {{ userResponse?.email || '---' }}
+                </div>
+            </div>
+            <div class="profile-info-row">
                 <div class="profile-info-label">Số điện thoại</div>
-                <div class="profile-info-value">{{ userResponse?.phone_number || '---' }}</div>
+                <div class="profile-info-value">
+                    <ng-container *ngIf="!isEditMode || !canEditPhone; else editPhone">
+                        {{ userResponse?.phone_number || '---' }}
+                    </ng-container>
+                    <ng-template #editPhone>
+                        <input
+                            type="text"
+                            formControlName="phone_number"
+                            class="form-control"
+                            placeholder="Nhập số điện thoại"
+                            [class.is-invalid]="
+                                userProfileForm.get('phone_number')?.invalid && userProfileForm.get('phone_number')?.touched
+                            "
+                        />
+                        <div
+                            *ngIf="
+                                userProfileForm.get('phone_number')?.invalid && userProfileForm.get('phone_number')?.touched
+                            "
+                            class="invalid-feedback"
+                        >
+                            Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng số điện thoại Việt Nam.
+                        </div>
+                    </ng-template>
+                </div>
             </div>
             <div class="profile-info-row">
                 <div class="profile-info-label">Địa chỉ</div>

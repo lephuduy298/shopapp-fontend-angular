@@ -77,6 +77,33 @@
                 ></span>
                 {{ isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
             </button>
+            <div class="divider-social">
+                <span class="divider-line"></span>
+                <span class="divider-text">hoặc đăng nhập với</span>
+                <span class="divider-line"></span>
+            </div>
+            <div class="social-login-buttons">
+                <button type="button" class="social-btn google-btn" (click)="loginWithGoogle()">
+                    <span class="social-icon">
+                        <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png"
+                            alt="Google G"
+                        />
+                    </span>
+                    Google
+                    <!-- <span class="social-text">Google</span> -->
+                </button>
+                <button type="button" class="social-btn facebook-btn" (click)="loginWithFacebook()">
+                    <span class="social-icon">
+                        <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                            alt="Facebook"
+                        />
+                    </span>
+                    Facebook
+                    <!-- <span class="social-text">Facebook</span> -->
+                </button>
+            </div>
         </form>
         <div class="divider"></div>
         <p class="text-center mt-3">

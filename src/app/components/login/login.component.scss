@@ -1,3 +1,85 @@
+// CSS cho nút đăng nhập mạng xã hội
+.social-login-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
+    background: #f8f9fa;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 0 16px;
+}
+
+.social-btn:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: #aaa;
+    background: #fff;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+}
+
+.social-icon img {
+    width: 24px;
+    height: 24px;
+}
+
+.social-text {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+.divider-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 18px 0 0 0;
+    width: 100%;
+}
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 0 8px;
+}
+.divider-text {
+    font-size: 15px;
+    color: #888;
+    font-weight: 500;
+}
+
+.google-btn {
+    border-color: #e0e0e0;
+}
+
+.facebook-btn {
+    border-color: #1877f2;
+}
+.facebook-btn .social-text {
+    color: #1877f2;
+}
 @import '../../styles/shared-style.scss';
 
 .container {
@@ -16,7 +98,7 @@
     max-width: 520px;
     width: 100%;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 4px 32px 0 rgba(0,0,0,0.10);
+    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.1);
     align-items: center;
     justify-content: center;
 }
@@ -168,12 +250,13 @@
     font-weight: 700;
     font-size: 1.25rem;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 16px 0 rgba(230,0,0,0.10);
+    box-shadow: 0 4px 16px 0 rgba(230, 0, 0, 0.1);
     transition: background 0.2s, box-shadow 0.2s;
 }
-.login-button:hover, .login-button:focus {
+.login-button:hover,
+.login-button:focus {
     background: #b71c1c;
-    box-shadow: 0 8px 24px 0 rgba(230,0,0,0.18);
+    box-shadow: 0 8px 24px 0 rgba(230, 0, 0, 0.18);
 }
 
 // Disabled state cho nút đăng nhập
@@ -195,7 +278,7 @@
     font-size: 1rem;
     display: flex;
     align-items: center;
-    
+
     i {
         color: #dc2626;
         font-size: 1.1rem;
