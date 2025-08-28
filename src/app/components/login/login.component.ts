@@ -191,8 +191,9 @@ export class LoginComponent implements OnInit {
 
     loginWithFacebook() {
         this.authService.authenticate('facebook').subscribe({
-            next: (response) => {
-                console.log('Facebook login successful:', response);
+            next: (url: string) => {
+                console.log('Facebook login successful:', url);
+                window.location.href = url;
             },
             error: (error) => {
                 console.error('Facebook login failed:', error);

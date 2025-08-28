@@ -8,11 +8,14 @@ import { UserService } from '../../services/user.service';
 import { first } from 'rxjs/operators';
 import { CartService } from '../../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
+import { HeaderComponent } from '../header/header.component';
+import { FooterComponent } from '../footer/footer.component';
 
 @Component({
     selector: 'app-auth-callback',
     templateUrl: './auth-callback.component.html',
     styleUrls: ['./auth-callback.component.scss'],
+    imports: [HeaderComponent, FooterComponent],
 })
 export class AuthCallbackComponent implements OnInit {
     userResponse: any;
