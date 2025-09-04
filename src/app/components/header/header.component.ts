@@ -68,7 +68,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     private loadUserData(): void {
-        debugger;
         const token = this.tokenService.getToken();
         if (!token) {
             this.userResponse = null;

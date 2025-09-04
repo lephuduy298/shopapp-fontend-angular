@@ -77,12 +77,15 @@ export class AuthService {
         });
     }
 
-    exchangeCodeForToken(code: string, loginType: 'google' | 'facebook'): Observable<any> {
+    exchangeCodeForToken(code: string, login_type: 'google' | 'facebook'): Observable<any> {
         debugger;
-        const params = new HttpParams().set('code', code).set('login_type', loginType);
-        return this.http.get<any>(`${this.apiLoginWithSocial}/social/callback`, {
-            params,
-            withCredentials: true,
-        });
+        const body = { code, login_type };
+        return this.http.post<any>(
+            `${this.apiLoginWithSocial}/social/callback`,
+            body, // ✅ đây là request body
+            {
+                withCredentials: true, // ✅ cookie sẽ lưu được
+            }
+        );
     }
 }

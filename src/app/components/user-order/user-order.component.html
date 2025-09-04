@@ -49,12 +49,39 @@
                 <div class="order-header">
                     <div class="order-info">
                         <div class="order-number">Order : #{{ order.id }}</div>
-                        <div class="order-payment">Order Payment : {{ order.order_date | date : 'dd MMM yyyy' }}</div>
+                        <div
+                            class="order-payment"
+                            [ngClass]="{
+                                'payment-vnpay': order.payment_method === 'vn_pay',
+                                'payment-cod': order.payment_method === 'cod'
+                            }"
+                        >
+                            Order Payment : {{ order.order_date | date : 'dd MMM yyyy' }}
+                        </div>
+                        <div
+                            class="order-payment-method"
+                            [ngClass]="{
+                                'payment-vnpay': order.payment_method === 'vn_pay',
+                                'payment-cod': order.payment_method === 'cod'
+                            }"
+                        >
+                            Payment Method:
+                            <b *ngIf="order.payment_method === 'vn_pay'">VN Pay</b>
+                            <b *ngIf="order.payment_method === 'cod'">COD</b>
+                            <b *ngIf="order.payment_method !== 'vn_pay' && order.payment_method !== 'cod'">
+                                {{ order.payment_method | titlecase }}
+                            </b>
+                        </div>
                         <div class="order-summary">{{ getOrderStatusSummary(order) }}</div>
                     </div>
                     <div class="order-actions">
-                        <button class="show-invoice-btn" (click)="showInvoice(order.id)">Show Invoice</button>
-                        <button class="buy-now-btn" (click)="buyNow(order.id)">Buy Now</button>
+                        <button
+                            *ngIf="order.payment_method === 'vn_pay' && order.status === 'pending'"
+                            class="btn btn-danger"
+                            (click)="payVNPayOrder(order.id)"
+                        >
+                            Đơn hàng đang chờ thanh toán
+                        </button>
                     </div>
                 </div>
 
@@ -112,6 +139,7 @@
                         }"
                         ></i>
                         <span class="status-text">{{ getOrderStatusText(order) }}</span>
+                        <!-- Đã chuyển nút lên order-actions -->
                     </div>
                     <div class="order-total">
                         <span class="total-label">Total Price:</span>

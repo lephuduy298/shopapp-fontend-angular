@@ -13,11 +13,12 @@ import { CartService } from '../../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
 import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
 import { BusyService } from '../../services/busy.service';
+import { TruncatePipe } from '../../pipes/truncate.pipe';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, VndCurrencyPipe],
+    imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, VndCurrencyPipe, TruncatePipe],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
 })

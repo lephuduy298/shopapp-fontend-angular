@@ -69,9 +69,7 @@ export class CartService {
 
     // Tạo cart mới trên server
     private createCartOnServer(userId: number): Observable<CartResponse> {
-        return this.http
-            .post<ApiResponse<CartResponse>>(`${this.apiUrl}/${userId}`, {})
-            .pipe(map((resp) => resp.data));
+        return this.http.post<ApiResponse<CartResponse>>(`${this.apiUrl}/${userId}`, {}).pipe(map((resp) => resp.data));
     }
 
     // Cập nhật local cart từ server response
@@ -212,8 +210,7 @@ export class CartService {
             return of(void 0);
         }
 
-        return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${this.currentCartId}`).pipe(
-            map((resp) => resp.data),
+        return this.http.delete<void>(`${this.apiUrl}/${this.currentCartId}`).pipe(
             tap(() => {
                 this.clearLocalCart();
             })
@@ -247,12 +244,11 @@ export class CartService {
     }
 
     removeFromCart(cartItemId: number): Observable<void> {
-        return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/items/${cartItemId}`).pipe(
-            map((resp) => resp.data),
+        return this.http.delete<void>(`${this.apiUrl}/items/${cartItemId}`).pipe(
             tap(() => {
                 console.log('Cart item removed:', cartItemId);
-                // Tìm và xóa item khỏi local cart
-                // Reload cart để đảm bảo đồng bộ
+
+                // Reload cart để đồng bộ với server
                 const userId = this.userService.getUserIdFromLocalStorage();
                 if (userId) {
                     this.loadCartFromServer(userId);
@@ -298,6 +294,7 @@ export class CartService {
 
     // Giữ lại method này để backward compatibility
     restoreCart(): void {
+        debugger;
         const userId = this.userService.getUserIdFromLocalStorage();
         if (userId) {
             this.loadCartFromServer(userId);

@@ -18,6 +18,7 @@ import { UserService } from '../../services/user.service';
 import { UserResponse } from '../../responses/user/user.response';
 import { ToastrService } from 'ngx-toastr';
 import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
+import { PaymentService } from '../../services/payment.service';
 
 @Component({
     selector: 'app-order',
@@ -59,7 +60,8 @@ export class OrderComponent implements OnInit {
         private tokenService: TokenService,
         private router: Router,
         private userService: UserService,
-        private toastr: ToastrService
+        private toastr: ToastrService,
+        private paymentService: PaymentService
     ) {
         this.orderForm = this.formBuilder.group({
             fullname: ['', [Validators.required, Validators.pattern(/^[a-zA-ZÀ-ỹà-ỹ\s.'-]{2,50}$/)]],
@@ -284,129 +286,109 @@ export class OrderComponent implements OnInit {
 
     placeOrder(): void {
         if (!this.isOrderConfirmed) {
-            // Đánh dấu form đã được submit
             this.isFormSubmitted = true;
 
-            // Lần đầu: xác nhận đơn, disable form
             if (this.orderForm.valid) {
                 this.isOrderConfirmed = true;
                 this.orderForm.disable();
-
-                // Hiển thị toast thông báo xác nhận đơn hàng
                 this.toastr.info(
                     'Thông tin đặt hàng đã được xác nhận. Nhấn "Đặt hàng" lần nữa để hoàn tất.',
                     'Xác nhận thông tin',
-                    {
-                        timeOut: 3000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right',
-                    }
+                    { timeOut: 3000, progressBar: true, closeButton: true }
                 );
             } else {
-                // Đánh dấu tất cả các trường là touched để hiển thị lỗi
                 this.orderForm.markAllAsTouched();
-                console.log('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
-
-                // Hiển thị toast cảnh báo về form không hợp lệ
-                this.toastr.warning('Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc.', 'Thông tin chưa đầy đủ', {
-                    timeOut: 3000,
-                    progressBar: true,
-                    closeButton: true,
-                    positionClass: 'toast-top-right',
-                });
+                this.toastr.warning('Vui lòng điền đầy đủ thông tin.', 'Thông tin chưa đầy đủ');
             }
         } else if (!this.isOrderPlaced) {
-            // Lần hai: đặt hàng thật sự
-            this.orderData = {
-                ...this.orderData,
-                ...this.orderForm.getRawValue(),
-            };
+            this.orderData = { ...this.orderData, ...this.orderForm.getRawValue() };
             this.orderData.cart_items = this.cartItems
                 .filter((item) => item.selected)
-                .map((cartItem) => ({
-                    product_id: cartItem.product.id,
-                    quantity: cartItem.quantity,
+                .map((item) => ({
+                    product_id: item.product.id,
+                    quantity: item.quantity,
                     status: 'pending',
                 }));
-            debugger;
+
             this.calculatePrice();
             this.orderData.total_money = this.totalPrice;
             this.isOrderPlaced = true;
+
             this.orderService.placeOrder(this.orderData).subscribe({
                 next: (response: any) => {
-                    // Hiển thị toast thành công
-                    this.toastr.success(
-                        `Đơn hàng của bạn đã được đặt thành công! Mã đơn hàng: #${response.id || 'N/A'}`,
-                        'Đặt hàng thành công',
-                        {
-                            timeOut: 5000,
-                            progressBar: true,
-                            closeButton: true,
-                            positionClass: 'toast-top-right',
-                        }
-                    );
+                    const orderId = response?.id;
 
-                    // Xóa sản phẩm trong giỏ hàng sau khi đặt hàng thành công
+                    this.toastr.success(`Đặt hàng thành công! Mã đơn: #${orderId}`, 'Thành công');
+
+                    // ✅ Xóa sản phẩm đã mua trong giỏ hàng
                     const selectedItems = this.cartItems.filter((item) => item.selected);
-                    const allItemsSelected = selectedItems.length === this.cartItems.length;
+                    this.removePurchasedItems(selectedItems);
 
-                    if (allItemsSelected) {
-                        // Nếu chọn hết tất cả sản phẩm, xóa toàn bộ cart
-                        this.cartService.clearCart().subscribe({
-                            next: () => {
-                                console.log('Entire cart cleared successfully');
+                    // ✅ Điều hướng (COD hoặc VNPay)
+                    if (this.orderData.payment_method === 'vn_pay') {
+                        debugger;
+                        this.paymentService.createPaymentUrl(orderId, this.totalPrice).subscribe({
+                            next: (payUrl: string) => {
+                                debugger;
+                                window.location.href = payUrl;
                             },
-                            error: (error) => {
-                                console.error('Error clearing entire cart:', error);
+                            error: () => {
+                                this.toastr.error('Không thể khởi tạo thanh toán VNPay!');
+                                this.router.navigate(['/orders', orderId]);
                             },
                         });
                     } else {
-                        // Nếu chỉ chọn một số sản phẩm, xóa từng item đã chọn
-                        const removeOrderedCartItem = selectedItems
-                            .filter((item) => item.cartItemId !== undefined) // Lọc bỏ các item không có cartItemId
-                            .map((item) => this.cartService.removeFromCart(item.cartItemId!));
-
-                        // Thực hiện xóa tất cả song song
-                        if (removeOrderedCartItem.length > 0) {
-                            forkJoin(removeOrderedCartItem).subscribe({
-                                next: () => {
-                                    console.log('All selected items removed successfully');
-                                },
-                                error: (error: any) => {
-                                    console.error('Error removing some items:', error);
-                                },
-                            });
-                        }
-                    }
-
-                    // Điều hướng sang trang chi tiết đơn hàng vừa đặt
-                    if (response && response.id) {
-                        this.router.navigate(['/orders', response.id]);
-                    } else {
-                        this.router.navigate(['/']);
+                        this.router.navigate(['/orders', orderId]);
                     }
                 },
-                complete: () => {
-                    this.calculatePrice();
-                },
-                error: (error: any) => {
-                    console.log(`Lỗi khi đặt hàng: ${error}`);
-
-                    // Hiển thị toast lỗi với thông báo từ backend
-                    const errorMessage = error.error?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
-                    this.toastr.error(errorMessage, 'Đặt hàng thất bại', {
-                        timeOut: 5000,
-                        progressBar: true,
-                        closeButton: true,
-                        positionClass: 'toast-top-right',
-                        enableHtml: true,
-                    });
-
-                    // Cho phép người dùng thử đặt hàng lại
+                error: (err: any) => {
+                    const msg = err.error?.message || 'Có lỗi xảy ra khi đặt hàng!';
+                    this.toastr.error(msg, 'Đặt hàng thất bại');
                     this.isOrderPlaced = false;
                 },
             });
+        }
+    }
+
+    /**
+     * Xóa sản phẩm đã mua khỏi giỏ hàng
+     */
+    private removePurchasedItems(selectedItems: any[]): void {
+        const allItemsSelected = selectedItems.length === this.cartItems.length;
+
+        if (allItemsSelected) {
+            // Xóa toàn bộ giỏ hàng
+            debugger;
+            this.cartService.clearCart().subscribe({
+                next: () => {
+                    debugger;
+                    this.toastr.info('Đã xóa toàn bộ giỏ hàng sau khi đặt hàng.');
+                    this.cartItems = []; // cập nhật lại UI
+                },
+                error: (err) => {
+                    debugger;
+                    console.error('Error clearing cart:', err);
+                    this.toastr.error('Không thể xóa giỏ hàng.');
+                },
+            });
+        } else {
+            // Xóa từng sản phẩm
+            const removeRequests = selectedItems
+                .filter((item) => !!item.cartItemId)
+                .map((item) => this.cartService.removeFromCart(item.cartItemId!));
+
+            if (removeRequests.length > 0) {
+                forkJoin(removeRequests).subscribe({
+                    next: () => {
+                        this.toastr.info('Các sản phẩm đã mua được xóa khỏi giỏ hàng.');
+                        this.cartItems = this.cartItems.filter((item) => !item.selected); // cập nhật lại UI
+                    },
+                    error: (err) => {
+                        console.error('Error removing items:', err);
+                        this.toastr.error('Không thể xóa một số sản phẩm trong giỏ.');
+                    },
+                });
+            }
         }
     }
 }

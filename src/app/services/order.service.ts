@@ -34,17 +34,13 @@ export class OrderService {
         const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
         debugger;
         const apiGetOrdersByUser = `${this.apiConfig}/user/${userId}`;
-        return this.http
-            .get<ApiResponse<OrderResponse[]>>(apiGetOrdersByUser, { params })
-            .pipe(map((resp) => resp.data));
+        return this.http.get<ApiResponse<OrderResponse[]>>(apiGetOrdersByUser, { params }).pipe(map((resp) => resp.data));
     }
 
     getAllOrders(keyword: string, page: number, limit: number): Observable<OrderResponse[]> {
         debugger;
         const params = new HttpParams().set('keyword', keyword).set('page', page.toString()).set('limit', limit.toString());
-        return this.http
-            .get<ApiResponse<OrderResponse[]>>(this.apiGetAllOrders, { params })
-            .pipe(map((resp) => resp.data));
+        return this.http.get<ApiResponse<OrderResponse[]>>(this.apiGetAllOrders, { params }).pipe(map((resp) => resp.data));
     }
 
     getAllOrdersWithFilter(keyword: string, page: number, limit: number, status?: string): Observable<any> {
@@ -55,24 +51,18 @@ export class OrderService {
             params = params.set('status', status);
         }
 
-        return this.http
-            .get<ApiResponse<any>>(this.apiGetAllOrders, { params })
-            .pipe(map((resp) => resp.data));
+        return this.http.get<ApiResponse<any>>(this.apiGetAllOrders, { params }).pipe(map((resp) => resp.data));
     }
 
     saveOrder(orderId: number, orderDTO: OrderDTO) {
         debugger;
         const apiUpdateOrder = `${environment.apiBaseUrl}/orders/${orderId}`;
-        return this.http
-            .put<ApiResponse<any>>(apiUpdateOrder, orderDTO)
-            .pipe(map((resp) => resp.data));
+        return this.http.put<ApiResponse<any>>(apiUpdateOrder, orderDTO).pipe(map((resp) => resp.data));
     }
 
     deleteOrder(orderId: number) {
         debugger;
         const apiDeleteOrder = `${environment.apiBaseUrl}/orders/${orderId}`;
-        return this.http
-            .delete<ApiResponse<any>>(apiDeleteOrder)
-            .pipe(map((resp) => resp.data));
+        return this.http.delete<ApiResponse<any>>(apiDeleteOrder).pipe(map((resp) => resp.data));
     }
 }

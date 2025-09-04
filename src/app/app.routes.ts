@@ -13,6 +13,7 @@ import { adminRoutes } from './components/admin/admin.routes';
 import { UserOrderComponent } from './components/user-order/user-order.component';
 import { ToastlertComponent } from './components/toastlert/toastlert.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
+import { PaymentCallbackComponent } from './components/payment-callback/payment-callback.component';
 
 export const routes: Routes = [
     ...adminRoutes,
@@ -20,6 +21,7 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'auth/google/callback', component: AuthCallbackComponent },
     { path: 'auth/facebook/callback', component: AuthCallbackComponent },
+    { path: 'payments/payment-callback', component: PaymentCallbackComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'products/:id', component: DetailProductComponent },
     { path: 'orders', component: OrderComponent, canActivate: [AuthGuardFn] },

@@ -11,6 +11,7 @@ import { RouterModule } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { offset } from '@popperjs/core';
 import { VndCurrencyPipe } from '../../pipes/vnd-currency.pipe';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-user-order',
@@ -31,7 +32,7 @@ export class UserOrderComponent implements OnInit {
     isLoading: boolean = false;
     totalOrderCount: number = 0;
 
-    constructor(private orderService: OrderService, private userService: UserService) {}
+    constructor(private orderService: OrderService, private userService: UserService, private router: Router) {}
 
     ngOnInit(): void {
         this.getOrdersByUser();
@@ -203,5 +204,10 @@ export class UserOrderComponent implements OnInit {
 
     onImageError(event: any): void {
         event.target.src = '/assets/images/default-product.png';
+    }
+
+    payVNPayOrder(orderId: number): void {
+        // Handle place order functionality
+        this.router.navigate(['/orders', orderId]);
     }
 }

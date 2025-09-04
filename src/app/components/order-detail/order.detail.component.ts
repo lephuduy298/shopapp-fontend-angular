@@ -9,6 +9,9 @@ import { response } from 'express';
 import { OrderDetail } from '../models.ts/order.detail';
 import { environment } from '../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
+import { PaymentService } from '../../services/payment.service';
+import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-order-detail',
@@ -36,7 +39,13 @@ export class OrderDetailComponent implements OnInit {
         order_details: [],
     };
 
-    constructor(private orderService: OrderService, private route: ActivatedRoute) {}
+    constructor(
+        private orderService: OrderService,
+        private route: ActivatedRoute,
+        private paymentService: PaymentService,
+        private toastr: ToastrService,
+        private router: Router
+    ) {}
 
     ngOnInit(): void {
         debugger;
@@ -80,6 +89,7 @@ export class OrderDetailComponent implements OnInit {
 
                 // Note: status is now handled at order_detail level
                 this.orderResponse.total_money = response.total_money;
+                this.orderResponse.status = response.status;
             },
             complete: () => {
                 debugger;
@@ -87,6 +97,19 @@ export class OrderDetailComponent implements OnInit {
             error: (error: any) => {
                 debugger;
                 console.error(error);
+            },
+        });
+    }
+
+    payNow(): void {
+        this.paymentService.createPaymentUrl(this.orderResponse.id, this.orderResponse.total_money).subscribe({
+            next: (payUrl: string) => {
+                debugger;
+                window.location.href = payUrl;
+            },
+            error: () => {
+                this.toastr.error('Không thể khởi tạo thanh toán VNPay!');
+                this.router.navigate(['/orders', this.orderResponse.id]);
             },
         });
     }

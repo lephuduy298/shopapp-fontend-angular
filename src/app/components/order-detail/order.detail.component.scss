@@ -1,3 +1,4 @@
+/* Nút thanh toán ngay nổi bật */
 @import '../../styles/shared-style.scss';
 
 .container {
@@ -77,4 +78,21 @@ td {
 .btn-right {
     display: flex;
     justify-content: flex-end; // đẩy nút về bên phải
+}
+
+/* Nút thanh toán ngay nhỏ và căn phải */
+.pay-now-btn {
+    display: block;
+    margin-left: auto;
+    margin-right: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(255,193,7,0.15);
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.pay-now-btn:hover {
+    background: #ffc107;
+    box-shadow: 0 4px 12px rgba(255,193,7,0.22);
 }

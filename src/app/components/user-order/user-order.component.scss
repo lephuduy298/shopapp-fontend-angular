@@ -1,3 +1,23 @@
+/* Payment method styles */
+.order-payment-method {
+    margin: 4px 0 8px 0;
+    font-size: 15px;
+    font-weight: 500;
+}
+.order-payment-method.payment-vnpay {
+    color: #1976d2;
+    background: #e3f2fd;
+    border-radius: 4px;
+    padding: 2px 8px 2px 0px;
+    display: inline-block;
+}
+.order-payment-method.payment-cod {
+    color: #388e3c;
+    background: #e8f5e9;
+    border-radius: 4px;
+    padding: 2px 8px 2px 0px;
+    display: inline-block;
+}
 @import '../../styles/shared-style.scss';
 
 .order-history-container {
